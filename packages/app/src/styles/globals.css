@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.slider-container {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.slider-content-wrapper {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.slider-content-wrapper.fast {
+  -webkit-animation: scroll 120s linear infinite;
+  animation: scroll 120s linear infinite;
+}
+
+.slider-content-wrapper.slow {
+  -webkit-animation: scroll 60s linear infinite;
+  animation: scroll 60s linear infinite;
+}
+
+.slider-content-wrapper > div {
+  display: inline-block;
+}
+
+@-webkit-keyframes scroll {
+  from {
+    -webkit-transform: translate3d(0, 0, 0);
+    -ms-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    -webkit-transform: translate3d(-50%, 0, 0);
+    -ms-transform: translate3d(-50%, 0, 0);
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+@keyframes scroll {
+  from {
+    -webkit-transform: translate3d(0, 0, 0);
+    -ms-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    -webkit-transform: translate3d(-50%, 0, 0);
+    -ms-transform: translate3d(-50%, 0, 0);
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+
+.logo {
+  display: inline-block;
+}
