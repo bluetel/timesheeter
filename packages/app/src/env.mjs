@@ -18,19 +18,14 @@ const server = z.object({
     // VERCEL_URL doesn't include `https` so it cant be validated as a URL
     process.env.VERCEL ? z.string().min(1) : z.string().url()
   ),
-  // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
-  AUTH0_SECRET: z.string(),
-  AUTH0_BASE_URL: z.string().url(),
-  AUTH0_ISSUER_BASE_URL: z.string().url(),
-  AUTH0_CLIENT_ID: z.string(),
-  AUTH0_CLIENT_SECRET: z.string(),
-  DISCORD_CLIENT_ID: z.string(),
-  DISCORD_CLIENT_SECRET: z.string(),
-  AWS_REGION: z.string(),
   CONFIG_SECRET_KEY: z.string(),
-  // MODEL_ACCESS_PUBLIC_KEY: z.string(),
-  // MODEL_ACCESS_PRIVATE_KEY: z.string(),
-  PRIVATE_API_SECRET_KEY: z.string(),
+
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
+
+  BULLMQ_REDIS_PASSWORD: z.string(),
+  BULLMQ_REDIS_HOST: z.string(),
+  BULLMQ_REDIS_PORT: z.string(),
 });
 
 /**
@@ -52,19 +47,12 @@ const processEnv = {
   NODE_ENV: process.env.NODE_ENV,
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-  DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
-  DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
-  // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
-  AUTH0_SECRET: process.env.AUTH0_SECRET,
-  AUTH0_BASE_URL: process.env.AUTH0_BASE_URL,
-  AUTH0_ISSUER_BASE_URL: process.env.AUTH0_ISSUER_BASE_URL,
-  AUTH0_CLIENT_ID: process.env.AUTH0_CLIENT_ID,
-  AUTH0_CLIENT_SECRET: process.env.AUTH0_CLIENT_SECRET,
-  AWS_REGION: process.env.AWS_REGION,
   CONFIG_SECRET_KEY: process.env.CONFIG_SECRET_KEY,
-  // MODEL_ACCESS_PUBLIC_KEY: process.env.MODEL_ACCESS_PUBLIC_KEY,
-  // MODEL_ACCESS_PRIVATE_KEY: process.env.MODEL_ACCESS_PRIVATE_KEY,
-  PRIVATE_API_SECRET_KEY: process.env.PRIVATE_API_SECRET_KEY,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  BULLMQ_REDIS_PASSWORD: process.env.BULLMQ_REDIS_PASSWORD,
+  BULLMQ_REDIS_HOST: process.env.BULLMQ_REDIS_HOST,
+  BULLMQ_REDIS_PORT: process.env.BULLMQ_REDIS_PORT,
 };
 
 // Don't touch the part below

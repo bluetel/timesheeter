@@ -99,7 +99,7 @@ const useBasicDetails = (
     {
       label: {
         title: "Name",
-        description: "The name of this integration",
+        description: `Descriptive name for the integration, e.g. "James's Toggl"`
       },
       field: {
         variant: "text",
@@ -113,7 +113,7 @@ const useBasicDetails = (
       label: {
         title: "Description",
         description:
-          "The description of this integration, used by the AI to refine its answers",
+        "An extra description for the integration, e.g. what is it used for"
       },
       field: {
         variant: "text",

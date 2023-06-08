@@ -1,8 +1,6 @@
-import { type Membership, type Workspace } from "@prisma/client";
-import { type GetServerSideProps, type GetServerSidePropsContext } from "next";
-import { type User } from "next-auth";
+import { type GetServerSidePropsContext } from "next";
 
-export const getServerSideProps = async ({
+export const getServerSideProps = ({
   params,
 }: GetServerSidePropsContext) => {
   if (!params?.workspaceId || typeof params.workspaceId !== "string") {

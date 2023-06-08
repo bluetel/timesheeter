@@ -1,14 +1,23 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@timesheeter/app/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+} from "@timesheeter/app/server/api/trpc";
 import {
   createIntegrationSchema,
   INTEGRATION_DEFINITIONS,
   updateIntegrationSchema,
   type IntegrationConfig,
+  integrationConfigSchema,
 } from "@timesheeter/app/lib/workspace/integrations";
-import { decrypt, encrypt, filterConfig } from "@timesheeter/app/server/lib/secret-helpers";
+import {
+  decrypt,
+  encrypt,
+  filterConfig,
+} from "@timesheeter/app/server/lib/secret-helpers";
 import { type Integration, type PrismaClient } from "@prisma/client";
+import { integrationsQueue } from "@timesheeter/app/server/bullmq";
 
 export const integrationsRouter = createTRPCRouter({
   list: protectedProcedure
@@ -18,12 +27,18 @@ export const integrationsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      await authorize(ctx.prisma, null, input.workspaceId, ctx.session.user.id);
+      await authorize({
+        prisma: ctx.prisma,
+        integrationId: null,
+        workspaceId: input.workspaceId,
+        userId: ctx.session.user.id,
+      });
 
       return ctx.prisma.integration
         .findMany({
           where: {
             workspaceId: input.workspaceId,
+            userId: ctx.session.user.id,
           },
         })
         .then((integrations) =>
@@ -33,46 +48,118 @@ export const integrationsRouter = createTRPCRouter({
   create: protectedProcedure
     .input(createIntegrationSchema)
     .mutation(async ({ ctx, input }) => {
-      await authorize(ctx.prisma, null, input.workspaceId, ctx.session.user.id);
+      await authorize({
+        prisma: ctx.prisma,
+        integrationId: null,
+        workspaceId: input.workspaceId,
+        userId: ctx.session.user.id,
+      });
 
       const { config, ...rest } = input;
 
-      return ctx.prisma.integration
+      const createdIntegration = await ctx.prisma.integration
         .create({
           data: {
+            userId: ctx.session.user.id,
             ...rest,
             type: config.type,
             configSerialized: encrypt(JSON.stringify(input.config)),
           },
         })
         .then(parseIntegration);
+
+      // Queue the integration for processing
+      await integrationsQueue.add(
+        "processIntegration",
+        {
+          integrationId: createdIntegration.id,
+        },
+        {
+          repeat: {
+            pattern: config.chronExpression,
+          },
+        }
+      );
+
+      return createdIntegration;
     }),
   update: protectedProcedure
     .input(updateIntegrationSchema)
     .mutation(async ({ ctx, input }) => {
-      await authorize(
-        ctx.prisma,
-        input.id,
-        input.workspaceId,
-        ctx.session.user.id
-      );
+      await authorize({
+        prisma: ctx.prisma,
+        integrationId: input.id,
+        workspaceId: input.workspaceId,
+        userId: ctx.session.user.id,
+      });
 
-      const { config, ...rest } = input;
+      const { config: oldConfig, repeatJobKey: oldRepeatJobKey } =
+        await ctx.prisma.integration
+          .findUnique({
+            where: {
+              id: input.id,
+            },
+          })
+          .then((integration) => {
+            if (!integration) {
+              throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Integration not found after authorization",
+              });
+            }
 
-      return ctx.prisma.integration
+            return parseIntegration(integration, false);
+          });
+
+      const { config: updatedConfigValues, ...rest } = input;
+
+      const updatedConfig = {
+        oldConfig,
+        ...updatedConfigValues,
+      };
+
+      // Validate the config against the IntegrationConfigSchema
+
+      integrationConfigSchema.parse(updatedConfig);
+
+      await ctx.prisma.integration
         .update({
           where: {
             id: input.id,
           },
           data: {
             ...rest,
-            type: config?.type,
-            configSerialized: config
-              ? encrypt(JSON.stringify(input.config))
-              : undefined,
+            ...updatedConfig,
           },
         })
         .then(parseIntegration);
+
+      // Delete the old job
+      if (oldRepeatJobKey) {
+        await integrationsQueue.removeRepeatableByKey(oldRepeatJobKey);
+      }
+
+      // Queue the integration for processing
+      const { repeatJobKey } = await integrationsQueue.add(
+        "processIntegration",
+        {
+          integrationId: input.id,
+        },
+        {
+          repeat: {
+            pattern: updatedConfig.chronExpression,
+          },
+        }
+      );
+
+      return ctx.prisma.integration.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          repeatJobKey,
+        },
+      });
     }),
   delete: protectedProcedure
     .input(
@@ -82,20 +169,28 @@ export const integrationsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await authorize(
-        ctx.prisma,
-        input.id,
-        input.workspaceId,
-        ctx.session.user.id
-      );
+      await authorize({
+        prisma: ctx.prisma,
+        integrationId: input.id,
+        workspaceId: input.workspaceId,
+        userId: ctx.session.user.id,
+      });
 
-      return ctx.prisma.integration
+      const deletedIntegration = await ctx.prisma.integration
         .delete({
           where: {
             id: input.id,
           },
         })
         .then(parseIntegration);
+
+      if (deletedIntegration.repeatJobKey) {
+        await integrationsQueue.removeRepeatableByKey(
+          deletedIntegration.repeatJobKey
+        );
+      }
+
+      return deletedIntegration;
     }),
 });
 
@@ -123,12 +218,22 @@ export const parseIntegration = (
   };
 };
 
-const authorize = async (
-  prisma: PrismaClient,
-  integrationId: string | null,
-  workspaceId: string,
-  userId: string
-) => {
+type AuthorizeParams<IntegrationId extends string | null> = {
+  prisma: PrismaClient;
+  integrationId: IntegrationId;
+  workspaceId: string;
+  userId: string;
+};
+
+type AuthorizeResult<IntegrationId extends string | null> =
+  IntegrationId extends null ? null : Integration;
+
+const authorize = async <IntegrationId extends string | null>({
+  prisma,
+  integrationId,
+  workspaceId,
+  userId,
+}: AuthorizeParams<IntegrationId>): Promise<AuthorizeResult<IntegrationId>> => {
   const membership = await prisma.membership.findMany({
     where: {
       userId,
@@ -144,7 +249,7 @@ const authorize = async (
   }
 
   if (!integrationId) {
-    return;
+    return null as AuthorizeResult<IntegrationId>;
   }
 
   const integration = await prisma.integration.findUnique({
@@ -166,4 +271,6 @@ const authorize = async (
       message: "Integration not found",
     });
   }
+
+  return integration as AuthorizeResult<IntegrationId>;
 };

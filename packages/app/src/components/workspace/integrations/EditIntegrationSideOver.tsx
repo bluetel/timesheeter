@@ -13,7 +13,7 @@ import { z } from "zod";
 import { SideOver } from "@timesheeter/app/components/ui/SideOver";
 import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicForm";
 import { type BasicFormItemProps } from "@timesheeter/app/components/ui/forms/BasicForm/BasicFormItem";
-import { type FieldError } from "react-hook-form";
+import { useNotifications } from "../../ui/notification/NotificationProvider";
 
 const mutationSchema = z.union([
   createIntegrationSchema.extend({
@@ -29,13 +29,13 @@ type EditIntegrationSideOverProps = {
   show: boolean;
   onClose: () => void;
   data:
-    | {
-        new: true;
-      }
-    | {
-        new: false;
-        integration: RouterOutputs["workspace"]["integrations"]["list"][0];
-      };
+  | {
+    new: true;
+  }
+  | {
+    new: false;
+    integration: RouterOutputs["workspace"]["integrations"]["list"][0];
+  };
   workspaceId: string;
 };
 
@@ -46,17 +46,19 @@ export const EditIntegrationSideOver = ({
   data,
   workspaceId,
 }: EditIntegrationSideOverProps) => {
+  const { addNotification } = useNotifications();
+
   const getDefaultValues = () =>
     data.new
       ? {
-          new: true as const,
-          workspaceId,
-          config: getDefaultConfig(),
-        }
+        new: true as const,
+        workspaceId,
+        config: getDefaultConfig(),
+      }
       : {
-          new: false as const,
-          ...data.integration,
-        };
+        new: false as const,
+        ...data.integration,
+      };
 
   const methods = useZodForm({
     schema: mutationSchema,
@@ -96,9 +98,48 @@ export const EditIntegrationSideOver = ({
       return;
     }
 
-    const values = methods.getValues();
+    let values = methods.getValues();
 
-    values.new ? createIntegration(values) : updateIntegration(values);
+    // If just updating, filter out the values that are not changed
+    if (!data.new) {
+      const { integration } = data;
+
+      values = {
+        ...values,
+        config: {
+          ...Object.fromEntries(
+            Object.entries(values.config ?? {}).filter(
+              ([key, value]) => (integration.config as Record<string, unknown>)[key] !== value
+            )) as typeof values["config"],
+          type: values.config.type ?? integration.config.type,
+        },
+        description:
+          integration.description !== values.description ? values.description : undefined,
+      } as typeof values;
+
+
+      // Filter out undefined values
+      values = Object.fromEntries(
+        Object.entries(values).filter(([, value]) => value !== undefined)
+      ) as typeof values;
+    }
+    values.new ? createIntegration(values, {
+      onError: (error) => {
+        addNotification({
+          variant: "error",
+          primaryText: "Failed to create integration",
+          secondaryText: error.message,
+        });
+      }
+    }) : updateIntegration(values, {
+      onError: (error) => {
+        addNotification({
+          variant: "error",
+          primaryText: "Failed to update integration",
+          secondaryText: error.message,
+        });
+      },
+    });
   };
 
   const fields = useIntegrationFields(methods);
@@ -154,7 +195,7 @@ const useIntegrationFields = (
       label: {
         title: "Integration name",
         description:
-          'Custom name for the integration, e.g. "Blog helpdesk". This is used to help the AI',
+          `Descriptive name for the integration, e.g. "James's Toggl"`
       },
       field: {
         variant: "text",
@@ -166,7 +207,7 @@ const useIntegrationFields = (
       label: {
         title: "Description",
         description:
-          "Brief description of the integration. This is used by the AI to refine its answers.",
+          "An extra description for the integration, e.g. what is it used for",
       },
       field: {
         variant: "textarea",
@@ -176,11 +217,10 @@ const useIntegrationFields = (
     },
   ];
 
-  const integrationConfig =
+  const IntegrationConfig =
     INTEGRATION_DEFINITIONS[methods.getValues("config.type")];
 
-  integrationConfig.fields.forEach((field) => {
-    // @ts-expect-error - We know that the field is defined
+  IntegrationConfig.fields.forEach((field) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const error = methods.formState.errors.config?.[field.accessor];
 
@@ -193,8 +233,7 @@ const useIntegrationFields = (
       field: {
         variant: "text",
         register: methods.register(`config.${field.accessor}`),
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        error: error as FieldError | undefined,
+        error
       },
     });
   });

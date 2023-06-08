@@ -4,11 +4,9 @@ import {
   type NextAuthOptions,
   type DefaultSession,
 } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { env } from "@timesheeter/app/env.mjs";
 import { prisma } from "@timesheeter/app/server/db";
-import Auth0Provider from "next-auth/providers/auth0";
 import GoogleProvider from "next-auth/providers/google";
 
 /**
@@ -52,6 +50,13 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
 
     /**

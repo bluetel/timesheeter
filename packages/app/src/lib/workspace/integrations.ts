@@ -1,114 +1,47 @@
 import { z } from "zod";
-import { SiWikipedia, SiWordpress, SiZendesk } from "react-icons/si";
+import { SiToggl } from "react-icons/si";
+import { chronRegex } from "@timesheeter/app/lib/regex";
 
 export const INTEGRATIONS_HELP_TEXT =
-  "Integrations allow models to connect to public and private data sources.";
+  "Integrations allow you to pull data from external timesheet providers into your workspace";
 
 export const INTEGRATION_DEFINITIONS = {
-  ZendeskReader: {
-    name: "Zendesk",
-    icon: SiZendesk,
+  TogglIntegration: {
+    name: "Toggl",
+    icon: SiToggl,
     fields: [
       {
-        accessor: "zendeskSubdomain",
-        name: "Zendesk Subdomain",
+        accessor: "apiKey",
+        name: "API Key",
+        type: "string",
+        required: true,
+        protectCount: 4,
+        description: "Your Toggl API key",
+      },
+      {
+        accessor: "chronExpression",
+        name: "Chron Expression",
         type: "string",
         required: true,
         protectCount: 0,
-        description: "The subdomain of your Zendesk instance",
-      },
-      {
-        accessor: "locale",
-        name: "Locale",
-        type: "string",
-        required: false,
-        protectCount: 0,
-        description: "Specified language, defaults to en-us",
+        description: "Chron Expression for when to pull data from Toggl",
       },
     ],
     configSchema: z.object({
-      type: z.literal("ZendeskReader"),
-      zendeskSubdomain: z.string().url(),
-      locale: z
-        .string()
-        .optional()
-        .default("en-us")
-        .describe("Specified language, defaults to en-us"),
+      type: z.literal("TogglIntegration"),
+      apiKey: z.string().min(1),
+      chronExpression: z.string().regex(chronRegex),
+    }),
+    updateIntegrationSchema: z.object({
+      type: z.literal("TogglIntegration"),
+      apiKey: z.string().min(1).optional(),
+      chronExpression: z.string().min(1).optional(),
     }),
     defaultConfig: {
-      type: "ZendeskReader",
-      zendeskSubdomain: "",
-      locale: "en-us",
-    },
-  },
-  WordpressReader: {
-    name: "Wordpress",
-    icon: SiWordpress,
-    fields: [
-      {
-        accessor: "url",
-        name: "URL",
-        type: "string",
-        required: true,
-        protectCount: 0,
-        description: "The URL of the Wordpress site",
-      },
-      {
-        accessor: "username",
-        name: "Username",
-        type: "string",
-        required: true,
-        protectCount: 0,
-        description: "The username of the Wordpress site",
-      },
-      {
-        accessor: "password",
-        name: "Password",
-        type: "string",
-        required: true,
-        protectCount: -1,
-        description: "The password of the Wordpress site",
-      },
-    ],
-    configSchema: z.object({
-      type: z.literal("WordpressReader"),
-      url: z.string(),
-      username: z.string().min(1),
-      password: z.string().min(1),
-    }),
-    defaultConfig: {
-      type: "WordpressReader",
-      url: "",
-      username: "",
-      password: "",
-    },
-  },
-  WikipediaReader: {
-    name: "Wikipedia",
-    icon: SiWikipedia,
-    fields: [
-      {
-        accessor: "pages",
-        name: "Pages",
-        type: "string",
-        required: true,
-        protectCount: 0,
-        description:
-          "The pages to fetch, seperated by commas eg 'Berlin,Paris,New York'",
-      },
-    ],
-    configSchema: z.object({
-      type: z.literal("WikipediaReader"),
-      pages: z
-        .string()
-        .min(0)
-        .describe(
-          "The pages to fetch, seperated by commas eg 'Berlin,Paris,New York'"
-        ),
-    }),
-    defaultConfig: {
-      type: "WikipediaReader",
-      pages: "",
+      type: "TogglIntegration",
+      apiKey: "",
+      // Default to every 15 minutes
+      chronExpression: "*/15 * * * *",
     },
   },
 } as const;
@@ -118,16 +51,25 @@ export type IntegrationVariant = keyof typeof INTEGRATION_DEFINITIONS;
 export type IntegrationDetail =
   (typeof INTEGRATION_DEFINITIONS)[IntegrationVariant];
 
-export const integrationConfigSchema = z.union([
-  INTEGRATION_DEFINITIONS.ZendeskReader.configSchema,
-  INTEGRATION_DEFINITIONS.WordpressReader.configSchema,
-  INTEGRATION_DEFINITIONS.WikipediaReader.configSchema,
-]);
+// export const integrationConfigSchema = z.union([
+//   INTEGRATION_DEFINITIONS.TogglIntegration.configSchema,
+// ]);
+
+export const integrationConfigSchema =
+  INTEGRATION_DEFINITIONS.TogglIntegration.configSchema;
 
 export type IntegrationConfig = z.infer<typeof integrationConfigSchema>;
 
-export const getDefaultConfig = (type: IntegrationVariant = "ZendeskReader") =>
-  INTEGRATION_DEFINITIONS[type].defaultConfig;
+export const updateIntegrationConfigSchema =
+  INTEGRATION_DEFINITIONS.TogglIntegration.updateIntegrationSchema;
+
+export type UpdateIntegrationConfig = z.infer<
+  typeof updateIntegrationConfigSchema
+>;
+
+export const getDefaultConfig = (
+  type: IntegrationVariant = "TogglIntegration"
+) => INTEGRATION_DEFINITIONS[type].defaultConfig;
 
 export const createIntegrationSchema = z.object({
   workspaceId: z.string().cuid2(),
@@ -141,5 +83,5 @@ export const updateIntegrationSchema = z.object({
   workspaceId: z.string().cuid2(),
   name: z.string().min(1).max(100).optional(),
   description: z.string().min(0).max(500).optional(),
-  config: integrationConfigSchema.optional(),
+  config: updateIntegrationConfigSchema,
 });

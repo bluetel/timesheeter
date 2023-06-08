@@ -8,7 +8,9 @@
     "postinstall": "prisma generate",
     "lint": "next lint",
     "start": "next start",
-    "generate-proto": "./generate-proto.sh"
+    "generate-proto": "./generate-proto.sh",
+    "bullmq:redis:up:dev": "docker-compose -f bullmq-redis.docker-compose.yml --env-file .env up -d",
+    "bullmq:redis:down:dev": "docker-compose -f bullmq-redis.docker-compose.yml down"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.13",
@@ -23,6 +25,7 @@
     "@trpc/react-query": "^10.23.0",
     "@trpc/server": "^10.23.0",
     "aws-sdk": "^2.1340.0",
+    "bullmq": "^3.15.2",
     "grpc": "^1.24.11",
     "headlessui": "^0.0.0",
     "heroicons": "^2.0.16",

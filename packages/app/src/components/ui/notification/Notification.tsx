@@ -1,13 +1,15 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect } from "react";
 import { Transition } from "@headlessui/react";
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 
 export type NotificationProps = {
-  variant: "success";
+  variant: "success" | "error";
   primaryText: string;
   secondaryText?: string;
   onUnmount: () => unknown;
+  show: boolean;
+  setShow: (show: boolean) => unknown;
 };
 
 export const Notification = ({
@@ -49,10 +51,17 @@ export const Notification = ({
         <div className="p-4">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <CheckCircleIcon
-                className="h-6 w-6 text-green-400"
-                aria-hidden="true"
-              />
+              {variant === "error" ? (
+                <XCircleIcon
+                  className="h-6 w-6 text-red-400"
+                  aria-hidden="true"
+                />
+              ) : (
+                <CheckCircleIcon
+                  className="h-6 w-6 text-green-400"
+                  aria-hidden="true"
+                />
+              )}
             </div>
             <div className="ml-3 w-0 flex-1 pt-0.5">
               <p className="text-sm font-medium text-gray-900">{primaryText}</p>

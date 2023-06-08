@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  redis:
+    image: docker.io/bitnami/redis:latest
+    environment:
+      - REDIS_PASSWORD=${BULLMQ_REDIS_PASSWORD}
+      - REDIS_PORT_NUMBER=${BULLMQ_REDIS_PORT}
+    # Run on the host network
+    volumes:
+      - redis-data:/bitnami/redis/data
+    restart: always
+    network_mode: host
+
+volumes:
+  redis-data:
+    driver: local

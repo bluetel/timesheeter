@@ -13,6 +13,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { IntegrationIcon, ModelIcon, ToolIcon } from "@timesheeter/app/styles/icons";
 import { classNames } from "@timesheeter/app/utils/tailwind";
+import Image from "next/image";
 
 export type WorkspaceLayoutProps = {
   workspaceInfo: WorkspaceInfo;
@@ -28,9 +29,7 @@ type NavigationItem = {
 
 const navigation = [
   { name: "Dashboard", path: "/dashboard", icon: HomeIcon },
-  { name: "Models", path: "/models", icon: ModelIcon },
   { name: "Integrations", path: "/integrations", icon: IntegrationIcon },
-  { name: "Tools", path: "/tools", icon: ToolIcon },
 ] as NavigationItem[];
 
 export const WorkspaceLayout = ({
@@ -132,7 +131,7 @@ export const WorkspaceLayout = ({
                   </nav>
                 </div>
                 <div className="flex flex-shrink-0 border-t border-gray-200 p-4">
-                  <a href="#" className="group block flex-shrink-0">
+                  <Link href="/find-workspace" className="group block flex-shrink-0">
                     <div className="flex items-center">
                       <div>
                         {user.image ? (
@@ -157,7 +156,7 @@ export const WorkspaceLayout = ({
                         </p> */}
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -175,10 +174,12 @@ export const WorkspaceLayout = ({
           <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-gray-100">
             <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
               <div className="flex flex-shrink-0 items-center px-4">
-                <img
+                <Image
+                  alt="logo"
                   className="h-8 w-auto"
-                  src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-                  alt="Your Company"
+                  src="/images/logo.png"
+                  width={225}
+                  height={225}
                 />
               </div>
               <nav className="mt-5 flex-1" aria-label="Sidebar">
@@ -210,14 +211,16 @@ export const WorkspaceLayout = ({
               </nav>
             </div>
             <div className="flex flex-shrink-0 border-t border-gray-200 p-4">
-              <a href="#" className="group block w-full flex-shrink-0">
+              <Link href="/find-workspace" className="group block w-full flex-shrink-0">
                 <div className="flex items-center">
                   <div>
                     {user.image ? (
-                      <img
+                      <Image
                         className="inline-block h-9 w-9 rounded-full"
                         src={user.image}
                         alt={user.name ?? "User"}
+                        width={36}
+                        height={36}
                       />
                     ) : (
                       <UserCircleIcon
@@ -233,7 +236,7 @@ export const WorkspaceLayout = ({
                     {/* <p className="text-xs font-medium text-gray-500 group-hover:text-gray-700">View profile</p> */}
                   </div>
                 </div>
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -242,10 +245,12 @@ export const WorkspaceLayout = ({
         <div className="lg:hidden">
           <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-1.5">
             <div>
-              <img
+              <Image
+                alt="App logo"
                 className="h-8 w-auto"
-                src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-                alt="Your Company"
+                src="/images/logo.png"
+                width={225}
+                height={225}
               />
             </div>
             <div>
