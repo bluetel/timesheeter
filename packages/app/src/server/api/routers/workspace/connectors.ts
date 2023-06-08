@@ -5,21 +5,21 @@ import {
   protectedProcedure,
 } from "@timesheeter/app/server/api/trpc";
 import {
-  createIntegrationSchema,
-  INTEGRATION_DEFINITIONS,
-  updateIntegrationSchema,
-  type IntegrationConfig,
-  integrationConfigSchema,
-} from "@timesheeter/app/lib/workspace/integrations";
+  createConnectorSchema,
+  CONNECTOR_DEFINITIONS,
+  updateConnectorSchema,
+  type ConnectorConfig,
+  connectorConfigSchema,
+} from "@timesheeter/app/lib/workspace/connectors";
 import {
   decrypt,
   encrypt,
   filterConfig,
 } from "@timesheeter/app/server/lib/secret-helpers";
-import { type Integration, type PrismaClient } from "@prisma/client";
-import { integrationsQueue } from "@timesheeter/app/server/bullmq";
+import { type Connector, type PrismaClient } from "@prisma/client";
+import { connectorsQueue } from "@timesheeter/app/server/bullmq";
 
-export const integrationsRouter = createTRPCRouter({
+export const connectorsRouter = createTRPCRouter({
   list: protectedProcedure
     .input(
       z.object({
@@ -29,49 +29,47 @@ export const integrationsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       await authorize({
         prisma: ctx.prisma,
-        integrationId: null,
+        connectorId: null,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
 
-      return ctx.prisma.integration
+      return ctx.prisma.connector
         .findMany({
           where: {
             workspaceId: input.workspaceId,
-            userId: ctx.session.user.id,
           },
         })
-        .then((integrations) =>
-          integrations.map((integration) => parseIntegration(integration))
+        .then((connectors) =>
+          connectors.map((connector) => parseConnector(connector))
         );
     }),
   create: protectedProcedure
-    .input(createIntegrationSchema)
+    .input(createConnectorSchema)
     .mutation(async ({ ctx, input }) => {
       await authorize({
         prisma: ctx.prisma,
-        integrationId: null,
+        connectorId: null,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
 
       const { config, ...rest } = input;
 
-      const createdIntegration = await ctx.prisma.integration
+      const createdConnector = await ctx.prisma.connector
         .create({
           data: {
-            userId: ctx.session.user.id,
             ...rest,
             configSerialized: encrypt(JSON.stringify(input.config)),
           },
         })
-        .then(parseIntegration);
+        .then(parseConnector);
 
-      // Queue the integration for processing
-      await integrationsQueue.add(
-        "processIntegration",
+      // Queue the connector for processing
+      await connectorsQueue.add(
+        "processConnector",
         {
-          integrationId: createdIntegration.id,
+          connectorId: createdConnector.id,
         },
         {
           repeat: {
@@ -80,34 +78,34 @@ export const integrationsRouter = createTRPCRouter({
         }
       );
 
-      return createdIntegration;
+      return createdConnector;
     }),
   update: protectedProcedure
-    .input(updateIntegrationSchema)
+    .input(updateConnectorSchema)
     .mutation(async ({ ctx, input }) => {
       await authorize({
         prisma: ctx.prisma,
-        integrationId: input.id,
+        connectorId: input.id,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
 
       const { config: oldConfig, repeatJobKey: oldRepeatJobKey } =
-        await ctx.prisma.integration
+        await ctx.prisma.connector
           .findUnique({
             where: {
               id: input.id,
             },
           })
-          .then((integration) => {
-            if (!integration) {
+          .then((connector) => {
+            if (!connector) {
               throw new TRPCError({
                 code: "NOT_FOUND",
-                message: "Integration not found after authorization",
+                message: "Connector not found after authorization",
               });
             }
 
-            return parseIntegration(integration, false);
+            return parseConnector(connector, false);
           });
 
       const { config: updatedConfigValues, ...rest } = input;
@@ -117,11 +115,11 @@ export const integrationsRouter = createTRPCRouter({
         ...updatedConfigValues,
       };
 
-      // Validate the config against the IntegrationConfigSchema
+      // Validate the config against the ConnectorConfigSchema
 
-      integrationConfigSchema.parse(updatedConfig);
+      connectorConfigSchema.parse(updatedConfig);
 
-      await ctx.prisma.integration
+      await ctx.prisma.connector
         .update({
           where: {
             id: input.id,
@@ -131,18 +129,18 @@ export const integrationsRouter = createTRPCRouter({
             ...updatedConfig,
           },
         })
-        .then(parseIntegration);
+        .then(parseConnector);
 
       // Delete the old job
       if (oldRepeatJobKey) {
-        await integrationsQueue.removeRepeatableByKey(oldRepeatJobKey);
+        await connectorsQueue.removeRepeatableByKey(oldRepeatJobKey);
       }
 
-      // Queue the integration for processing
-      const { repeatJobKey } = await integrationsQueue.add(
-        "processIntegration",
+      // Queue the connector for processing
+      const { repeatJobKey } = await connectorsQueue.add(
+        "processConnector",
         {
-          integrationId: input.id,
+          connectorId: input.id,
         },
         {
           repeat: {
@@ -151,7 +149,7 @@ export const integrationsRouter = createTRPCRouter({
         }
       );
 
-      return ctx.prisma.integration.update({
+      return ctx.prisma.connector.update({
         where: {
           id: input.id,
         },
@@ -170,69 +168,69 @@ export const integrationsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await authorize({
         prisma: ctx.prisma,
-        integrationId: input.id,
+        connectorId: input.id,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
 
-      const deletedIntegration = await ctx.prisma.integration
+      const deletedConnector = await ctx.prisma.connector
         .delete({
           where: {
             id: input.id,
           },
         })
-        .then(parseIntegration);
+        .then(parseConnector);
 
-      if (deletedIntegration.repeatJobKey) {
-        await integrationsQueue.removeRepeatableByKey(
-          deletedIntegration.repeatJobKey
+      if (deletedConnector.repeatJobKey) {
+        await connectorsQueue.removeRepeatableByKey(
+          deletedConnector.repeatJobKey
         );
       }
 
-      return deletedIntegration;
+      return deletedConnector;
     }),
 });
 
-export type ParsedIntegration = Omit<Integration, "configSerialized"> & {
-  config: IntegrationConfig;
+export type ParsedConnector = Omit<Connector, "configSerialized"> & {
+  config: ConnectorConfig;
 };
 
-export const parseIntegration = (
-  integration: Integration,
+export const parseConnector = (
+  connector: Connector,
   safe = true
-): ParsedIntegration => {
+): ParsedConnector => {
   const config = JSON.parse(
-    decrypt(integration.configSerialized)
-  ) as IntegrationConfig;
+    decrypt(connector.configSerialized)
+  ) as ConnectorConfig;
 
   return {
-    ...integration,
+    ...connector,
     config: safe
-      ? filterConfig<IntegrationConfig>(
+      ? filterConfig<ConnectorConfig>(
           config,
-          INTEGRATION_DEFINITIONS[config.type].fields,
+          CONNECTOR_DEFINITIONS[config.type].fields,
           config.type
         )
       : config,
   };
 };
 
-type AuthorizeParams<IntegrationId extends string | null> = {
+type AuthorizeParams<ConnectorId extends string | null> = {
   prisma: PrismaClient;
-  integrationId: IntegrationId;
+  connectorId: ConnectorId;
   workspaceId: string;
   userId: string;
 };
 
-type AuthorizeResult<IntegrationId extends string | null> =
-  IntegrationId extends null ? null : Integration;
+type AuthorizeResult<ConnectorId extends string | null> =
+  ConnectorId extends null ? null : Connector;
 
-const authorize = async <IntegrationId extends string | null>({
+const authorize = async <ConnectorId extends string | null>({
   prisma,
-  integrationId,
+  connectorId,
   workspaceId,
   userId,
-}: AuthorizeParams<IntegrationId>): Promise<AuthorizeResult<IntegrationId>> => {
+}: AuthorizeParams<ConnectorId>): Promise<AuthorizeResult<ConnectorId>> => {
   const membership = await prisma.membership.findMany({
     where: {
       userId,
@@ -247,36 +245,29 @@ const authorize = async <IntegrationId extends string | null>({
     });
   }
 
-  if (!integrationId) {
-    return null as AuthorizeResult<IntegrationId>;
+  if (!connectorId) {
+    return null as AuthorizeResult<ConnectorId>;
   }
 
-  const integration = await prisma.integration.findUnique({
+  const connector = await prisma.connector.findUnique({
     where: {
-      id: integrationId,
+      id: connectorId,
     },
   });
 
-  if (!integration) {
+  if (!connector) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Integration not found",
+      message: "Connector not found",
     });
   }
 
-  if (integration.workspaceId !== workspaceId) {
+  if (connector.workspaceId !== workspaceId) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Integration not found",
+      message: "Connector not found",
     });
   }
 
-  if (integration.userId !== userId) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "This integration does not belong to you",
-    });
-  }
-
-  return integration as AuthorizeResult<IntegrationId>;
+  return connector as AuthorizeResult<ConnectorId>;
 };

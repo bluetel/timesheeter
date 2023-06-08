@@ -20,3 +20,13 @@ export const integrationsQueue = new Queue<IntegrationJob, unknown>(
   queueConfig,
   RedisConnection
 );
+
+export type ConnectorJob = {
+  connectorId: string;
+};
+
+export const connectorsQueue = new Queue<ConnectorJob, unknown>(
+  "connectors",
+  queueConfig,
+  RedisConnection
+);

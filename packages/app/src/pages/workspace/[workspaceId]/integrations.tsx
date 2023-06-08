@@ -15,7 +15,6 @@ import { IntegrationPanel } from "@timesheeter/app/components/workspace/integrat
 import {
   INTEGRATIONS_HELP_TEXT,
   INTEGRATION_DEFINITIONS,
-  type IntegrationVariant,
 } from "@timesheeter/app/lib/workspace/integrations";
 import { IntegrationIcon } from "@timesheeter/app/styles/icons";
 import { SimpleEmptyState } from "@timesheeter/app/components/ui/SimpleEmptyState";
@@ -105,7 +104,7 @@ const Integrations = ({
     () =>
       integrations?.map((integration) => {
         const integrationDefinition =
-          INTEGRATION_DEFINITIONS[integration.type as IntegrationVariant];
+          INTEGRATION_DEFINITIONS[integration.config.type];
 
         return {
           label: integration.name,

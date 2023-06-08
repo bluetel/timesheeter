@@ -1,5 +1,4 @@
 import {
-  type IntegrationVariant,
   INTEGRATION_DEFINITIONS,
   type IntegrationDetail,
 } from "@timesheeter/app/lib/workspace/integrations";
@@ -32,7 +31,7 @@ export const IntegrationPanel = ({
     useState(false);
 
   const integrationDetail =
-    INTEGRATION_DEFINITIONS[integration.type as IntegrationVariant];
+    INTEGRATION_DEFINITIONS[integration.config.type];
 
   const basicDetails = useBasicDetails(integration, integrationDetail);
 
@@ -64,8 +63,8 @@ export const IntegrationPanel = ({
           },
         }}
         content={{
-          name: integration.name,
-          description: integration.description,
+          name: INTEGRATION_DEFINITIONS[integration.config.type].name,
+          description: INTEGRATION_DEFINITIONS[integration.config.type].description,
           icon: integrationDetail.icon,
           endButtons: {
             onEdit: () => setShowEditIntegrationSideOver(true),
@@ -124,7 +123,7 @@ const useBasicDetails = (
 
   integrationDetail.fields.forEach((field) => {
     const value =
-      ((model.config as Record<string, string>)[field.accessor] as string) ??
+      ((model.config as Record<string, unknown>)[field.accessor] as string) ??
       "";
 
     details.push({

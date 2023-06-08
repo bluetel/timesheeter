@@ -8,6 +8,7 @@ export const INTEGRATIONS_HELP_TEXT =
 export const INTEGRATION_DEFINITIONS = {
   TogglIntegration: {
     name: "Toggl",
+    description: "Connect to Toggl to pull in time entries",
     icon: SiToggl,
     fields: [
       {

@@ -11,7 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { IntegrationIcon, ModelIcon, ToolIcon } from "@timesheeter/app/styles/icons";
+import { ConnectorIcon, IntegrationIcon } from "@timesheeter/app/styles/icons";
 import { classNames } from "@timesheeter/app/utils/tailwind";
 import Image from "next/image";
 
@@ -30,6 +30,7 @@ type NavigationItem = {
 const navigation = [
   { name: "Dashboard", path: "/dashboard", icon: HomeIcon },
   { name: "Integrations", path: "/integrations", icon: IntegrationIcon },
+  { name: "Connectors", path: "/connectors", icon: ConnectorIcon },
 ] as NavigationItem[];
 
 export const WorkspaceLayout = ({
