@@ -5,15 +5,12 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "next build",
-    "build:module": "tsc --module CommonJS --target ES5  --outDir dist --esModuleInterop --resolveJsonModule --skipLibCheck && tsc-alias",
+    "build:module": "rm -rf dist && tsc --module CommonJS --target ES5  --outDir dist --esModuleInterop --resolveJsonModule --skipLibCheck --declaration && tsc-alias",
     "dev": "next dev",
     "dev:bullmq": "nodemon --watch './**/*.ts' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' src/index.ts",
     "postinstall": "prisma generate",
     "lint": "next lint",
-    "start": "next start",
-    "generate-proto": "./generate-proto.sh",
-    "bullmq:redis:up:dev": "docker-compose -f bullmq-redis.docker-compose.yml --env-file .env up -d",
-    "bullmq:redis:down:dev": "docker-compose -f bullmq-redis.docker-compose.yml down"
+    "start": "next start"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.13",

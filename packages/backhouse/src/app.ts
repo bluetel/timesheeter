@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
-
 dotenv.config();
 
-import { type IntegrationJob, integrationsQueue, connectionConfig } from "@timesheeter/app";
-import { type Job, Queue, RedisConnection, Worker } from "bullmq";
+import { type IntegrationJob, connectionConfig } from "@timesheeter/app";
+import { Worker } from "bullmq";
+import { handleIntegrationsJob } from "@timesheeter/backhouse/integrations";
 
 // const workerConfig = {
 //     connection: (await import("@timesheeter/app")).connectionConfig,
@@ -12,12 +12,6 @@ import { type Job, Queue, RedisConnection, Worker } from "bullmq";
 
 console.log("Starting Backhouse server...");
 
-const integrationsWorker = new Worker<IntegrationJob, unknown>(
-    "integrations",
-    async (job) => {
-        console.log("integrationsWorker: ", job.data);
-    },
-    {
-        connection: connectionConfig,
-    }
-);
+export const integrationsWorker = new Worker<IntegrationJob, unknown>("integrations", handleIntegrationsJob, {
+    connection: connectionConfig,
+});

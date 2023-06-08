@@ -4,3 +4,5 @@ import { integrationsRouter } from "./integrations";
 export const workspaceRouter = createTRPCRouter({
   integrations: integrationsRouter,
 });
+
+export * from "./integrations";
