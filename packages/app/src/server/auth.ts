@@ -5,7 +5,7 @@ import {
   type DefaultSession,
 } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { env } from "@timesheeter/app/env.mjs";
+import { env } from "@timesheeter/app/env";
 import { prisma } from "@timesheeter/app/server/db";
 import GoogleProvider from "next-auth/providers/google";
 
@@ -54,9 +54,9 @@ export const authOptions: NextAuthOptions = {
         params: {
           prompt: "consent",
           access_type: "offline",
-          response_type: "code"
-        }
-      }
+          response_type: "code",
+        },
+      },
     }),
 
     /**

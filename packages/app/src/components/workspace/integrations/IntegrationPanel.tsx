@@ -113,7 +113,7 @@ const useBasicDetails = (
       label: {
         title: "Description",
         description:
-        "An extra description for the integration, e.g. what is it used for"
+          "An extra description for the integration, e.g. what is it used for"
       },
       field: {
         variant: "text",

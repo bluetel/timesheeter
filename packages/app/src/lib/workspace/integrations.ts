@@ -35,7 +35,7 @@ export const INTEGRATION_DEFINITIONS = {
     updateIntegrationSchema: z.object({
       type: z.literal("TogglIntegration"),
       apiKey: z.string().min(1).optional(),
-      chronExpression: z.string().min(1).optional(),
+      chronExpression: z.string().regex(chronRegex).optional(),
     }),
     defaultConfig: {
       type: "TogglIntegration",

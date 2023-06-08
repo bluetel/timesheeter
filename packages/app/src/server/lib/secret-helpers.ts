@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { env } from "@timesheeter/app/env.mjs";
+import { env } from "@timesheeter/app/env";
 
 const algorithm = "aes-256-cbc"; // Advanced Encryption Standard (AES) with 256-bit key in Cipher Block Chaining (CBC) mode
 

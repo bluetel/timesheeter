@@ -1,16 +1,22 @@
 import { Queue, RedisConnection } from "bullmq";
-import { env } from "@timesheeter/app/env.mjs";
+import { env } from "@timesheeter/app/env";
 
-const bullmqConfig = {
-  connection: {
-    host: env.BULLMQ_REDIS_HOST,
-    port: parseInt(env.BULLMQ_REDIS_PORT),
-    password: env.BULLMQ_REDIS_PASSWORD,
-  },
+export const connectionConfig = {
+  host: env.BULLMQ_REDIS_HOST,
+  port: parseInt(env.BULLMQ_REDIS_PORT),
+  password: env.BULLMQ_REDIS_PASSWORD,
+} as const;
+
+const queueConfig = {
+  connection: connectionConfig,
+} as const;
+
+export type IntegrationJob = {
+  integrationId: string;
 };
 
-export const integrationsQueue = new Queue(
+export const integrationsQueue = new Queue<IntegrationJob, unknown>(
   "integrations",
-  bullmqConfig,
+  queueConfig,
   RedisConnection
 );

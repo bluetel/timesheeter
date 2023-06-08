@@ -14,6 +14,7 @@ import { SideOver } from "@timesheeter/app/components/ui/SideOver";
 import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicForm";
 import { type BasicFormItemProps } from "@timesheeter/app/components/ui/forms/BasicForm/BasicFormItem";
 import { useNotifications } from "../../ui/notification/NotificationProvider";
+import { fromZodError } from 'zod-validation-error';
 
 const mutationSchema = z.union([
   createIntegrationSchema.extend({
@@ -88,15 +89,8 @@ export const EditIntegrationSideOver = ({
   const { mutate: updateIntegration } =
     api.workspace.integrations.update.useMutation(mutationArgs);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    // Validate form
-    const isValid = await methods.trigger();
-
-    if (!isValid) {
-      return;
-    }
 
     let values = methods.getValues();
 
@@ -123,6 +117,20 @@ export const EditIntegrationSideOver = ({
         Object.entries(values).filter(([, value]) => value !== undefined)
       ) as typeof values;
     }
+
+
+    // Validate form
+    const result = mutationSchema.safeParse(values);
+
+    if (!result.success) {
+      addNotification({
+        variant: "error",
+        primaryText: `Failed to ${data.new ? "create" : "update"} integration`,
+        secondaryText: fromZodError(result.error).toString(),
+      });
+      return;
+    }
+
     values.new ? createIntegration(values, {
       onError: (error) => {
         addNotification({

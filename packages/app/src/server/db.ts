@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 
-import { env } from "@timesheeter/app/env.mjs";
+import { env } from "@timesheeter/app/env";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
