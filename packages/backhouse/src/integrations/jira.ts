@@ -1,7 +1,4 @@
 import { prisma, ParsedIntegration } from "@timesheeter/app";
-import { getAxiosClient, getReportDataWorkspace, getWorkspaces } from "./api";
-import { matchTaskRegex } from "@timesheeter/app";
-import { type Project } from "@prisma/client";
 import JiraApi from "jira-client";
 
 type JiraIntegration = ParsedIntegration & {
