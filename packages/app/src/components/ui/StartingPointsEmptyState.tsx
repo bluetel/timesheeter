@@ -53,8 +53,7 @@ export const StartingPointsEmptyState = ({
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-gray-900">
-                    <a
-                      href="#"
+                    <button
                       className="flex focus:outline-none"
                       onClick={item.onClick}
                     >
@@ -63,7 +62,7 @@ export const StartingPointsEmptyState = ({
                       <span aria-hidden="true" className="ml-2">
                         &rarr;
                       </span>
-                    </a>
+                    </button>
                   </h3>
                   <p className="mt-1 text-sm text-gray-500">
                     {item.description}
@@ -89,14 +88,13 @@ export const StartingPointsEmptyState = ({
         <>
           <div className="border-t border-gray-200" />
           <div className="mt-4 flex">
-            <a
-              href="#"
+            <button
               className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
               onClick={bottomButton.onClick}
             >
               {bottomButton.label}
               <span aria-hidden="true"> &rarr;</span>
-            </a>
+            </button>
           </div>
         </>
       )}

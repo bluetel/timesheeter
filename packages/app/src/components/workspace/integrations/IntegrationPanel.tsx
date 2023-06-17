@@ -81,7 +81,7 @@ export const IntegrationPanel = ({
 };
 
 const useBasicDetails = (
-  model: RouterOutputs["workspace"]["integrations"]["list"][0],
+  integration: RouterOutputs["workspace"]["integrations"]["list"][0],
   integrationDetail: IntegrationDetail
 ) => {
   const details: BasicDetailListItem[] = [
@@ -92,7 +92,7 @@ const useBasicDetails = (
       },
       field: {
         variant: "text",
-        value: model.id,
+        value: integration.id,
       },
     },
     {
@@ -102,28 +102,14 @@ const useBasicDetails = (
       },
       field: {
         variant: "text",
-        value: model.name,
+        value: integration.name,
       },
     },
   ];
 
-  if (model.description) {
-    details.push({
-      label: {
-        title: "Description",
-        description:
-          "An extra description for the integration, e.g. what is it used for"
-      },
-      field: {
-        variant: "text",
-        value: model.description,
-      },
-    });
-  }
-
   integrationDetail.fields.forEach((field) => {
     const value =
-      ((model.config as Record<string, unknown>)[field.accessor] as string) ??
+      ((integration.config as Record<string, unknown>)[field.accessor] as string) ??
       "";
 
     details.push({

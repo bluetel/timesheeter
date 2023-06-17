@@ -9,8 +9,6 @@ import { INTEGRATIONS_HELP_TEXT } from "@timesheeter/app/lib/workspace/integrati
 import { prisma } from "@timesheeter/app/server/db";
 import { getWorkspaceInfo } from "@timesheeter/app/server/lib/workspace-info";
 import { IntegrationIcon } from "@timesheeter/app/styles/icons";
-import { CONNECTORS_HELP_TEXT } from "dist/lib/workspace/connectors";
-import { ConnectorIcon } from "dist/styles/icons";
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext
@@ -21,16 +19,11 @@ export const getServerSideProps = async (
     return { redirect: workspaceInfo.redirect };
   }
 
-  const [integrationsCount, connectorsCount] = await Promise.all([
+  const [integrationsCount] = await Promise.all([
     prisma.integration.count({
       where: {
         workspaceId: workspaceInfo.props.workspace.id,
         userId: workspaceInfo.props.user.id,
-      },
-    }),
-    prisma.connector.count({
-      where: {
-        workspaceId: workspaceInfo.props.workspace.id,
       },
     }),
   ]);
@@ -39,7 +32,6 @@ export const getServerSideProps = async (
     props: {
       workspaceInfo: workspaceInfo.props,
       integrationsCount,
-      connectorsCount
     },
   };
 };
@@ -47,7 +39,6 @@ export const getServerSideProps = async (
 const Dashboard = ({
   workspaceInfo,
   integrationsCount,
-  connectorsCount
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { push } = useRouter();
 
@@ -75,20 +66,6 @@ const Dashboard = ({
                 label: integrationsCount === 1 ? "Integration" : "Integrations",
               },
             },
-            {
-              title: "Create a new Connector",
-              description: CONNECTORS_HELP_TEXT,
-              icon: ConnectorIcon,
-              background: "bg-blue-500",
-              onClick: () =>
-                push(
-                  `/workspace/${workspaceInfo.workspace.id}/connectors?create=true`
-                ),
-              countDetail: {
-                count: connectorsCount,
-                label: connectorsCount === 1 ? "Connector" : "Connectors",
-              },
-            }
           ]}
         />
       </div>

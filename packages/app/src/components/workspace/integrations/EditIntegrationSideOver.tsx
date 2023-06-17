@@ -4,7 +4,7 @@ import {
   updateIntegrationSchema,
   INTEGRATION_DEFINITIONS,
   getDefaultConfig,
-  type IntegrationVariant,
+  type IntegrationType,
 } from "@timesheeter/app/lib/workspace/integrations";
 import { api, type RouterOutputs } from "@timesheeter/app/utils/api";
 import React, { useEffect } from "react";
@@ -54,12 +54,14 @@ export const EditIntegrationSideOver = ({
       ? {
         new: true as const,
         workspaceId,
+        name: "New integration",
+        description: "",
         config: getDefaultConfig(),
       }
       : {
         new: false as const,
         ...data.integration,
-      };
+      }
 
   const methods = useZodForm({
     schema: mutationSchema,
@@ -107,8 +109,6 @@ export const EditIntegrationSideOver = ({
             )) as typeof values["config"],
           type: values.config.type ?? integration.config.type,
         },
-        description:
-          integration.description !== values.description ? values.description : undefined,
       } as typeof values;
 
 
@@ -188,7 +188,7 @@ const useIntegrationFields = (
         onChange: async (value) => {
           methods.setValue(
             "config",
-            getDefaultConfig(value as IntegrationVariant)
+            getDefaultConfig(value as IntegrationType)
           );
 
           // Force re-render
@@ -210,27 +210,15 @@ const useIntegrationFields = (
         register: methods.register("name"),
         error: methods.formState.errors.name,
       },
-    },
-    {
-      label: {
-        title: "Description",
-        description:
-          "An extra description for the integration, e.g. what is it used for",
-      },
-      field: {
-        variant: "textarea",
-        register: methods.register("description"),
-        error: methods.formState.errors.description,
-      },
-    },
+    }
   ];
 
-  const IntegrationConfig =
+  const integrationConfig =
     INTEGRATION_DEFINITIONS[methods.getValues("config.type")];
 
-  IntegrationConfig.fields.forEach((field) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const error = methods.formState.errors.config?.[field.accessor];
+  integrationConfig.fields.forEach((field) => {
+    // TODO: Handle field errors
+    // const error = methods.formState.errors.config?.[field.accessor as keyof typeof methods.formState.errors.config];
 
     fields.push({
       required: field.required,
@@ -241,7 +229,7 @@ const useIntegrationFields = (
       field: {
         variant: "text",
         register: methods.register(`config.${field.accessor}`),
-        error
+        //error: typeof error === "string" ? new FieldError(error) : error,
       },
     });
   });

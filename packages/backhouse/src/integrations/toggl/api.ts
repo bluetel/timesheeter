@@ -1,7 +1,6 @@
-import axios, { AxiosRequestConfig } from "axios";
+import axios from "axios";
 import { z } from "zod";
 import rateLimit from "axios-rate-limit";
-import { prisma, parseIntegration, ParsedIntegration } from "@timesheeter/app";
 
 const API_BASE_URL = "https://api.track.toggl.com";
 

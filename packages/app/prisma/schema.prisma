@@ -70,9 +70,8 @@ model Workspace {
     memberships      Membership[]
     integrations     Integration[]
     projects         Project[]
-    tickets          Ticket[]
+    tasks            Task[]
     timesheetEntries TimesheetEntry[]
-    connectors       Connector[]
 }
 
 model Membership {
@@ -95,22 +94,6 @@ model Integration {
     updatedAt   DateTime  @updatedAt
 
     name             String
-    description      String
-    configSerialized String
-
-    repeatJobKey String?
-}
-
-model Connector {
-    id          String    @id @default(cuid())
-    workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-    workspaceId String
-    createdAt   DateTime  @default(now())
-    updatedAt   DateTime  @updatedAt
-
-    name        String
-    description String
-
     configSerialized String
 
     repeatJobKey String?
@@ -122,21 +105,23 @@ model Project {
     workspaceId String
     createdAt   DateTime  @default(now())
     updatedAt   DateTime  @updatedAt
-    tickets     Ticket[]
+
+    taskPrefix String
+    tasks      Task[]
 }
 
-model Ticket {
+model Task {
     id          String    @id @default(cuid())
     workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
     workspaceId String
     createdAt   DateTime  @default(now())
     updatedAt   DateTime  @updatedAt
 
-    ticketNumber String
-    name         String?
+    taskNumber String?
+    name       String?
 
-    project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    projectId String
+    project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    projectId String?
 
     timesheetEntries TimesheetEntry[]
 }
@@ -151,11 +136,11 @@ model TimesheetEntry {
     user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId String
 
-    ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-    ticketId String
+    task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+    taskId String
+
+    description String?
 
     start DateTime
     end   DateTime
-
-    description String?
 }

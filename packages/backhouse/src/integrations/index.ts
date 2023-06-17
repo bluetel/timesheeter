@@ -1,6 +1,7 @@
 import { type IntegrationJob, parseIntegration, prisma } from "@timesheeter/app";
 import { type Job } from "bullmq";
 import { handleTogglIntegration } from "./toggl";
+import { handleJiraIntegration } from "./jira";
 
 export const handleIntegrationsJob = async (job: Job<IntegrationJob, unknown>) => {
     const { integrationId } = job.data;
@@ -20,6 +21,19 @@ export const handleIntegrationsJob = async (job: Job<IntegrationJob, unknown>) =
         });
 
     if (integration.config.type === "TogglIntegration") {
-        await handleTogglIntegration({ integration });
+        integration.config;
+        await handleTogglIntegration({
+            integration: {
+                ...integration,
+                config: integration.config,
+            },
+        });
+    } else if (integration.config.type === "JiraIntegration") {
+        await handleJiraIntegration({
+            integration: {
+                ...integration,
+                config: integration.config,
+            },
+        });
     }
 };
