@@ -58,6 +58,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backhouse
+    depends_on:
+      - app-db
+      - bullmq-redis
 
 volumes:
   app-db:
