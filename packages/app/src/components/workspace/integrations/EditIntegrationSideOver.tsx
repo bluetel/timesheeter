@@ -55,7 +55,6 @@ export const EditIntegrationSideOver = ({
         new: true as const,
         workspaceId,
         name: "New integration",
-        description: "",
         config: getDefaultConfig(),
       }
       : {

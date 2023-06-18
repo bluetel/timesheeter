@@ -18,26 +18,56 @@ export const handleTogglIntegration = async ({ integration }: { integration: Tog
 
     const reportData = await getReportData({ integration });
 
-    return Promise.all(
-        reportData.map(async (entry) => {
-            if (!entry.description) {
-                return;
-            }
+    // Handle this synchronously, so duplicate tasks don't get created
 
-            const task = await getOrCreateTask({ integration, description: entry.description, projects });
+    for (const entry of reportData) {
+        if (!entry.description) {
+            continue;
+        }
 
-            return prisma.timesheetEntry.create({
+        const { task, timesheetDescription } = await getOrCreateTask({
+            integration,
+            description: entry.description,
+            projects,
+        });
+
+        // See if there is an existing entry for this task
+        const existingEntry = await prisma.timesheetEntry.findFirst({
+            where: {
+                workspaceId: integration.workspaceId,
+                taskId: task.id,
+                userId: integration.userId,
+                togglTimesheetEntryId: entry.id.toString(),
+            },
+        });
+
+        if (existingEntry) {
+            await prisma.timesheetEntry.update({
+                where: {
+                    id: existingEntry.id,
+                },
                 data: {
-                    workspaceId: integration.workspaceId,
-                    taskId: task.id,
-                    userId: integration.userId,
+                    description: timesheetDescription,
                     start: entry.start,
-                    end: entry.stop,
-                    description: entry.description,
+                    end: entry.end,
                 },
             });
-        })
-    );
+
+            continue;
+        }
+
+        await prisma.timesheetEntry.create({
+            data: {
+                workspaceId: integration.workspaceId,
+                taskId: task.id,
+                userId: integration.userId,
+                start: entry.start,
+                end: entry.end,
+                description: timesheetDescription,
+                togglTimesheetEntryId: entry.id.toString(),
+            },
+        });
+    }
 };
 
 const getReportData = async ({ integration }: { integration: TogglIntegration }) => {
@@ -45,7 +75,8 @@ const getReportData = async ({ integration }: { integration: TogglIntegration })
     const workspaces = await getWorkspaces({ axiosClient });
 
     const timeNow = new Date();
-    const until = new Date(timeNow.getTime() + 1 * 24 * 60 * 60 * 1000);
+    // Use a days lag so if entries are modified on the same day, we don't miss updates
+    const until = new Date(timeNow.getTime() - 1 * 24 * 60 * 60 * 1000);
     const since = new Date(timeNow.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     return Promise.all(
@@ -72,32 +103,39 @@ const getOrCreateTask = async ({
     // See if description starts with a task
     const matchResult = matchTaskRegex(description);
 
-    if (matchResult.variant === "task") {
-        const project = projects.find(({ taskPrefix }) => taskPrefix === matchResult?.prefix);
+    if (matchResult.variant === "with-task") {
+        let project = projects.find(({ taskPrefix }) => taskPrefix === matchResult?.prefix);
 
-        if (project) {
-            // Update a task assigned to a project
-            let task = await prisma.task.findFirst({
-                where: {
+        if (!project) {
+            project = await prisma.project.create({
+                data: {
+                    workspaceId: integration.workspaceId,
+                    taskPrefix: matchResult.prefix,
+                },
+            });
+        }
+
+        // Update a task assigned to a project
+        let task = await prisma.task.findFirst({
+            where: {
+                workspaceId: integration.workspaceId,
+                projectId: project.id,
+                taskNumber: matchResult.taskNumber,
+            },
+        });
+
+        if (!task) {
+            task = await prisma.task.create({
+                data: {
                     workspaceId: integration.workspaceId,
                     projectId: project.id,
                     taskNumber: matchResult.taskNumber,
+                    // Custom description e.g. hyphenated after the task number
                 },
             });
-
-            if (!task) {
-                task = await prisma.task.create({
-                    data: {
-                        workspaceId: integration.workspaceId,
-                        projectId: project.id,
-                        taskNumber: matchResult.taskNumber,
-                        name: matchResult.description,
-                    },
-                });
-            }
-
-            return task;
         }
+
+        return { task, timesheetDescription: matchResult.description };
     }
 
     // Update a task not assigned to a project
@@ -119,5 +157,5 @@ const getOrCreateTask = async ({
         });
     }
 
-    return task;
+    return { task, timesheetDescription: null };
 };

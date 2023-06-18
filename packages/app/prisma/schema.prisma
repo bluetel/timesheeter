@@ -143,4 +143,6 @@ model TimesheetEntry {
 
     start DateTime
     end   DateTime
+
+    togglTimesheetEntryId String?
 }

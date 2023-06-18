@@ -9,7 +9,8 @@ import {
   INTEGRATION_DEFINITIONS,
   updateIntegrationSchema,
   type IntegrationConfig,
-  integrationConfigSchema,
+  type UpdateIntegrationConfig,
+  updateIntegrationConfigSchema,
 } from "@timesheeter/app/lib/workspace/integrations";
 import {
   decrypt,
@@ -112,14 +113,15 @@ export const integrationsRouter = createTRPCRouter({
 
       const { config: updatedConfigValues, ...rest } = input;
 
+      // Config is a single field, so we need to merge it manually
       const updatedConfig = {
-        oldConfig,
+        ...oldConfig,
         ...updatedConfigValues,
-      };
+      } satisfies UpdateIntegrationConfig;
 
-      // Validate the config against the IntegrationConfigSchema
-
-      integrationConfigSchema.parse(updatedConfig);
+      // Validate the config against the config schema to double check everything
+      // has been merged correctly
+      updateIntegrationConfigSchema.parse(updatedConfig);
 
       await ctx.prisma.integration
         .update({
@@ -128,7 +130,7 @@ export const integrationsRouter = createTRPCRouter({
           },
           data: {
             ...rest,
-            ...updatedConfig,
+            configSerialized: encrypt(JSON.stringify(updatedConfig)),
           },
         })
         .then(parseIntegration);

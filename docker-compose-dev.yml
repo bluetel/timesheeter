@@ -1,16 +1,32 @@
-version: '3.8'
+version: "3"
+
 services:
-  redis:
+  app-db:
+    image: postgres
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${APP_DB_USER}
+      - POSTGRES_PASSWORD=${APP_DB_PASSWORD}
+      - POSTGRES_DB=${APP_DB_NAME}
+      - PGPORT=${APP_DB_PORT}
+    volumes:
+      - app-db:/var/lib/postgresql/data
+    restart: always
+    network_mode: host
+
+  bullmq-redis:
+    env_file: .env
     image: docker.io/bitnami/redis:latest
     environment:
       - REDIS_PASSWORD=${BULLMQ_REDIS_PASSWORD}
       - REDIS_PORT_NUMBER=${BULLMQ_REDIS_PORT}
-    # Run on the host network
     volumes:
-      - redis-data:/bitnami/redis/data
+      - 'bullmq-redis:/bitnami/redis/data'
     restart: always
     network_mode: host
 
 volumes:
-  redis-data:
+  app-db:
+    driver: local
+  bullmq-redis:
     driver: local

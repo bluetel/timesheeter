@@ -50,12 +50,13 @@ const reportResponseSchema = z.object({
     total_count: z.number(),
     data: z
         .object({
+            id: z.number(),
+
             // string or null
             description: z.string().nullable(),
 
-            start: z.string(),
-            stop: z.string(),
-            billable: z.boolean(),
+            start: z.string().transform((value) => new Date(value)),
+            end: z.string().transform((value) => new Date(value)),
         })
         .array(),
 });
