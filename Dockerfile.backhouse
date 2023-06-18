@@ -1,14 +1,15 @@
-FROM node:18-alpine AS runner
+FROM node:18-alpine
+
 WORKDIR /app
 
-COPY . /app
+COPY . .
 
-RUN yarn install --frozen-lockfile --non-interactive --production=true
-
-ENV NODE_ENV production
+RUN yarn install --frozen-lockfile --non-interactive
 
 WORKDIR /app/packages/backhouse
 
 RUN yarn build
 
-CMD ["yarn", "start"]
+ENV NODE_ENV production
+
+ENTRYPOINT [ "yarn", "start" ]
