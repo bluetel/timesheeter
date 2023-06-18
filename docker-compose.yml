@@ -53,14 +53,15 @@ services:
   backhouse:
     env_file: .env
     environment:
-      - BULLMQ_REDIS_HOST=0.0.0.0
-      - APP_DB_HOST=0.0.0.0
+      - BULLMQ_REDIS_HOST=bullmq-redis
+      - APP_DB_HOST=app-db
     build:
       context: .
       dockerfile: Dockerfile.backhouse
     depends_on:
       - app-db
       - bullmq-redis
+    restart: always
 
 volumes:
   app-db:
