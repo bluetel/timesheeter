@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY . /app
 
-RUN yarn install --frozen-lockfile --non-interactive --production=false
+RUN yarn install --frozen-lockfile --non-interactive --production=true
 
 ENV NODE_ENV production
 

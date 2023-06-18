@@ -10,6 +10,8 @@ services:
       - POSTGRES_PASSWORD=${APP_DB_PASSWORD}
       - POSTGRES_DB=${APP_DB_NAME}
       - PGPORT=${APP_DB_PORT}
+    ports:
+      - ${APP_DB_PORT}:${APP_DB_PORT}
     volumes:
       - app-db:/var/lib/postgresql/data
     restart: always
@@ -43,6 +45,8 @@ services:
       AWS_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
       AWS_ENDPOINT: ${S3_ENDPOINT_URL}
       BACKUP_RETENTION_DAYS: 14
+    ports:
+      - ${BULLMQ_REDIS_PORT}:${BULLMQ_REDIS_PORT}
     volumes:
       - 'bullmq-redis:/backup/data-backup:ro'
     restart: always
