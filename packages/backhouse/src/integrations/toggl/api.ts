@@ -50,7 +50,7 @@ const reportResponseSchema = z.object({
     total_count: z.number(),
     data: z
         .object({
-            id: z.number(),
+            id: z.number().int().positive(),
 
             // string or null
             description: z.string().nullable(),

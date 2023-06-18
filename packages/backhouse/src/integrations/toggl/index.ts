@@ -1,7 +1,6 @@
 import { prisma, ParsedIntegration } from "@timesheeter/app";
 import { getAxiosClient, getReportDataWorkspace, getWorkspaces } from "./api";
 import { matchTaskRegex } from "@timesheeter/app";
-import { type Project } from "@prisma/client";
 
 type TogglIntegration = ParsedIntegration & {
     config: {
@@ -10,12 +9,6 @@ type TogglIntegration = ParsedIntegration & {
 };
 
 export const handleTogglIntegration = async ({ integration }: { integration: TogglIntegration }) => {
-    const projects = await prisma.project.findMany({
-        where: {
-            workspaceId: integration.workspaceId,
-        },
-    });
-
     const reportData = await getReportData({ integration });
 
     // Handle this synchronously, so duplicate tasks don't get created
@@ -28,7 +21,6 @@ export const handleTogglIntegration = async ({ integration }: { integration: Tog
         const { task, timesheetDescription } = await getOrCreateTask({
             integration,
             description: entry.description,
-            projects,
         });
 
         // See if there is an existing entry for this task
@@ -37,7 +29,7 @@ export const handleTogglIntegration = async ({ integration }: { integration: Tog
                 workspaceId: integration.workspaceId,
                 taskId: task.id,
                 userId: integration.userId,
-                togglTimesheetEntryId: entry.id.toString(),
+                togglTimesheetEntryId: entry.id,
             },
         });
 
@@ -64,7 +56,7 @@ export const handleTogglIntegration = async ({ integration }: { integration: Tog
                 start: entry.start,
                 end: entry.end,
                 description: timesheetDescription,
-                togglTimesheetEntryId: entry.id.toString(),
+                togglTimesheetEntryId: entry.id,
             },
         });
     }
@@ -94,17 +86,20 @@ const getReportData = async ({ integration }: { integration: TogglIntegration })
 const getOrCreateTask = async ({
     integration,
     description,
-    projects,
 }: {
     integration: TogglIntegration;
     description: string;
-    projects: Project[];
 }) => {
     // See if description starts with a task
     const matchResult = matchTaskRegex(description);
 
     if (matchResult.variant === "with-task") {
-        let project = projects.find(({ taskPrefix }) => taskPrefix === matchResult?.prefix);
+        let project = await prisma.project.findFirst({
+            where: {
+                workspaceId: integration.workspaceId,
+                taskPrefix: matchResult.prefix,
+            },
+        });
 
         if (!project) {
             project = await prisma.project.create({

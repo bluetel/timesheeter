@@ -1,5 +1,5 @@
 import { prisma, ParsedIntegration } from "@timesheeter/app";
-import JiraApi from "jira-client";
+import { ThrottledJiraClient } from "./jira/throttled-client";
 
 type JiraIntegration = ParsedIntegration & {
     config: {
@@ -8,7 +8,7 @@ type JiraIntegration = ParsedIntegration & {
 };
 
 export const handleJiraIntegration = async ({ integration }: { integration: JiraIntegration }) => {
-    const jiraClient = new JiraApi({
+    const jiraClient = new ThrottledJiraClient({
         protocol: "https",
         host: integration.config.host,
         username: integration.config.username,
@@ -32,6 +32,10 @@ export const handleJiraIntegration = async ({ integration }: { integration: Jira
 
     return Promise.all(
         tasks.map(async (task) => {
+            if (!task.taskNumber) {
+                return;
+            }
+
             const issueNumber = `${task.project?.taskPrefix}-${task.taskNumber}`;
             const jiraTicket = await jiraClient.findIssue(issueNumber);
 

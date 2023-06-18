@@ -88,7 +88,7 @@ const useBasicDetails = (
     {
       label: {
         title: "ID",
-        description: "The unique identifier for this integrations",
+        description: "The unique identifier for this integration",
       },
       field: {
         variant: "text",
