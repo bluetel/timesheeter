@@ -8,6 +8,7 @@
     "build:module": "rm -rf dist && tsc --module CommonJS --target ES5  --outDir dist --esModuleInterop --resolveJsonModule --skipLibCheck --declaration && tsc-alias",
     "dev": "next dev",
     "dev:bullmq": "nodemon --watch './**/*.ts' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' src/index.ts",
+    "install": "yarn build:module",
     "postinstall": "prisma generate",
     "lint": "next lint",
     "start": "next start"

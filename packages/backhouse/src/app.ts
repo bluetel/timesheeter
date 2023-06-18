@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { type IntegrationJob, connectionConfig, prisma } from "@timesheeter/app";
-import { Worker } from "bullmq";
+import { Job, Worker } from "bullmq";
 import { handleIntegrationsJob } from "@timesheeter/backhouse/integrations";
 
 console.log("Starting Backhouse server...");
@@ -11,7 +11,7 @@ prisma.integration
     .findMany({
         where: {
             createdAt: {
-                gt: 0,
+                gt: new Date(0),
             },
         },
     })
@@ -23,7 +23,7 @@ prisma.integration
                 data: { integrationId: integration.id },
             };
 
-            handleIntegrationsJob(jobConfig);
+            handleIntegrationsJob(jobConfig as unknown as Job<IntegrationJob>);
         });
     });
 
