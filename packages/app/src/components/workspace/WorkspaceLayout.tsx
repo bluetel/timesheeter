@@ -11,9 +11,9 @@ import {
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { IntegrationIcon } from "@timesheeter/app/styles/icons";
 import { classNames } from "@timesheeter/app/utils/tailwind";
 import Image from "next/image";
+import { IntegrationIcon, ProjectIcon } from "@timesheeter/app/lib";
 
 export type WorkspaceLayoutProps = {
   workspaceInfo: WorkspaceInfo;
@@ -30,6 +30,7 @@ type NavigationItem = {
 const navigation = [
   { name: "Dashboard", path: "/dashboard", icon: HomeIcon },
   { name: "Integrations", path: "/integrations", icon: IntegrationIcon },
+  { name: "Projects", path: "/projects", icon: ProjectIcon },
 ] as NavigationItem[];
 
 export const WorkspaceLayout = ({

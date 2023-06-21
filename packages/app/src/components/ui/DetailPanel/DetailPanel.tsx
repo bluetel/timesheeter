@@ -7,7 +7,7 @@ type DetailPanelProps = {
   header: DetailHeaderProps;
   content: {
     name: string;
-    description: string;
+    description?: string;
     icon?: IconType;
     endButtons?: {
       onEdit?: () => void;
@@ -15,18 +15,20 @@ type DetailPanelProps = {
     };
   };
   tabs:
-    | {
-        multiple: false;
-        body: React.ReactNode;
-      }
-    | {
-        multiple: true;
-        bodies: {
-          label: string;
-          icon?: IconType;
-          body: React.ReactNode;
-        }[];
-      };
+  | {
+    multiple: false;
+    body: React.ReactNode;
+    subDescription?: string;
+  }
+  | {
+    multiple: true;
+    bodies: {
+      label: string;
+      icon?: IconType;
+      body: React.ReactNode;
+      subDescription?: string;
+    }[];
+  };
 };
 
 export const DetailPanel = ({ header, content, tabs }: DetailPanelProps) => {
@@ -85,6 +87,13 @@ export const DetailPanel = ({ header, content, tabs }: DetailPanelProps) => {
               icon: tab.icon,
             }))}
           />
+        )}
+        {((tabs.multiple && tabs.bodies[selectedTab]?.subDescription) || (!tabs.multiple && tabs.subDescription)) && (
+          <p className="text-sm text-gray-500">
+            {tabs.multiple
+              ? tabs.bodies[selectedTab]?.subDescription
+              : tabs.subDescription}
+          </p>
         )}
         <div className="border-t border-gray-200">
           {tabs.multiple ? (

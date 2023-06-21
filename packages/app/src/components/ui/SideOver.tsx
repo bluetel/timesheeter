@@ -9,18 +9,20 @@ type SideOverProps = {
   description: string;
   actionButtonLabel: "Create" | "Update";
   tabs:
-    | {
-        multiple: false;
-        body: React.ReactNode;
-      }
-    | {
-        multiple: true;
-        bodies: {
-          label: string;
-          icon?: IconType;
-          body: React.ReactNode;
-        }[];
-      };
+  | {
+    multiple: false;
+    body: React.ReactNode;
+    subDescription?: string;
+  }
+  | {
+    multiple: true;
+    bodies: {
+      label: string;
+      icon?: IconType;
+      body: React.ReactNode;
+      subDescription?: string;
+    }[];
+  };
   show: boolean;
   onClose: () => void;
   onFormSubmit: (e: React.FormEvent<HTMLFormElement>) => unknown;
@@ -101,18 +103,26 @@ export const SideOver = ({
                               setSelectedTab={setSelectedTab}
                             />
                           </div>
+                        )}  {/* Sub description */}
+                        {((tabs.multiple && tabs.bodies[selectedTab]?.subDescription) || (!tabs.multiple && tabs.subDescription)) && (
+                          <div className="px-4 py-4 sm:px-6 border-b border-gray-200">
+                            <p className="text-sm text-gray-500">
+                              {tabs.multiple
+                                ? tabs.bodies[selectedTab]?.subDescription
+                                : tabs.subDescription}
+                            </p>
+                          </div>
                         )}
                         {tabs.multiple
                           ? tabs.bodies.map((tab, index) => (
-                              <div
-                                key={index}
-                                className={`${
-                                  index === selectedTab ? "block" : "hidden"
+                            <div
+                              key={index}
+                              className={`${index === selectedTab ? "block" : "hidden"
                                 }`}
-                              >
-                                {tab.body}
-                              </div>
-                            ))
+                            >
+                              {tab.body}
+                            </div>
+                          ))
                           : tabs.body}
                       </div>
                       {/* Action buttons */}

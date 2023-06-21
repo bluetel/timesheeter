@@ -3,7 +3,7 @@ import {
   createIntegrationSchema,
   updateIntegrationSchema,
   INTEGRATION_DEFINITIONS,
-  getDefaultConfig,
+  getDefaultIntegrationConfig,
   type IntegrationType,
 } from "@timesheeter/app/lib/workspace/integrations";
 import { api, type RouterOutputs } from "@timesheeter/app/utils/api";
@@ -24,6 +24,8 @@ const mutationSchema = z.union([
     new: z.literal(false),
   }),
 ]);
+
+type MutationSchema = z.infer<typeof mutationSchema>["config"]
 
 type EditIntegrationSideOverProps = {
   refetchIntegrations: () => unknown;
@@ -54,8 +56,8 @@ export const EditIntegrationSideOver = ({
       ? {
         new: true as const,
         workspaceId,
-        name: "New integration",
-        config: getDefaultConfig(),
+        name: "New Integration",
+        config: getDefaultIntegrationConfig(),
       }
       : {
         new: false as const,
@@ -162,6 +164,9 @@ export const EditIntegrationSideOver = ({
       tabs={{
         multiple: false,
         body: <BasicForm items={fields} />,
+        subDescription: INTEGRATION_DEFINITIONS[
+          methods.getValues("config.type")
+        ].description,
       }}
     />
   );
@@ -187,7 +192,7 @@ const useIntegrationFields = (
         onChange: async (value) => {
           methods.setValue(
             "config",
-            getDefaultConfig(value as IntegrationType)
+            getDefaultIntegrationConfig(value as IntegrationType)
           );
 
           // Force re-render

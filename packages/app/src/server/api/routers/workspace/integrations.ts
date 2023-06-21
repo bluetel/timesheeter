@@ -63,7 +63,7 @@ export const integrationsRouter = createTRPCRouter({
           data: {
             userId: ctx.session.user.id,
             ...rest,
-            configSerialized: encrypt(JSON.stringify(input.config)),
+            configSerialized: encrypt(JSON.stringify(config)),
           },
         })
         .then(parseIntegration);

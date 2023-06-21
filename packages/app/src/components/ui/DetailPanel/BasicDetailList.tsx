@@ -6,7 +6,9 @@ export type BasicDetailListItem = {
   field: {
     variant: "text";
     value: string;
-  };
+  } | {
+    variant: "empty";
+  }
 };
 
 type BasicDetailListProps = {
@@ -27,9 +29,11 @@ export const BasicDetailList = ({ items }: BasicDetailListProps) => (
             </span>
           )}
         </div>
-        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 overflow-hidden overflow-ellipsis">
-          {item.field.value}
-        </dd>
+        {item.field.variant === "text" && (
+          <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 overflow-hidden overflow-ellipsis">
+            {item.field.value}
+          </dd>
+        )}
       </div>
     ))}
   </dl>

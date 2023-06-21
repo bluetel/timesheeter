@@ -10,25 +10,25 @@ export type BasicFormItemProps = {
     description?: string;
   };
   field:
-    | {
-        variant: "textarea" | "text";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        register: UseFormRegisterReturn<any>;
-        error?: FieldError;
-      }
-    | {
-        variant: "select";
-        error?: FieldError;
-        options: SelectProps["options"];
-        active: string;
-        onChange: SelectProps["onChange"];
-      }
-    | {
-        variant: "checkbox";
-        checked: boolean;
-        onChange: (checked: boolean) => unknown;
-        error?: FieldError;
-      };
+  | {
+    variant: "textarea" | "text";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    register: UseFormRegisterReturn<any>;
+    error?: FieldError;
+  }
+  | {
+    variant: "select";
+    error?: FieldError;
+    options: SelectProps["options"];
+    active: string;
+    onChange: SelectProps["onChange"];
+  }
+  | {
+    variant: "checkbox";
+    checked: boolean;
+    onChange: (checked: boolean) => unknown;
+    error?: FieldError;
+  }
 };
 
 export const BasicFormItem = ({

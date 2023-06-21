@@ -1,14 +1,18 @@
 import { z } from "zod";
 import { SiJira, SiToggl } from "react-icons/si";
 import { chronRegex, hostnameRegex } from "@timesheeter/app/lib/regex";
+import { type IconType } from "react-icons";
+import { LinkIcon } from "@heroicons/react/24/outline";
 
 export const INTEGRATIONS_HELP_TEXT =
   "Integrations allow you to pull data from external timesheet providers into your workspace";
 
+export const IntegrationIcon = LinkIcon as IconType;
+
 export const INTEGRATION_DEFINITIONS = {
   TogglIntegration: {
     name: "Toggl",
-    description: "Connect to Toggl to pull in time entries",
+    description: "Connects to Toggl to pull in time entries",
     icon: SiToggl,
     fields: [
       {
@@ -47,7 +51,7 @@ export const INTEGRATION_DEFINITIONS = {
   },
   JiraIntegration: {
     name: "Jira",
-    description: "Connect to Jira to pull in task details",
+    description: "Connects to Jira to pull in task details",
     icon: SiJira,
     fields: [
       {
@@ -109,7 +113,7 @@ export const INTEGRATION_DEFINITIONS = {
         .regex(hostnameRegex, "Please enter a valid hostname")
         .optional(),
       chronExpression: z.string().regex(chronRegex).optional(),
-      checkForUpdatesDays: z.number().int().positive().default(7),
+      checkForUpdatesDays: z.number().int().positive().default(7).optional(),
     }),
     defaultConfig: {
       type: "JiraIntegration",
@@ -144,8 +148,9 @@ export type UpdateIntegrationConfig = z.infer<
   typeof updateIntegrationConfigSchema
 >;
 
-export const getDefaultConfig = (type: IntegrationType = "TogglIntegration") =>
-  INTEGRATION_DEFINITIONS[type].defaultConfig;
+export const getDefaultIntegrationConfig = (
+  type: IntegrationType = "TogglIntegration"
+) => INTEGRATION_DEFINITIONS[type].defaultConfig;
 
 export const createIntegrationSchema = z.object({
   workspaceId: z.string().cuid2(),
@@ -159,5 +164,3 @@ export const updateIntegrationSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   config: updateIntegrationConfigSchema,
 });
-
-export type UpdateIntegration = z.infer<typeof updateIntegrationSchema>;

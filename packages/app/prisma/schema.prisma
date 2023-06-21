@@ -106,8 +106,12 @@ model Project {
     createdAt   DateTime  @default(now())
     updatedAt   DateTime  @updatedAt
 
+    name       String
     taskPrefix String
-    tasks      Task[]
+
+    configSerialized String
+
+    tasks Task[]
 }
 
 model Task {
@@ -122,6 +126,8 @@ model Task {
 
     project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
     projectId String?
+
+    configSerialized String
 
     timesheetEntries TimesheetEntry[]
 }
@@ -143,6 +149,8 @@ model TimesheetEntry {
 
     start DateTime
     end   DateTime
+
+    configSerialized String
 
     togglTimesheetEntryId Int?
 }
