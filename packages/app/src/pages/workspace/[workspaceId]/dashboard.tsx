@@ -8,7 +8,7 @@ import { WorkspaceLayout } from "@timesheeter/app/components/workspace/Workspace
 import { INTEGRATIONS_HELP_TEXT } from "@timesheeter/app/lib/workspace/integrations";
 import { prisma } from "@timesheeter/app/server/db";
 import { getWorkspaceInfo } from "@timesheeter/app/server/lib/workspace-info";
-import { IntegrationIcon } from "@timesheeter/app/styles/icons";
+import { IntegrationIcon } from "@timesheeter/app/lib";
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext

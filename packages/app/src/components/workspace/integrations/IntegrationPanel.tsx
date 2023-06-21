@@ -63,8 +63,8 @@ export const IntegrationPanel = ({
           },
         }}
         content={{
-          name: INTEGRATION_DEFINITIONS[integration.config.type].name,
-          description: INTEGRATION_DEFINITIONS[integration.config.type].description,
+          name: integration.name,
+          description: `${INTEGRATION_DEFINITIONS[integration.config.type].name} • ${INTEGRATION_DEFINITIONS[integration.config.type].description}`,
           icon: integrationDetail.icon,
           endButtons: {
             onEdit: () => setShowEditIntegrationSideOver(true),
@@ -73,7 +73,7 @@ export const IntegrationPanel = ({
         }}
         tabs={{
           multiple: false,
-          body: <BasicDetailList items={basicDetails} />,
+          body: <BasicDetailList items={basicDetails} />
         }}
       />
     </>
