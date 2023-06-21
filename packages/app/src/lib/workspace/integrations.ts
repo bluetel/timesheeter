@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { SiJira, SiToggl } from "react-icons/si";
-import { chronRegex } from "@timesheeter/app/lib/regex";
+import { chronRegex, hostnameRegex } from "@timesheeter/app/lib/regex";
 
 export const INTEGRATIONS_HELP_TEXT =
   "Integrations allow you to pull data from external timesheet providers into your workspace";
@@ -96,7 +96,7 @@ export const INTEGRATION_DEFINITIONS = {
       type: z.literal("JiraIntegration"),
       apiKey: z.string().min(1),
       username: z.string().min(1),
-      host: z.string().url(),
+      host: z.string().regex(hostnameRegex, "Please enter a valid hostname"),
       chronExpression: z.string().regex(chronRegex),
       checkForUpdatesDays: z.number().int().positive().default(7),
     }),
@@ -104,7 +104,10 @@ export const INTEGRATION_DEFINITIONS = {
       type: z.literal("JiraIntegration"),
       apiKey: z.string().min(1).optional(),
       username: z.string().min(1).optional(),
-      host: z.string().url().optional(),
+      host: z
+        .string()
+        .regex(hostnameRegex, "Please enter a valid hostname")
+        .optional(),
       chronExpression: z.string().regex(chronRegex).optional(),
       checkForUpdatesDays: z.number().int().positive().default(7),
     }),

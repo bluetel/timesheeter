@@ -27,7 +27,7 @@ export const BasicDetailList = ({ items }: BasicDetailListProps) => (
             </span>
           )}
         </div>
-        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 overflow-hidden overflow-ellipsis">
           {item.field.value}
         </dd>
       </div>
