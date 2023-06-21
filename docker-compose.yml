@@ -33,6 +33,8 @@ services:
     environment:
       - REDIS_PASSWORD=${BULLMQ_REDIS_PASSWORD}
       - REDIS_PORT_NUMBER=${BULLMQ_REDIS_PORT}
+    ports:
+      - ${BULLMQ_REDIS_PORT}:${BULLMQ_REDIS_PORT}
     volumes:
       - 'bullmq-redis:/bitnami/redis/data'
     restart: always
@@ -45,8 +47,6 @@ services:
       AWS_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
       AWS_ENDPOINT: ${S3_ENDPOINT_URL}
       BACKUP_RETENTION_DAYS: 14
-    ports:
-      - ${BULLMQ_REDIS_PORT}:${BULLMQ_REDIS_PORT}
     volumes:
       - 'bullmq-redis:/backup/data-backup:ro'
     restart: always
