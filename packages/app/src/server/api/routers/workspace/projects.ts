@@ -148,10 +148,12 @@ export type ParsedProject = Omit<Project, "configSerialized"> & {
 };
 
 export const parseProject = (project: Project, safe = true): ParsedProject => {
-  const config = JSON.parse(decrypt(project.configSerialized)) as ProjectConfig;
+  const { configSerialized, ...rest } = project;
+
+  const config = JSON.parse(decrypt(configSerialized)) as ProjectConfig;
 
   return {
-    ...project,
+    ...rest,
     config: safe
       ? filterConfig<ProjectConfig>(
           config,
@@ -171,7 +173,7 @@ type AuthorizeParams<ProjectId extends string | null> = {
 
 type AuthorizeResult<ProjectId extends string | null> = ProjectId extends null
   ? null
-  : Project;
+  : ParsedProject;
 
 const authorize = async <ProjectId extends string | null>({
   prisma,
@@ -217,5 +219,5 @@ const authorize = async <ProjectId extends string | null>({
     });
   }
 
-  return project as AuthorizeResult<ProjectId>;
+  return parseProject(project) as AuthorizeResult<ProjectId>;
 };

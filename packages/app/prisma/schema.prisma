@@ -52,6 +52,7 @@ model User {
     workspaceId      String?
     memberships      Membership[]
     timesheetEntries TimesheetEntry[]
+    holidays         Holiday[]
 }
 
 model VerificationToken {
@@ -72,6 +73,7 @@ model Workspace {
     projects         Project[]
     tasks            Task[]
     timesheetEntries TimesheetEntry[]
+    holidays         Holiday[]
 }
 
 model Membership {
@@ -153,4 +155,21 @@ model TimesheetEntry {
     configSerialized String
 
     togglTimesheetEntryId Int?
+}
+
+model Holiday {
+    id          String    @id @default(cuid())
+    workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+    workspaceId String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    description String
+
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String
+
+    start DateTime
+    end   DateTime
 }

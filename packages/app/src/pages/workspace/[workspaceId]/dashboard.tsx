@@ -8,7 +8,13 @@ import { WorkspaceLayout } from "@timesheeter/app/components/workspace/Workspace
 import { INTEGRATIONS_HELP_TEXT } from "@timesheeter/app/lib/workspace/integrations";
 import { prisma } from "@timesheeter/app/server/db";
 import { getWorkspaceInfo } from "@timesheeter/app/server/lib/workspace-info";
-import { IntegrationIcon } from "@timesheeter/app/lib";
+import {
+  HOLIDAYS_HELP_TEXT,
+  HolidayIcon,
+  IntegrationIcon,
+  PROJECTS_HELP_TEXT,
+  ProjectIcon,
+} from "@timesheeter/app/lib";
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext
@@ -19,11 +25,21 @@ export const getServerSideProps = async (
     return { redirect: workspaceInfo.redirect };
   }
 
-  const [integrationsCount] = await Promise.all([
+  const [integrationsCount, projectsCount, holidaysCount] = await Promise.all([
     prisma.integration.count({
       where: {
         workspaceId: workspaceInfo.props.workspace.id,
         userId: workspaceInfo.props.user.id,
+      },
+    }),
+    prisma.project.count({
+      where: {
+        workspaceId: workspaceInfo.props.workspace.id,
+      },
+    }),
+    prisma.holiday.count({
+      where: {
+        workspaceId: workspaceInfo.props.workspace.id,
       },
     }),
   ]);
@@ -32,6 +48,8 @@ export const getServerSideProps = async (
     props: {
       workspaceInfo: workspaceInfo.props,
       integrationsCount,
+      projectsCount,
+      holidaysCount,
     },
   };
 };
@@ -39,6 +57,8 @@ export const getServerSideProps = async (
 const Dashboard = ({
   workspaceInfo,
   integrationsCount,
+  projectsCount,
+  holidaysCount,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { push } = useRouter();
 
@@ -64,6 +84,34 @@ const Dashboard = ({
               countDetail: {
                 count: integrationsCount,
                 label: integrationsCount === 1 ? "Integration" : "Integrations",
+              },
+            },
+            {
+              title: "Create a new Project",
+              description: PROJECTS_HELP_TEXT,
+              icon: ProjectIcon,
+              background: "bg-blue-500",
+              onClick: () =>
+                push(
+                  `/workspace/${workspaceInfo.workspace.id}/projects?create=true`
+                ),
+              countDetail: {
+                count: projectsCount,
+                label: projectsCount === 1 ? "Project" : "Projects",
+              },
+            },
+            {
+              title: "Declare a new Holiday",
+              description: HOLIDAYS_HELP_TEXT,
+              icon: HolidayIcon,
+              background: "bg-yellow-500",
+              onClick: () =>
+                push(
+                  `/workspace/${workspaceInfo.workspace.id}/holidays?create=true`
+                ),
+              countDetail: {
+                count: holidaysCount,
+                label: holidaysCount === 1 ? "Holiday" : "Holidays",
               },
             },
           ]}

@@ -86,30 +86,13 @@ export const integrationsRouter = createTRPCRouter({
   update: protectedProcedure
     .input(updateIntegrationSchema)
     .mutation(async ({ ctx, input }) => {
-      await authorize({
-        prisma: ctx.prisma,
-        integrationId: input.id,
-        workspaceId: input.workspaceId,
-        userId: ctx.session.user.id,
-      });
-
       const { config: oldConfig, repeatJobKey: oldRepeatJobKey } =
-        await ctx.prisma.integration
-          .findUnique({
-            where: {
-              id: input.id,
-            },
-          })
-          .then((integration) => {
-            if (!integration) {
-              throw new TRPCError({
-                code: "NOT_FOUND",
-                message: "Integration not found after authorization",
-              });
-            }
-
-            return parseIntegration(integration, false);
-          });
+        await authorize({
+          prisma: ctx.prisma,
+          integrationId: input.id,
+          workspaceId: input.workspaceId,
+          userId: ctx.session.user.id,
+        });
 
       const { config: updatedConfigValues, ...rest } = input;
 
@@ -203,12 +186,12 @@ export const parseIntegration = (
   integration: Integration,
   safe = true
 ): ParsedIntegration => {
-  const config = JSON.parse(
-    decrypt(integration.configSerialized)
-  ) as IntegrationConfig;
+  const { configSerialized, ...rest } = integration;
+
+  const config = JSON.parse(decrypt(configSerialized)) as IntegrationConfig;
 
   return {
-    ...integration,
+    ...rest,
     config: safe
       ? filterConfig<IntegrationConfig>(
           config,
@@ -227,7 +210,7 @@ type AuthorizeParams<IntegrationId extends string | null> = {
 };
 
 type AuthorizeResult<IntegrationId extends string | null> =
-  IntegrationId extends null ? null : Integration;
+  IntegrationId extends null ? null : ParsedIntegration;
 
 const authorize = async <IntegrationId extends string | null>({
   prisma,
@@ -280,5 +263,5 @@ const authorize = async <IntegrationId extends string | null>({
     });
   }
 
-  return integration as AuthorizeResult<IntegrationId>;
+  return parseIntegration(integration) as AuthorizeResult<IntegrationId>;
 };

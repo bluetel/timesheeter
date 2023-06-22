@@ -4,12 +4,11 @@ import { type IconType } from "react-icons";
 import { FolderIcon } from "@heroicons/react/24/outline";
 
 export const PROJECTS_HELP_TEXT =
-  "Projects group related tasks together, they auto created when you create a task with a prefix";
+  "Projects group related tasks together, the are auto created when you create a task with a prefix" as const;
 
 export const ProjectIcon = FolderIcon as IconType;
 
-export const autoAssignTasksHelpText =
-  "Entries that start with these names will automatically be assigned to this project, even  if they don't have a task prefix" as const;
+export const autoAssignTasksHelpText = `Entries that start with these names will automatically be assigned to this project (e.g. Standup in "Standup - New feature discussion"), even if they don't have a task prefix" as const`;
 
 export const PROJECT_DEFINITIONS = {
   DefaultProject: {

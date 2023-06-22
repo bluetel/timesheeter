@@ -12,11 +12,11 @@ type MatchedTaskResult =
 
 // 2 captial letters, followed by a dash, followed by 1 or more numbers, it can have additional text after the numbers if there is a hypen surrounded by spaces
 
-// eg NA-1234 - Test description
+// eg AC-1234 - Test description
 
 // make a function that extracts the following
 
-// Prefix 2 letters (eg NA) or null if there is no prefix
+// Prefix 2 letters (eg AC) or null if there is no prefix
 // Task number (eg 1234) or null if there is no task number
 
 // description (eg Test description) or null if there is no description
@@ -27,7 +27,7 @@ export const matchTaskRegex = (rawDescription: string): MatchedTaskResult => {
   const match = rawDescription.match(taskRegex);
 
   if (match) {
-    const [_, prefix, taskNumber, customDescription] = match;
+    const [, prefix, taskNumber, customDescription] = match;
 
     if (prefix && taskNumber) {
       return {

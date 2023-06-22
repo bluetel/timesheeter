@@ -5,7 +5,7 @@ import { type IconType } from "react-icons";
 import { LinkIcon } from "@heroicons/react/24/outline";
 
 export const INTEGRATIONS_HELP_TEXT =
-  "Integrations allow you to pull data from external timesheet providers into your workspace";
+  "Integrations allow you to pull data from external timesheet providers into your workspace" as const;
 
 export const IntegrationIcon = LinkIcon as IconType;
 

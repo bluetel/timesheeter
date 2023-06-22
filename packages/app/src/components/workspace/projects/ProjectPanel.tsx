@@ -1,5 +1,6 @@
 import {
-  ProjectIcon, autoAssignTasksHelpText,
+  ProjectIcon,
+  autoAssignTasksHelpText,
 } from "@timesheeter/app/lib/workspace/projects";
 import type { ParsedProject } from "@timesheeter/app/server/api/routers/workspace/projects";
 import { EditProjectSideOver } from "./EditProjectSideOver";
@@ -12,7 +13,10 @@ import {
   BasicDetailList,
   type BasicDetailListItem,
 } from "@timesheeter/app/components/ui/DetailPanel/BasicDetailList";
-import { AdjustmentsVerticalIcon, ArrowPathRoundedSquareIcon } from "@heroicons/react/24/outline";
+import {
+  AdjustmentsVerticalIcon,
+  ArrowPathRoundedSquareIcon,
+} from "@heroicons/react/24/outline";
 import { type IconType } from "react-icons";
 
 type ProjectDetailProps = {
@@ -26,10 +30,8 @@ export const ProjectPanel = ({
   refetchProjects,
   onNewProjectClick,
 }: ProjectDetailProps) => {
-  const [showEditProjectsideOver, setShowEditProjectsideOver] =
-    useState(false);
-  const [showDeleteProjectModal, setShowDeleteProjectModal] =
-    useState(false);
+  const [showEditProjectsideOver, setShowEditProjectsideOver] = useState(false);
+  const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false);
 
   const basicDetails = useBasicDetails(project);
 
@@ -74,32 +76,38 @@ export const ProjectPanel = ({
             {
               icon: AdjustmentsVerticalIcon as IconType,
               label: "Details",
-              body: <BasicDetailList items={basicDetails} />
-            }, {
+              body: <BasicDetailList items={basicDetails} />,
+            },
+            {
               icon: ArrowPathRoundedSquareIcon as IconType,
               label: "Auto Assign Tasks",
               subDescription: autoAssignTasksHelpText,
-              body: <dl className="sm:divide-y sm:divide-gray-200">
-                {project.config.autoAssignTasks.map((taskName, index) => (
-                  <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5" key={index}>
-                    <div className="sm:col-span-1">
-                      <dt className="text-sm font-medium text-gray-900">
-                        {taskName}
-                      </dt>
+              body: (
+                <dl className="sm:divide-y sm:divide-gray-200">
+                  {project.config.autoAssignTasks.map((taskName, index) => (
+                    <div
+                      className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5"
+                      key={index}
+                    >
+                      <div className="sm:col-span-1">
+                        <dt className="text-sm font-medium text-gray-900">
+                          {taskName}
+                        </dt>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </dl>
+                  ))}
+                </dl>
+              ),
             },
-          ]
+          ],
         }}
       />
     </>
   );
-}
+};
 
 const useBasicDetails = (
-  project: RouterOutputs["workspace"]["projects"]["list"][0],
+  project: RouterOutputs["workspace"]["projects"]["list"][0]
 ) => {
   const details: BasicDetailListItem[] = [
     {
@@ -115,7 +123,7 @@ const useBasicDetails = (
     {
       label: {
         title: "Name",
-        description: `Descriptive name for the project, e.g. "James's Toggl"`
+        description: `Descriptive name for the project, e.g. "James's Toggl"`,
       },
       field: {
         variant: "text",
@@ -125,37 +133,14 @@ const useBasicDetails = (
     {
       label: {
         title: "Task Prefix",
-        description: `Prefix for tasks created by this project, e.g. "NA" for "NA-1234"`,
+        description: `Prefix for tasks created by this project, e.g. "AC" for "AC-1234"`,
       },
       field: {
         variant: "text",
         value: project.taskPrefix,
-
-      }
-    }
+      },
+    },
   ];
-
-  // projectDetail.fields.forEach((field) => {
-  //   const value =
-  //     ((project.config as Record<string, unknown>)[field.accessor] as string) ??
-  //     "";
-
-  // Skip auto assign tasks field
-  //   if (field.accessor === "autoAssignTasks") {
-  //     return;
-  //   }
-
-  //   details.push({
-  //     label: {
-  //       title: field.name,
-  //       description: field.description,
-  //     },
-  //     field: {
-  //       variant: "text",
-  //       value,
-  //     },
-  //   });
-  // });
 
   return details;
 };

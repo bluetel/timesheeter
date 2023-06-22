@@ -13,7 +13,11 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { classNames } from "@timesheeter/app/utils/tailwind";
 import Image from "next/image";
-import { IntegrationIcon, ProjectIcon } from "@timesheeter/app/lib";
+import {
+  HolidayIcon,
+  IntegrationIcon,
+  ProjectIcon,
+} from "@timesheeter/app/lib";
 
 export type WorkspaceLayoutProps = {
   workspaceInfo: WorkspaceInfo;
@@ -31,6 +35,7 @@ const navigation = [
   { name: "Dashboard", path: "/dashboard", icon: HomeIcon },
   { name: "Integrations", path: "/integrations", icon: IntegrationIcon },
   { name: "Projects", path: "/projects", icon: ProjectIcon },
+  { name: "Holidays", path: "/holidays", icon: HolidayIcon },
 ] as NavigationItem[];
 
 export const WorkspaceLayout = ({
@@ -132,7 +137,10 @@ export const WorkspaceLayout = ({
                   </nav>
                 </div>
                 <div className="flex flex-shrink-0 border-t border-gray-200 p-4">
-                  <Link href="/find-workspace" className="group block flex-shrink-0">
+                  <Link
+                    href="/find-workspace"
+                    className="group block flex-shrink-0"
+                  >
                     <div className="flex items-center">
                       <div>
                         {user.image ? (
@@ -212,7 +220,10 @@ export const WorkspaceLayout = ({
               </nav>
             </div>
             <div className="flex flex-shrink-0 border-t border-gray-200 p-4">
-              <Link href="/find-workspace" className="group block w-full flex-shrink-0">
+              <Link
+                href="/find-workspace"
+                className="group block w-full flex-shrink-0"
+              >
                 <div className="flex items-center">
                   <div>
                     {user.image ? (
