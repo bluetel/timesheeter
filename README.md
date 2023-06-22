@@ -4,7 +4,7 @@ Graphical interface for the toggl timesheet bot
 
 # ToDos
 
-- [ ] Add holiday support
+- [x] Add holiday support
 - [ ] Add support for google sheet integration
 - [ ] Add support for viewing integration logs
-- [ ] Refine task creating based off auto assign rules
+- [x] Refine task creation based off project auto assign rules

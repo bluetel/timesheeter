@@ -1,3 +1,42 @@
+import { RectangleStackIcon } from "@heroicons/react/24/outline";
+import { type IconType } from "react-icons/lib";
+import { z } from "zod";
+
+export const TASKS_HELP_TEXT =
+  "Tasks group timesheet entries together, they can have assigned numbers e.g. from Jira" as const;
+
+export const TaskIcon = RectangleStackIcon as IconType;
+
+export const TASK_DEFINITIONS = {
+  DefaultTask: {
+    name: "Task",
+    fields: [],
+    configSchema: z.object({
+      type: z.literal("DefaultTask"),
+    }),
+    updateTaskSchema: z.object({
+      type: z.literal("DefaultTask"),
+    }),
+    defaultConfig: {
+      type: "DefaultTask",
+    },
+  },
+} as const;
+
+export type TaskType = keyof typeof TASK_DEFINITIONS;
+
+export type TaskDetail = (typeof TASK_DEFINITIONS)[TaskType];
+
+export const taskConfigSchema = TASK_DEFINITIONS.DefaultTask.configSchema;
+
+export const updateTaskConfigSchema =
+  TASK_DEFINITIONS.DefaultTask.updateTaskSchema;
+
+export type UpdateTaskConfig = z.infer<typeof updateTaskConfigSchema>;
+
+export const getDefaultTaskConfig = (type: TaskType = "DefaultTask") =>
+  TASK_DEFINITIONS[type].defaultConfig;
+
 type MatchedTaskResult =
   | {
       variant: "with-task";

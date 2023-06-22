@@ -137,7 +137,7 @@ const useBasicDetails = (
       },
       field: {
         variant: "text",
-        value: project.taskPrefix,
+        value: project.taskPrefix ?? "",
       },
     },
   ];

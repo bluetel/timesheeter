@@ -58,7 +58,7 @@ export const getDefaultProjectConfig = (type: ProjectType = "DefaultProject") =>
 export const createProjectSchema = z.object({
   workspaceId: z.string().cuid2(),
   name: z.string().min(1).max(100),
-  taskPrefix: z.string().regex(taskPrefixRegex),
+  taskPrefix: z.string().regex(taskPrefixRegex).nullable(),
   config: projectConfigSchema,
 });
 
@@ -66,6 +66,6 @@ export const updateProjectSchema = z.object({
   id: z.string().cuid2(),
   workspaceId: z.string().cuid2(),
   name: z.string().min(1).max(100).optional(),
-  taskPrefix: z.string().regex(taskPrefixRegex).optional(),
+  taskPrefix: z.string().regex(taskPrefixRegex).nullable().optional(),
   config: updateProjectConfigSchema,
 });
