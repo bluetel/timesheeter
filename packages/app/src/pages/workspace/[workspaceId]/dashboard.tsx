@@ -14,6 +14,10 @@ import {
   IntegrationIcon,
   PROJECTS_HELP_TEXT,
   ProjectIcon,
+  TASKS_HELP_TEXT,
+  TIMESHEET_ENTRIES_HELP_TEXT,
+  TaskIcon,
+  TimesheetEntryIcon,
 } from "@timesheeter/app/lib";
 
 export const getServerSideProps = async (
@@ -25,7 +29,13 @@ export const getServerSideProps = async (
     return { redirect: workspaceInfo.redirect };
   }
 
-  const [integrationsCount, projectsCount, holidaysCount] = await Promise.all([
+  const [
+    integrationsCount,
+    projectsCount,
+    tasksCount,
+    timesheetEntriesCount,
+    holidaysCount,
+  ] = await Promise.all([
     prisma.integration.count({
       where: {
         workspaceId: workspaceInfo.props.workspace.id,
@@ -33,6 +43,16 @@ export const getServerSideProps = async (
       },
     }),
     prisma.project.count({
+      where: {
+        workspaceId: workspaceInfo.props.workspace.id,
+      },
+    }),
+    prisma.task.count({
+      where: {
+        workspaceId: workspaceInfo.props.workspace.id,
+      },
+    }),
+    prisma.timesheetEntry.count({
       where: {
         workspaceId: workspaceInfo.props.workspace.id,
       },
@@ -49,6 +69,8 @@ export const getServerSideProps = async (
       workspaceInfo: workspaceInfo.props,
       integrationsCount,
       projectsCount,
+      tasksCount,
+      timesheetEntriesCount,
       holidaysCount,
     },
   };
@@ -58,6 +80,8 @@ const Dashboard = ({
   workspaceInfo,
   integrationsCount,
   projectsCount,
+  tasksCount,
+  timesheetEntriesCount,
   holidaysCount,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { push } = useRouter();
@@ -98,6 +122,37 @@ const Dashboard = ({
               countDetail: {
                 count: projectsCount,
                 label: projectsCount === 1 ? "Project" : "Projects",
+              },
+            },
+            {
+              title: "Create a new Task",
+              description: TASKS_HELP_TEXT,
+              icon: TaskIcon,
+              background: "bg-purple-500",
+              onClick: () =>
+                push(
+                  `/workspace/${workspaceInfo.workspace.id}/tasks?create=true`
+                ),
+              countDetail: {
+                count: tasksCount,
+                label: tasksCount === 1 ? "Task" : "Tasks",
+              },
+            },
+            {
+              title: "Log a new Timesheet Entry",
+              description: TIMESHEET_ENTRIES_HELP_TEXT,
+              icon: TimesheetEntryIcon,
+              background: "bg-red-500",
+              onClick: () =>
+                push(
+                  `/workspace/${workspaceInfo.workspace.id}/timesheet-entries?create=true`
+                ),
+              countDetail: {
+                count: timesheetEntriesCount,
+                label:
+                  timesheetEntriesCount === 1
+                    ? "Timesheet Entry"
+                    : "Timesheet Entries",
               },
             },
             {

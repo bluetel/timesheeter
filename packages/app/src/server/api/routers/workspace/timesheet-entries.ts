@@ -5,21 +5,21 @@ import {
   protectedProcedure,
 } from "@timesheeter/app/server/api/trpc";
 import {
-  createProjectSchema,
-  PROJECT_DEFINITIONS,
-  updateProjectSchema,
-  type ProjectConfig,
-  type UpdateProjectConfig,
-  updateProjectConfigSchema,
-} from "@timesheeter/app/lib/workspace/projects";
+  createTimesheetEntrySchema,
+  updateTimesheetEntrySchema,
+  type TimesheetEntryConfig,
+  type UpdateTimesheetEntryConfig,
+  updateTimesheetEntryConfigSchema,
+  TIMESHEET_ENTRY_DEFINITIONS,
+} from "@timesheeter/app/lib/workspace/timesheet-entries";
 import {
   decrypt,
   encrypt,
   filterConfig,
 } from "@timesheeter/app/server/lib/secret-helpers";
-import { type Project, type PrismaClient } from "@prisma/client";
+import { type TimesheetEntry, type PrismaClient } from "@prisma/client";
 
-export const projectsRouter = createTRPCRouter({
+export const timesheetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
     .input(
       z.object({
@@ -29,48 +29,54 @@ export const projectsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       await authorize({
         prisma: ctx.prisma,
-        projectId: null,
+        timesheetEntryId: null,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
 
-      return ctx.prisma.project
+      return ctx.prisma.timesheetEntry
         .findMany({
           where: {
             workspaceId: input.workspaceId,
+            userId: ctx.session.user.id,
           },
         })
-        .then((projects) => projects.map((project) => parseProject(project)));
+        .then((timesheetEntries) =>
+          timesheetEntries.map((timesheetEntry) =>
+            parseTimesheetEntry(timesheetEntry)
+          )
+        );
     }),
   create: protectedProcedure
-    .input(createProjectSchema)
+    .input(createTimesheetEntrySchema)
     .mutation(async ({ ctx, input }) => {
       await authorize({
         prisma: ctx.prisma,
-        projectId: null,
+        timesheetEntryId: null,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
 
       const { config, ...rest } = input;
 
-      const createdProject = await ctx.prisma.project
+      const createdTimesheetEntry = await ctx.prisma.timesheetEntry
         .create({
           data: {
+            userId: ctx.session.user.id,
             ...rest,
             configSerialized: encrypt(JSON.stringify(config)),
           },
         })
-        .then(parseProject);
+        .then(parseTimesheetEntry);
 
-      return createdProject;
+      return createdTimesheetEntry;
     }),
   update: protectedProcedure
-    .input(updateProjectSchema)
+    .input(updateTimesheetEntrySchema)
     .mutation(async ({ ctx, input }) => {
       const { config: oldConfig } = await authorize({
         prisma: ctx.prisma,
-        projectId: input.id,
+        timesheetEntryId: input.id,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
@@ -81,13 +87,13 @@ export const projectsRouter = createTRPCRouter({
       const updatedConfig = {
         ...oldConfig,
         ...updatedConfigValues,
-      } satisfies UpdateProjectConfig;
+      } satisfies UpdateTimesheetEntryConfig;
 
       // Validate the config against the config schema to double check everything
       // has been merged correctly
-      updateProjectConfigSchema.parse(updatedConfig);
+      updateTimesheetEntryConfigSchema.parse(updatedConfig);
 
-      await ctx.prisma.project
+      return ctx.prisma.timesheetEntry
         .update({
           where: {
             id: input.id,
@@ -97,7 +103,7 @@ export const projectsRouter = createTRPCRouter({
             configSerialized: encrypt(JSON.stringify(updatedConfig)),
           },
         })
-        .then(parseProject);
+        .then(parseTimesheetEntry);
     }),
   delete: protectedProcedure
     .input(
@@ -109,61 +115,63 @@ export const projectsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await authorize({
         prisma: ctx.prisma,
-        projectId: input.id,
+        timesheetEntryId: input.id,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
 
-      const deletedProject = await ctx.prisma.project
+      return ctx.prisma.timesheetEntry
         .delete({
           where: {
             id: input.id,
           },
         })
-        .then(parseProject);
-
-      return deletedProject;
+        .then(parseTimesheetEntry);
     }),
 });
 
-export type ParsedProject = Omit<Project, "configSerialized"> & {
-  config: ProjectConfig;
+export type ParsedTimesheetEntry = Omit<TimesheetEntry, "configSerialized"> & {
+  config: TimesheetEntryConfig;
 };
 
-export const parseProject = (project: Project, safe = true): ParsedProject => {
-  const { configSerialized, ...rest } = project;
+export const parseTimesheetEntry = (
+  timesheetEntry: TimesheetEntry,
+  safe = true
+): ParsedTimesheetEntry => {
+  const { configSerialized, ...rest } = timesheetEntry;
 
-  const config = JSON.parse(decrypt(configSerialized)) as ProjectConfig;
+  const config = JSON.parse(decrypt(configSerialized)) as TimesheetEntryConfig;
 
   return {
     ...rest,
     config: safe
-      ? filterConfig<ProjectConfig>(
+      ? filterConfig<TimesheetEntryConfig>(
           config,
-          PROJECT_DEFINITIONS[config.type].fields,
+          TIMESHEET_ENTRY_DEFINITIONS[config.type].fields,
           config.type
         )
       : config,
   };
 };
 
-type AuthorizeParams<ProjectId extends string | null> = {
+type AuthorizeParams<TimesheetEntryId extends string | null> = {
   prisma: PrismaClient;
-  projectId: ProjectId;
+  timesheetEntryId: TimesheetEntryId;
   workspaceId: string;
   userId: string;
 };
 
-type AuthorizeResult<ProjectId extends string | null> = ProjectId extends null
-  ? null
-  : ParsedProject;
+type AuthorizeResult<TimesheetEntryId extends string | null> =
+  TimesheetEntryId extends null ? null : ParsedTimesheetEntry;
 
-const authorize = async <ProjectId extends string | null>({
+const authorize = async <TimesheetEntryId extends string | null>({
   prisma,
-  projectId,
+  timesheetEntryId,
   workspaceId,
   userId,
-}: AuthorizeParams<ProjectId>): Promise<AuthorizeResult<ProjectId>> => {
+}: AuthorizeParams<TimesheetEntryId>): Promise<
+  AuthorizeResult<TimesheetEntryId>
+> => {
   const membership = await prisma.membership.findMany({
     where: {
       userId,
@@ -178,29 +186,38 @@ const authorize = async <ProjectId extends string | null>({
     });
   }
 
-  if (!projectId) {
-    return null as AuthorizeResult<ProjectId>;
+  if (!timesheetEntryId) {
+    return null as AuthorizeResult<TimesheetEntryId>;
   }
 
-  const project = await prisma.project.findUnique({
+  const timesheetEntry = await prisma.timesheetEntry.findUnique({
     where: {
-      id: projectId,
+      id: timesheetEntryId,
     },
   });
 
-  if (!project) {
+  if (!timesheetEntry) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Project not found",
+      message: "TimesheetEntry not found",
     });
   }
 
-  if (project.workspaceId !== workspaceId) {
+  if (timesheetEntry.workspaceId !== workspaceId) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Project not found",
+      message: "TimesheetEntry not found",
     });
   }
 
-  return parseProject(project) as AuthorizeResult<ProjectId>;
+  if (timesheetEntry.userId !== userId) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "This TimesheetEntry does not belong to you",
+    });
+  }
+
+  return parseTimesheetEntry(
+    timesheetEntry
+  ) as AuthorizeResult<TimesheetEntryId>;
 };

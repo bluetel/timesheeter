@@ -5,21 +5,21 @@ import {
   protectedProcedure,
 } from "@timesheeter/app/server/api/trpc";
 import {
-  createProjectSchema,
-  PROJECT_DEFINITIONS,
-  updateProjectSchema,
-  type ProjectConfig,
-  type UpdateProjectConfig,
-  updateProjectConfigSchema,
-} from "@timesheeter/app/lib/workspace/projects";
+  createTaskSchema,
+  TASK_DEFINITIONS,
+  updateTaskSchema,
+  type TaskConfig,
+  type UpdateTaskConfig,
+  updateTaskConfigSchema,
+} from "@timesheeter/app/lib/workspace/tasks";
 import {
   decrypt,
   encrypt,
   filterConfig,
 } from "@timesheeter/app/server/lib/secret-helpers";
-import { type Project, type PrismaClient } from "@prisma/client";
+import { type Task, type PrismaClient } from "@prisma/client";
 
-export const projectsRouter = createTRPCRouter({
+export const tasksRouter = createTRPCRouter({
   list: protectedProcedure
     .input(
       z.object({
@@ -29,48 +29,48 @@ export const projectsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       await authorize({
         prisma: ctx.prisma,
-        projectId: null,
+        taskId: null,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
 
-      return ctx.prisma.project
+      return ctx.prisma.task
         .findMany({
           where: {
             workspaceId: input.workspaceId,
           },
         })
-        .then((projects) => projects.map((project) => parseProject(project)));
+        .then((tasks) => tasks.map((task) => parseTask(task)));
     }),
   create: protectedProcedure
-    .input(createProjectSchema)
+    .input(createTaskSchema)
     .mutation(async ({ ctx, input }) => {
       await authorize({
         prisma: ctx.prisma,
-        projectId: null,
+        taskId: null,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
 
       const { config, ...rest } = input;
 
-      const createdProject = await ctx.prisma.project
+      const createdTask = await ctx.prisma.task
         .create({
           data: {
             ...rest,
             configSerialized: encrypt(JSON.stringify(config)),
           },
         })
-        .then(parseProject);
+        .then(parseTask);
 
-      return createdProject;
+      return createdTask;
     }),
   update: protectedProcedure
-    .input(updateProjectSchema)
+    .input(updateTaskSchema)
     .mutation(async ({ ctx, input }) => {
       const { config: oldConfig } = await authorize({
         prisma: ctx.prisma,
-        projectId: input.id,
+        taskId: input.id,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
@@ -81,13 +81,13 @@ export const projectsRouter = createTRPCRouter({
       const updatedConfig = {
         ...oldConfig,
         ...updatedConfigValues,
-      } satisfies UpdateProjectConfig;
+      } satisfies UpdateTaskConfig;
 
       // Validate the config against the config schema to double check everything
       // has been merged correctly
-      updateProjectConfigSchema.parse(updatedConfig);
+      updateTaskConfigSchema.parse(updatedConfig);
 
-      await ctx.prisma.project
+      await ctx.prisma.task
         .update({
           where: {
             id: input.id,
@@ -97,7 +97,7 @@ export const projectsRouter = createTRPCRouter({
             configSerialized: encrypt(JSON.stringify(updatedConfig)),
           },
         })
-        .then(parseProject);
+        .then(parseTask);
     }),
   delete: protectedProcedure
     .input(
@@ -109,61 +109,61 @@ export const projectsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await authorize({
         prisma: ctx.prisma,
-        projectId: input.id,
+        taskId: input.id,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
 
-      const deletedProject = await ctx.prisma.project
+      const deletedTask = await ctx.prisma.task
         .delete({
           where: {
             id: input.id,
           },
         })
-        .then(parseProject);
+        .then(parseTask);
 
-      return deletedProject;
+      return deletedTask;
     }),
 });
 
-export type ParsedProject = Omit<Project, "configSerialized"> & {
-  config: ProjectConfig;
+export type ParsedTask = Omit<Task, "configSerialized"> & {
+  config: TaskConfig;
 };
 
-export const parseProject = (project: Project, safe = true): ParsedProject => {
-  const { configSerialized, ...rest } = project;
+export const parseTask = (task: Task, safe = true): ParsedTask => {
+  const { configSerialized, ...rest } = task;
 
-  const config = JSON.parse(decrypt(configSerialized)) as ProjectConfig;
+  const config = JSON.parse(decrypt(configSerialized)) as TaskConfig;
 
   return {
     ...rest,
     config: safe
-      ? filterConfig<ProjectConfig>(
+      ? filterConfig<TaskConfig>(
           config,
-          PROJECT_DEFINITIONS[config.type].fields,
+          TASK_DEFINITIONS[config.type].fields,
           config.type
         )
       : config,
   };
 };
 
-type AuthorizeParams<ProjectId extends string | null> = {
+type AuthorizeParams<TaskId extends string | null> = {
   prisma: PrismaClient;
-  projectId: ProjectId;
+  taskId: TaskId;
   workspaceId: string;
   userId: string;
 };
 
-type AuthorizeResult<ProjectId extends string | null> = ProjectId extends null
+type AuthorizeResult<TaskId extends string | null> = TaskId extends null
   ? null
-  : ParsedProject;
+  : ParsedTask;
 
-const authorize = async <ProjectId extends string | null>({
+const authorize = async <TaskId extends string | null>({
   prisma,
-  projectId,
+  taskId,
   workspaceId,
   userId,
-}: AuthorizeParams<ProjectId>): Promise<AuthorizeResult<ProjectId>> => {
+}: AuthorizeParams<TaskId>): Promise<AuthorizeResult<TaskId>> => {
   const membership = await prisma.membership.findMany({
     where: {
       userId,
@@ -178,29 +178,29 @@ const authorize = async <ProjectId extends string | null>({
     });
   }
 
-  if (!projectId) {
-    return null as AuthorizeResult<ProjectId>;
+  if (!taskId) {
+    return null as AuthorizeResult<TaskId>;
   }
 
-  const project = await prisma.project.findUnique({
+  const task = await prisma.task.findUnique({
     where: {
-      id: projectId,
+      id: taskId,
     },
   });
 
-  if (!project) {
+  if (!task) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Project not found",
+      message: "Task not found",
     });
   }
 
-  if (project.workspaceId !== workspaceId) {
+  if (task.workspaceId !== workspaceId) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Project not found",
+      message: "Task not found",
     });
   }
 
-  return parseProject(project) as AuthorizeResult<ProjectId>;
+  return parseTask(task) as AuthorizeResult<TaskId>;
 };

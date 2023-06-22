@@ -25,14 +25,12 @@ export const holidaysRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       });
 
-      return ctx.prisma.holiday
-        .findMany({
-          where: {
-            workspaceId: input.workspaceId,
-            userId: ctx.session.user.id,
-          },
-        })
-        .then((holidays) => holidays.map((holiday) => parseHoliday(holiday)));
+      return ctx.prisma.holiday.findMany({
+        where: {
+          workspaceId: input.workspaceId,
+          userId: ctx.session.user.id,
+        },
+      });
     }),
   create: protectedProcedure
     .input(createHolidaySchema)
@@ -46,26 +44,21 @@ export const holidaysRouter = createTRPCRouter({
 
       const { start, end, ...rest } = input;
 
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-
-      if (startDate > endDate) {
+      if (start > end) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Start date cannot be after end date",
         });
       }
 
-      return ctx.prisma.holiday
-        .create({
-          data: {
-            ...rest,
-            userId: ctx.session.user.id,
-            start: startDate,
-            end: endDate,
-          },
-        })
-        .then(parseHoliday);
+      return ctx.prisma.holiday.create({
+        data: {
+          ...rest,
+          userId: ctx.session.user.id,
+          start,
+          end,
+        },
+      });
     }),
   update: protectedProcedure
     .input(updateHolidaySchema)
@@ -77,8 +70,8 @@ export const holidaysRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       });
 
-      const start = input.start ? new Date(input.start) : existingHoliday.start;
-      const end = input.end ? new Date(input.end) : existingHoliday.end;
+      const start = input.start ? input.start : existingHoliday.start;
+      const end = input.end ? input.end : existingHoliday.end;
 
       if (start > end) {
         throw new TRPCError({
@@ -87,16 +80,14 @@ export const holidaysRouter = createTRPCRouter({
         });
       }
 
-      return ctx.prisma.holiday
-        .update({
-          where: {
-            id: input.id,
-          },
-          data: {
-            ...input,
-          },
-        })
-        .then(parseHoliday);
+      return ctx.prisma.holiday.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          ...input,
+        },
+      });
     }),
   delete: protectedProcedure
     .input(
@@ -113,31 +104,13 @@ export const holidaysRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       });
 
-      return ctx.prisma.holiday
-        .delete({
-          where: {
-            id: input.id,
-          },
-        })
-        .then(parseHoliday);
+      return ctx.prisma.holiday.delete({
+        where: {
+          id: input.id,
+        },
+      });
     }),
 });
-
-export type ParsedHoliday = Omit<Holiday, "start" | "end"> & {
-  start: string;
-  end: string;
-};
-
-export const parseHoliday = (holiday: Holiday): ParsedHoliday => {
-  const { start, end, ...rest } = holiday;
-
-  return {
-    ...rest,
-    // Convert to uk format eg 21/06/2023
-    start: start.toLocaleDateString("en-GB"),
-    end: end.toLocaleDateString("en-GB"),
-  };
-};
 
 type AuthorizeParams<HolidayId extends string | null> = {
   prisma: PrismaClient;
@@ -148,7 +121,7 @@ type AuthorizeParams<HolidayId extends string | null> = {
 
 type AuthorizeResult<HolidayId extends string | null> = HolidayId extends null
   ? null
-  : ParsedHoliday;
+  : Holiday;
 
 const authorize = async <HolidayId extends string | null>({
   prisma,
@@ -201,5 +174,5 @@ const authorize = async <HolidayId extends string | null>({
     });
   }
 
-  return parseHoliday(holiday) as AuthorizeResult<HolidayId>;
+  return holiday as AuthorizeResult<HolidayId>;
 };

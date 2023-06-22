@@ -259,7 +259,7 @@ const authorize = async <IntegrationId extends string | null>({
   if (integration.userId !== userId) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "This integration does not belong to you",
+      message: "This Integration does not belong to you",
     });
   }
 

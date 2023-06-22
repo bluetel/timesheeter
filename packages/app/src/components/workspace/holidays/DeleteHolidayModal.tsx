@@ -1,11 +1,11 @@
 import { api } from "@timesheeter/app/utils/api";
-import type { ParsedHoliday } from "@timesheeter/app/server/api/routers/workspace/holidays";
 import { DeleteConfirmationModal } from "@timesheeter/app/components/ui/DeleteConfirmationModal";
+import { type Holiday } from "@prisma/client";
 
 type DeleteHolidayModalProps = {
   show: boolean;
   onClose: () => void;
-  holiday: ParsedHoliday;
+  holiday: Holiday;
   refetchHolidays: () => void;
 };
 

@@ -127,6 +127,10 @@ export const EditProjectSideOver = ({
     values.config.autoAssignTasks =
       values.config.autoAssignTasks?.filter((task) => task !== "") ?? [];
 
+    if (values.taskPrefix === "") {
+      values.taskPrefix = null;
+    }
+
     // Validate form
     const result = mutationSchema.safeParse(values);
 

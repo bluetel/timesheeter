@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { ukDateRegex } from "@timesheeter/app/lib/regex";
 import { type IconType } from "react-icons";
 import { GlobeEuropeAfricaIcon } from "@heroicons/react/24/outline";
 
@@ -11,14 +10,14 @@ export const HolidayIcon = GlobeEuropeAfricaIcon as IconType;
 export const createHolidaySchema = z.object({
   workspaceId: z.string().cuid2(),
   description: z.string().min(1).max(100),
-  start: z.string().regex(ukDateRegex),
-  end: z.string().regex(ukDateRegex),
+  start: z.date(),
+  end: z.date(),
 });
 
 export const updateHolidaySchema = z.object({
   id: z.string().cuid2(),
   workspaceId: z.string().cuid2(),
   description: z.string().min(1).max(100).optional(),
-  start: z.string().regex(ukDateRegex).optional(),
-  end: z.string().regex(ukDateRegex).optional(),
+  start: z.date().optional(),
+  end: z.date().optional(),
 });

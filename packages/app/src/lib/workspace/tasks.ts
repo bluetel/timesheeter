@@ -29,6 +29,8 @@ export type TaskDetail = (typeof TASK_DEFINITIONS)[TaskType];
 
 export const taskConfigSchema = TASK_DEFINITIONS.DefaultTask.configSchema;
 
+export type TaskConfig = z.infer<typeof taskConfigSchema>;
+
 export const updateTaskConfigSchema =
   TASK_DEFINITIONS.DefaultTask.updateTaskSchema;
 
@@ -36,6 +38,23 @@ export type UpdateTaskConfig = z.infer<typeof updateTaskConfigSchema>;
 
 export const getDefaultTaskConfig = (type: TaskType = "DefaultTask") =>
   TASK_DEFINITIONS[type].defaultConfig;
+
+export const createTaskSchema = z.object({
+  workspaceId: z.string().cuid2(),
+  taskNumber: z.number().int().positive().optional(),
+  name: z.string().min(1).max(100).optional(),
+  projectId: z.string().cuid2().optional(),
+  config: taskConfigSchema,
+});
+
+export const updateTaskSchema = z.object({
+  id: z.string().cuid2(),
+  workspaceId: z.string().cuid2(),
+  taskNumber: z.number().int().positive().optional(),
+  name: z.string().min(1).max(100).optional(),
+  projectId: z.string().cuid2().optional(),
+  config: updateTaskConfigSchema,
+});
 
 type MatchedTaskResult =
   | {

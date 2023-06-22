@@ -123,7 +123,7 @@ model Task {
     createdAt   DateTime  @default(now())
     updatedAt   DateTime  @updatedAt
 
-    taskNumber String?
+    taskNumber Int?
     name       String?
 
     project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)

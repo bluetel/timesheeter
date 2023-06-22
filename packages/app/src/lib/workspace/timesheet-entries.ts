@@ -43,3 +43,20 @@ export type UpdateTimesheetEntryConfig = z.infer<
 export const getDefaultTimesheetEntryConfig = (
   type: TimesheetEntryType = "DefaultTimesheetEntry"
 ) => TIMESHEET_ENTRY_DEFINITIONS[type].defaultConfig;
+
+export const createTimesheetEntrySchema = z.object({
+  workspaceId: z.string().cuid2(),
+  taskId: z.string().cuid2(),
+  start: z.date(),
+  end: z.date(),
+  config: timesheetEntryConfigSchema,
+});
+
+export const updateTimesheetEntrySchema = z.object({
+  id: z.string().cuid2(),
+  workspaceId: z.string().cuid2(),
+  taskId: z.string().cuid2().optional(),
+  start: z.date().optional(),
+  end: z.date().optional(),
+  config: updateTimesheetEntryConfigSchema,
+});

@@ -17,6 +17,8 @@ import {
   HolidayIcon,
   IntegrationIcon,
   ProjectIcon,
+  TaskIcon,
+  TimesheetEntryIcon,
 } from "@timesheeter/app/lib";
 
 export type WorkspaceLayoutProps = {
@@ -35,6 +37,12 @@ const navigation = [
   { name: "Dashboard", path: "/dashboard", icon: HomeIcon },
   { name: "Integrations", path: "/integrations", icon: IntegrationIcon },
   { name: "Projects", path: "/projects", icon: ProjectIcon },
+  { name: "Tasks", path: "/tasks", icon: TaskIcon },
+  {
+    name: "Timesheet Entries",
+    path: "/timesheet-entries",
+    icon: TimesheetEntryIcon,
+  },
   { name: "Holidays", path: "/holidays", icon: HolidayIcon },
 ] as NavigationItem[];
 

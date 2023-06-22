@@ -18,6 +18,8 @@ import {
   ArrowPathRoundedSquareIcon,
 } from "@heroicons/react/24/outline";
 import { type IconType } from "react-icons";
+import { SelectableList } from "../../ui/SelectableList";
+import { SimpleEmptyState } from "../../ui/SimpleEmptyState";
 
 type ProjectDetailProps = {
   project: ParsedProject;
@@ -82,22 +84,26 @@ export const ProjectPanel = ({
               icon: ArrowPathRoundedSquareIcon as IconType,
               label: "Auto Assign Tasks",
               subDescription: autoAssignTasksHelpText,
-              body: (
-                <dl className="sm:divide-y sm:divide-gray-200">
-                  {project.config.autoAssignTasks.map((taskName, index) => (
-                    <div
-                      className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5"
-                      key={index}
-                    >
-                      <div className="sm:col-span-1">
-                        <dt className="text-sm font-medium text-gray-900">
-                          {taskName}
-                        </dt>
-                      </div>
-                    </div>
-                  ))}
-                </dl>
-              ),
+              body:
+                project.config.autoAssignTasks.length > 0 ? (
+                  <SelectableList
+                    items={project.config.autoAssignTasks.map((taskName) => ({
+                      label: taskName,
+                      subLabel: `e.g. ${taskName} - New feature discussion`,
+                    }))}
+                  />
+                ) : (
+                  <SimpleEmptyState
+                    title="No auto assign tasks"
+                    helpText="Edit the project to add auto assign tasks"
+                    icon={ProjectIcon}
+                    button={{
+                      label: "Edit project",
+                      onClick: () => setShowEditProjectsideOver(true),
+                    }}
+                    shrink
+                  />
+                ),
             },
           ],
         }}

@@ -1,5 +1,4 @@
 import { HolidayIcon } from "@timesheeter/app/lib/workspace/holidays";
-import type { ParsedHoliday } from "@timesheeter/app/server/api/routers/workspace/holidays";
 import { EditHolidaySideOver } from "./EditHolidaySideOver";
 import { useState } from "react";
 import { DetailPanel } from "@timesheeter/app/components/ui/DetailPanel/DetailPanel";
@@ -10,9 +9,10 @@ import {
   BasicDetailList,
   type BasicDetailListItem,
 } from "@timesheeter/app/components/ui/DetailPanel/BasicDetailList";
+import { type Holiday } from "@prisma/client";
 
 type HolidayDetailProps = {
-  holiday: ParsedHoliday;
+  holiday: Holiday;
   refetchHolidays: () => unknown;
   onNewHolidayClick: () => void;
 };
@@ -103,7 +103,7 @@ const useBasicDetails = (
       },
       field: {
         variant: "text",
-        value: holiday.end,
+        value: holiday.start,
       },
     },
     {
