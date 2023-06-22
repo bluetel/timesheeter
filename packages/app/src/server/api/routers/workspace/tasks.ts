@@ -39,6 +39,15 @@ export const tasksRouter = createTRPCRouter({
           where: {
             workspaceId: input.workspaceId,
           },
+          include: {
+            project: {
+              select: {
+                id: true,
+                name: true,
+                taskPrefix: true,
+              },
+            },
+          },
         })
         .then((tasks) => tasks.map((task) => parseTask(task)));
     }),
@@ -126,11 +135,22 @@ export const tasksRouter = createTRPCRouter({
     }),
 });
 
-export type ParsedTask = Omit<Task, "configSerialized"> & {
+type WithConfig = {
+  configSerialized: string;
+  [key: string]: unknown;
+};
+
+export type ParsedTask<TaskType extends WithConfig> = Omit<
+  TaskType,
+  "configSerialized"
+> & {
   config: TaskConfig;
 };
 
-export const parseTask = (task: Task, safe = true): ParsedTask => {
+export const parseTask = <TaskType extends WithConfig>(
+  task: TaskType,
+  safe = true
+): ParsedTask<TaskType> => {
   const { configSerialized, ...rest } = task;
 
   const config = JSON.parse(decrypt(configSerialized)) as TaskConfig;
@@ -156,7 +176,7 @@ type AuthorizeParams<TaskId extends string | null> = {
 
 type AuthorizeResult<TaskId extends string | null> = TaskId extends null
   ? null
-  : ParsedTask;
+  : ParsedTask<Task>;
 
 const authorize = async <TaskId extends string | null>({
   prisma,

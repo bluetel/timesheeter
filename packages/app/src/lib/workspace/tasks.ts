@@ -60,7 +60,7 @@ type MatchedTaskResult =
   | {
       variant: "with-task";
       prefix: string;
-      taskNumber: string;
+      taskNumber: number;
       description: string | null;
     }
   | {
@@ -91,7 +91,7 @@ export const matchTaskRegex = (rawDescription: string): MatchedTaskResult => {
       return {
         variant: "with-task",
         prefix,
-        taskNumber,
+        taskNumber: parseInt(taskNumber, 10),
         description: customDescription ? customDescription.trim() : null,
       };
     }

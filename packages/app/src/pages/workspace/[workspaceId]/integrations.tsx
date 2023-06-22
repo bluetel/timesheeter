@@ -16,7 +16,7 @@ import {
   INTEGRATIONS_HELP_TEXT,
   INTEGRATION_DEFINITIONS,
 } from "@timesheeter/app/lib/workspace/integrations";
-import { IntegrationIcon } from "@timesheeter/app/lib"
+import { IntegrationIcon } from "@timesheeter/app/lib";
 import { SimpleEmptyState } from "@timesheeter/app/components/ui/SimpleEmptyState";
 import { SelectableList } from "@timesheeter/app/components/ui/SelectableList";
 import { useRouter } from "next/router";
@@ -138,7 +138,7 @@ const Integrations = ({
             title="No Integrations"
             helpText={INTEGRATIONS_HELP_TEXT}
             button={{
-              label: "New Integration",
+              label: "New integration",
               onClick: () => setShowNewIntegrationSideOver(true),
             }}
             icon={IntegrationIcon}

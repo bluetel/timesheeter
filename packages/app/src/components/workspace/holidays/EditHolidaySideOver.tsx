@@ -51,7 +51,7 @@ export const EditHolidaySideOver = ({
       ? {
           new: true as const,
           workspaceId,
-          name: "New Holiday",
+          name: "New holiday",
         }
       : {
           new: false as const,

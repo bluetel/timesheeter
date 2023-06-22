@@ -70,7 +70,7 @@ export const createTRPCContext = async (opts: {
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { GetServerSidePropsContext } from "next";
+import { type GetServerSidePropsContext } from "next";
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,

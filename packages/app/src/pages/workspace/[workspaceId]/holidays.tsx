@@ -100,7 +100,10 @@ const Holidays = ({
     () =>
       holidays?.map((holiday) => ({
         label: holiday.description,
-        subLabel: `${holiday.start} - ${holiday.end}`,
+        subLabel: `${holiday.start.toLocaleDateString(
+          "en-GB"
+        )} - ${holiday.end.toLocaleDateString("en-GB")}`,
+        icon: HolidayIcon,
         onClick: () =>
           setSelectedHoliday({
             id: holiday.id,
@@ -128,7 +131,7 @@ const Holidays = ({
             title="No Holidays"
             helpText={HOLIDAYS_HELP_TEXT}
             button={{
-              label: "New Holiday",
+              label: "New holiday",
               onClick: () => setShowNewHolidaySideOver(true),
             }}
             icon={HolidayIcon}

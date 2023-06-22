@@ -82,7 +82,7 @@ export const IntegrationPanel = ({
 };
 
 const useBasicDetails = (
-  integration: RouterOutputs["workspace"]["integrations"]["list"][0],
+  integration: RouterOutputs["workspace"]["timesheetEntries"]["list"][0],
   integrationDetail: IntegrationDetail
 ) => {
   const details: BasicDetailListItem[] = [

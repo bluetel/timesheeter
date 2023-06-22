@@ -129,7 +129,7 @@ const Projects = ({
             title="No Projects"
             helpText={PROJECTS_HELP_TEXT}
             button={{
-              label: "New Project",
+              label: "New project",
               onClick: () => setShowNewProjectsideOver(true),
             }}
             icon={ProjectIcon}

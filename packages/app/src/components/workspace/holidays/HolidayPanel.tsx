@@ -103,7 +103,8 @@ const useBasicDetails = (
       },
       field: {
         variant: "text",
-        value: holiday.start,
+        // Convert to pretty date and time
+        value: holiday.start.toLocaleDateString("en-GB"),
       },
     },
     {
@@ -114,7 +115,7 @@ const useBasicDetails = (
       },
       field: {
         variant: "text",
-        value: holiday.end,
+        value: holiday.end.toLocaleDateString("en-GB"),
       },
     },
   ];

@@ -1,37 +1,30 @@
 import { useZodForm } from "@timesheeter/app/utils/zod-form";
 import {
-  createProjectSchema,
-  updateProjectSchema,
-  getDefaultProjectConfig,
-  autoAssignTasksHelpText,
-} from "@timesheeter/app/lib/workspace/projects";
+  createTaskSchema,
+  updateTaskSchema,
+  getDefaultTaskConfig,
+} from "@timesheeter/app/lib/workspace/tasks";
 import { api, type RouterOutputs } from "@timesheeter/app/utils/api";
 import { useEffect } from "react";
-import { PROJECTS_HELP_TEXT } from "@timesheeter/app/lib/workspace/projects";
+import { TASKS_HELP_TEXT } from "@timesheeter/app/lib/workspace/tasks";
 import { z } from "zod";
 import { SideOver } from "@timesheeter/app/components/ui/SideOver";
 import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicForm";
 import { type BasicFormItemProps } from "@timesheeter/app/components/ui/forms/BasicForm/BasicFormItem";
 import { useNotifications } from "../../ui/notification/NotificationProvider";
 import { fromZodError } from "zod-validation-error";
-import { ListableForm } from "../../ui/forms/BasicForm/ListableForm";
-import {
-  AdjustmentsVerticalIcon,
-  ArrowPathRoundedSquareIcon,
-} from "@heroicons/react/24/outline";
-import { type IconType } from "react-icons/lib";
 
 const mutationSchema = z.union([
-  createProjectSchema.extend({
+  createTaskSchema.extend({
     new: z.literal(true),
   }),
-  updateProjectSchema.extend({
+  updateTaskSchema.extend({
     new: z.literal(false),
   }),
 ]);
 
-type EditProjectsideOverProps = {
-  refetchProjects: () => unknown;
+type EditTasksideOverProps = {
+  refetchTasks: () => unknown;
   show: boolean;
   onClose: () => void;
   data:
@@ -40,18 +33,20 @@ type EditProjectsideOverProps = {
       }
     | {
         new: false;
-        project: RouterOutputs["workspace"]["projects"]["list"][0];
+        task: RouterOutputs["workspace"]["tasks"]["list"][number];
       };
   workspaceId: string;
+  projects: RouterOutputs["workspace"]["projects"]["listMinimal"];
 };
 
-export const EditProjectSideOver = ({
-  refetchProjects,
+export const EditTaskSideOver = ({
+  refetchTasks,
   show,
   onClose,
   data,
   workspaceId,
-}: EditProjectsideOverProps) => {
+  projects,
+}: EditTasksideOverProps) => {
   const { addNotification } = useNotifications();
 
   const getDefaultValues = () =>
@@ -59,12 +54,12 @@ export const EditProjectSideOver = ({
       ? {
           new: true as const,
           workspaceId,
-          name: "New project",
-          config: getDefaultProjectConfig(),
+          name: "New task",
+          config: getDefaultTaskConfig(),
         }
       : {
           new: false as const,
-          ...data.project,
+          ...data.task,
         };
 
   const methods = useZodForm({
@@ -84,16 +79,16 @@ export const EditProjectSideOver = ({
 
   const mutationArgs = {
     onSuccess: () => {
-      refetchProjects();
+      refetchTasks();
       handleClose();
     },
   };
 
-  const { mutate: createProject } =
-    api.workspace.projects.create.useMutation(mutationArgs);
+  const { mutate: createTask } =
+    api.workspace.tasks.create.useMutation(mutationArgs);
 
-  const { mutate: updateProject } =
-    api.workspace.projects.update.useMutation(mutationArgs);
+  const { mutate: updateTask } =
+    api.workspace.tasks.update.useMutation(mutationArgs);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -102,7 +97,7 @@ export const EditProjectSideOver = ({
 
     // If just updating, filter out the values that are not changed
     if (!data.new) {
-      const { project } = data;
+      const { task } = data;
 
       values = {
         ...values,
@@ -110,10 +105,10 @@ export const EditProjectSideOver = ({
           ...(Object.fromEntries(
             Object.entries(values.config ?? {}).filter(
               ([key, value]) =>
-                (project.config as Record<string, unknown>)[key] !== value
+                (task.config as Record<string, unknown>)[key] !== value
             )
           ) as (typeof values)["config"]),
-          type: values.config.type ?? project.config.type,
+          type: values.config.type ?? task.config.type,
         },
       } as typeof values;
 
@@ -123,105 +118,89 @@ export const EditProjectSideOver = ({
       ) as typeof values;
     }
 
-    // Filter out autoAssignTasks if it's empty
-    values.config.autoAssignTasks =
-      values.config.autoAssignTasks?.filter((task) => task !== "") ?? [];
-
-    if (values.taskPrefix === "") {
-      values.taskPrefix = null;
-    }
-
     // Validate form
     const result = mutationSchema.safeParse(values);
 
     if (!result.success) {
       addNotification({
         variant: "error",
-        primaryText: `Failed to ${data.new ? "create" : "update"} project`,
+        primaryText: `Failed to ${data.new ? "create" : "update"} task`,
         secondaryText: fromZodError(result.error).toString(),
       });
       return;
     }
 
     values.new
-      ? createProject(values, {
+      ? createTask(values, {
           onError: (error) => {
             addNotification({
               variant: "error",
-              primaryText: "Failed to create project",
+              primaryText: "Failed to create task",
               secondaryText: error.message,
             });
           },
         })
-      : updateProject(values, {
+      : updateTask(values, {
           onError: (error) => {
             addNotification({
               variant: "error",
-              primaryText: "Failed to update project",
+              primaryText: "Failed to update task",
               secondaryText: error.message,
             });
           },
         });
   };
 
-  const fields = useProjectFields(methods);
-
-  const getAutoAssignTasks = () => {
-    const tasks = methods.getValues("config.autoAssignTasks") ?? [];
-
-    if (tasks.length === 0) {
-      return [""];
-    }
-
-    return tasks;
-  };
+  const fields = useTaskFields(methods, projects);
 
   return (
     <SideOver
-      title={data.new ? "Create Project" : "Edit Project"}
-      description={PROJECTS_HELP_TEXT}
+      title={data.new ? "Create Task" : "Edit Task"}
+      description={TASKS_HELP_TEXT}
       show={show}
       onClose={handleClose}
       actionButtonLabel={data.new ? "Create" : "Update"}
       onFormSubmit={handleSubmit}
       tabs={{
-        multiple: true,
-        bodies: [
-          {
-            icon: AdjustmentsVerticalIcon as IconType,
-            label: "Details",
-            body: <BasicForm items={fields} />,
-          },
-          {
-            icon: ArrowPathRoundedSquareIcon as IconType,
-            label: "Auto Assign Tasks",
-            body: (
-              <ListableForm
-                values={getAutoAssignTasks()}
-                onChange={(newValues) =>
-                  methods.setValue("config.autoAssignTasks", newValues, {
-                    shouldValidate: true,
-                  })
-                }
-              />
-            ),
-            subDescription: autoAssignTasksHelpText,
-          },
-        ],
+        multiple: false,
+        body: <BasicForm items={fields} />,
       }}
     />
   );
 };
 
-const useProjectFields = (
-  methods: ReturnType<typeof useZodForm<typeof mutationSchema>>
+const useTaskFields = (
+  methods: ReturnType<typeof useZodForm<typeof mutationSchema>>,
+  projects: RouterOutputs["workspace"]["projects"]["listMinimal"]
 ) => {
   const fields: BasicFormItemProps[] = [
     {
       required: true,
       label: {
-        title: "Project name",
-        description: `Descriptive name for the project, e.g. "Acme Corp"`,
+        title: "Project",
+        description: "The project that this task belongs to",
+      },
+      field: {
+        variant: "select",
+        error: methods.formState.errors.projectId,
+        select: {
+          options: projects.map(({ id, name }) => ({
+            value: id,
+            label: name ?? "Unnamed project",
+          })),
+          onChange: (value) =>
+            methods.setValue("projectId", value, {
+              shouldValidate: true,
+            }),
+          active: methods.getValues("projectId") ?? null,
+        },
+      },
+    },
+    {
+      required: false,
+      label: {
+        title: "Task name",
+        description: `Descriptive name for the task, e.g. "Fix paywall issues"`,
       },
       field: {
         variant: "text",
@@ -232,13 +211,13 @@ const useProjectFields = (
     {
       required: false,
       label: {
-        title: "Task Prefix",
-        description: `Prefix for tasks created by this project, e.g. "AC" for "AC-1234"`,
+        title: "Task number",
+        description: "The task number, excluding the workspace prefix",
       },
       field: {
-        variant: "text",
-        register: methods.register("taskPrefix"),
-        error: methods.formState.errors.taskPrefix,
+        variant: "number",
+        register: methods.register("taskNumber"),
+        error: methods.formState.errors.taskNumber,
       },
     },
   ];

@@ -42,6 +42,30 @@ export const projectsRouter = createTRPCRouter({
         })
         .then((projects) => projects.map((project) => parseProject(project)));
     }),
+  listMinimal: protectedProcedure
+    .input(
+      z.object({
+        workspaceId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      await authorize({
+        prisma: ctx.prisma,
+        projectId: null,
+        workspaceId: input.workspaceId,
+        userId: ctx.session.user.id,
+      });
+
+      return ctx.prisma.project.findMany({
+        where: {
+          workspaceId: input.workspaceId,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+    }),
   create: protectedProcedure
     .input(createProjectSchema)
     .mutation(async ({ ctx, input }) => {

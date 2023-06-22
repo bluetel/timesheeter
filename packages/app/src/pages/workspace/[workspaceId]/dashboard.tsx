@@ -97,7 +97,7 @@ const Dashboard = ({
           }}
           items={[
             {
-              title: "Create a new Integration",
+              title: "Create a New integration",
               description: INTEGRATIONS_HELP_TEXT,
               icon: IntegrationIcon,
               background: "bg-green-500",
@@ -111,7 +111,7 @@ const Dashboard = ({
               },
             },
             {
-              title: "Create a new Project",
+              title: "Create a New project",
               description: PROJECTS_HELP_TEXT,
               icon: ProjectIcon,
               background: "bg-blue-500",
@@ -125,7 +125,7 @@ const Dashboard = ({
               },
             },
             {
-              title: "Create a new Task",
+              title: "Create a New task",
               description: TASKS_HELP_TEXT,
               icon: TaskIcon,
               background: "bg-purple-500",
@@ -139,7 +139,7 @@ const Dashboard = ({
               },
             },
             {
-              title: "Log a new Timesheet Entry",
+              title: "Log a New timesheet entry",
               description: TIMESHEET_ENTRIES_HELP_TEXT,
               icon: TimesheetEntryIcon,
               background: "bg-red-500",
@@ -156,7 +156,7 @@ const Dashboard = ({
               },
             },
             {
-              title: "Declare a new Holiday",
+              title: "Declare a New holiday",
               description: HOLIDAYS_HELP_TEXT,
               icon: HolidayIcon,
               background: "bg-yellow-500",
