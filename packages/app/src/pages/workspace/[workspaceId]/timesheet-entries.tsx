@@ -10,8 +10,10 @@ import { createTRPCContext } from "@timesheeter/app/server/api/trpc";
 import { api } from "@timesheeter/app/utils/api";
 import { getWorkspaceInfoDiscrete } from "@timesheeter/app/server/lib/workspace-info";
 import { useEffect, useMemo, useState } from "react";
-import { TIMESHEET_ENTRIES_HELP_TEXT } from "@timesheeter/app/lib/workspace/timesheet-entries";
-import { TaskIcon } from "@timesheeter/app/lib";
+import {
+  TIMESHEET_ENTRIES_HELP_TEXT,
+  TimesheetEntryIcon,
+} from "@timesheeter/app/lib/workspace/timesheet-entries";
 import { SimpleEmptyState } from "@timesheeter/app/components/ui/SimpleEmptyState";
 import { SelectableList } from "@timesheeter/app/components/ui/SelectableList";
 import { useRouter } from "next/router";
@@ -115,7 +117,7 @@ const TimesheetEntries = ({
           timesheetEntry.task.project?.taskPrefix
             ? `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`
             : undefined,
-        icon: TaskIcon,
+        icon: TimesheetEntryIcon,
         onClick: () =>
           setSelectedTask({
             id: timesheetEntry.id,
@@ -143,13 +145,13 @@ const TimesheetEntries = ({
         />
         <WorkspaceLayout workspaceInfo={workspaceInfo}>
           <SimpleEmptyState
-            title="No timesheetEntries"
+            title="No Timesheet Entries"
             helpText={TIMESHEET_ENTRIES_HELP_TEXT}
             button={{
-              label: "New timesheetEntry",
+              label: "New timesheet entry",
               onClick: () => setShowNewTimesheetEntriesSideOver(true),
             }}
-            icon={TaskIcon}
+            icon={TimesheetEntryIcon}
           />
         </WorkspaceLayout>
       </>

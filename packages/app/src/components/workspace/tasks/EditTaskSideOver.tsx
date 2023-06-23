@@ -95,6 +95,16 @@ export const EditTaskSideOver = ({
 
     let values = methods.getValues();
 
+    if (!values.projectId) {
+      values.projectId = null;
+    }
+
+    if (values.taskNumber) {
+      values.taskNumber = Number(values.taskNumber);
+    } else {
+      values.taskNumber = null;
+    }
+
     // If just updating, filter out the values that are not changed
     if (!data.new) {
       const { task } = data;
@@ -173,29 +183,31 @@ const useTaskFields = (
   methods: ReturnType<typeof useZodForm<typeof mutationSchema>>,
   projects: RouterOutputs["workspace"]["projects"]["listMinimal"]
 ) => {
-  const fields: BasicFormItemProps[] = [
-    {
-      required: true,
-      label: {
-        title: "Project",
-        description: "The project that this task belongs to",
-      },
-      field: {
-        variant: "select",
-        error: methods.formState.errors.projectId,
-        select: {
-          options: projects.map(({ id, name }) => ({
-            value: id,
-            label: name ?? "Unnamed project",
-          })),
-          onChange: (value) =>
-            methods.setValue("projectId", value, {
-              shouldValidate: true,
-            }),
-          active: methods.getValues("projectId") ?? null,
-        },
+  const projectIdFormItem: BasicFormItemProps<false> = {
+    required: false,
+    label: {
+      title: "Project",
+      description: "The project that this task belongs to",
+    },
+    field: {
+      variant: "select",
+      error: methods.formState.errors.projectId,
+      select: {
+        options: projects.map(({ id, name }) => ({
+          value: id,
+          label: name ?? "Unnamed project",
+        })),
+        onChange: (value) =>
+          methods.setValue("projectId", value, {
+            shouldValidate: true,
+          }),
+        active: methods.getValues("projectId") ?? null,
       },
     },
+  };
+
+  const fields: BasicFormItemProps[] = [
+    projectIdFormItem,
     {
       required: false,
       label: {

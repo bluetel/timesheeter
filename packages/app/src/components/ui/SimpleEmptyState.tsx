@@ -9,7 +9,7 @@ export type SimpleEmptyStateProps = {
   icon: IconType;
   button?: {
     label: string;
-    onClick: () => void;
+    onClick: () => unknown;
   };
   shrink?: boolean;
 };

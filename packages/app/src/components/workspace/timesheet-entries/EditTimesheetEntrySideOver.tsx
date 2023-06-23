@@ -13,6 +13,9 @@ import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicF
 import { type BasicFormItemProps } from "@timesheeter/app/components/ui/forms/BasicForm/BasicFormItem";
 import { useNotifications } from "../../ui/notification/NotificationProvider";
 import { fromZodError } from "zod-validation-error";
+import { SimpleEmptyState } from "../../ui/SimpleEmptyState";
+import { TaskIcon } from "@timesheeter/app/lib";
+import { useRouter } from "next/router";
 
 const mutationSchema = z.union([
   createTimesheetEntrySchema.extend({
@@ -156,6 +159,8 @@ export const EditTimesheetEntrySideOver = ({
 
   const fields = useTimesheetEntryFields(methods, tasks);
 
+  const { push } = useRouter();
+
   return (
     <SideOver
       title={data.new ? "Create Timesheet Entry" : "Edit Timesheet Entry"}
@@ -166,7 +171,21 @@ export const EditTimesheetEntrySideOver = ({
       onFormSubmit={handleSubmit}
       tabs={{
         multiple: false,
-        body: <BasicForm items={fields} />,
+        body: fields ? (
+          <BasicForm items={fields} />
+        ) : (
+          <SimpleEmptyState
+            title="No tasks yet"
+            icon={TaskIcon}
+            helpText="Create a task first then come back here"
+            shrink
+            button={{
+              label: "Create task",
+              onClick: () =>
+                push(`/workspace/${workspaceId}/tasks?create=true`),
+            }}
+          />
+        ),
       }}
     />
   );
@@ -176,29 +195,35 @@ const useTimesheetEntryFields = (
   methods: ReturnType<typeof useZodForm<typeof mutationSchema>>,
   tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"]
 ) => {
-  const fields: BasicFormItemProps[] = [
-    {
-      required: true,
-      label: {
-        title: "Task",
-        description: "The task that this timesheet entry belongs to",
-      },
-      field: {
-        variant: "select",
-        error: methods.formState.errors.taskId,
-        select: {
-          options: tasks.map(({ id, name }) => ({
-            value: id,
-            label: name ?? "Unnamed task",
-          })),
-          onChange: (value) =>
-            methods.setValue("taskId", value, {
-              shouldValidate: true,
-            }),
-          active: methods.getValues("taskId") ?? null,
-        },
+  if (!tasks[0]) {
+    return null;
+  }
+
+  const taskIdFormItem: BasicFormItemProps<true> = {
+    required: true,
+    label: {
+      title: "Task",
+      description: "The task that this timesheet entry belongs to",
+    },
+    field: {
+      variant: "select",
+      error: methods.formState.errors.taskId,
+      select: {
+        options: tasks.map(({ id, name }) => ({
+          value: id,
+          label: name ?? "Unnamed task",
+        })),
+        onChange: (value) =>
+          methods.setValue("taskId", value, {
+            shouldValidate: true,
+          }),
+        active: methods.getValues("taskId") ?? tasks[0].id,
       },
     },
+  };
+
+  const fields: BasicFormItemProps[] = [
+    taskIdFormItem,
     {
       required: false,
       label: {

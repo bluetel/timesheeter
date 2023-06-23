@@ -2,8 +2,8 @@ import { type FieldError, type UseFormRegisterReturn } from "react-hook-form";
 import { Select, type SelectProps } from "../../Select";
 import { Toggle } from "../../Toggle";
 
-export type BasicFormItemProps = {
-  required?: boolean;
+export type BasicFormItemProps<RequiredType extends boolean = boolean> = {
+  required: RequiredType;
   label: {
     title: string;
     description?: string;
@@ -18,7 +18,7 @@ export type BasicFormItemProps = {
     | {
         variant: "select";
         error?: FieldError;
-        select: SelectProps;
+        select: Omit<SelectProps<RequiredType>, "nullable">;
       }
     | {
         variant: "checkbox";
@@ -28,11 +28,11 @@ export type BasicFormItemProps = {
       };
 };
 
-export const BasicFormItem = ({
+export const BasicFormItem = <RequiredType extends boolean>({
   required,
   label,
   field,
-}: BasicFormItemProps) => {
+}: BasicFormItemProps<RequiredType>) => {
   return (
     <div className="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
       <div>
@@ -59,7 +59,9 @@ export const BasicFormItem = ({
             className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
           />
         )}
-        {field.variant === "select" && <Select {...field.select} />}
+        {field.variant === "select" && (
+          <Select {...field.select} nullable={!required as RequiredType} />
+        )}
         {field.variant === "checkbox" && (
           <Toggle checked={field.checked} onChange={field.onChange} />
         )}

@@ -3,20 +3,47 @@ import { Transition, Listbox } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "@timesheeter/app/utils/tailwind";
 
-export type SelectProps = {
+export type SelectProps<IsNullableType extends boolean> = {
   options: {
     value: string;
     label: string;
   }[];
-  active: string | null;
-  onChange: (value: string) => unknown;
+  active: IsNullableType extends true ? string : string | null;
+  onChange: (
+    value: IsNullableType extends true ? string : string | null
+  ) => unknown;
+  nullable: IsNullableType;
 };
 
-export const Select = ({ options, active, onChange }: SelectProps) => {
-  const activeLabel = useMemo(
-    () => options.find(({ value }) => value === active)?.label ?? null,
-    [options, active]
-  );
+export const Select = <IsNullableType extends boolean>({
+  options,
+  active,
+  onChange,
+  nullable,
+}: SelectProps<IsNullableType>) => {
+  const activeLabel = useMemo(() => {
+    const foundLabel = options.find(({ value }) => value === active)?.label;
+
+    if (!nullable && !foundLabel) {
+      throw new Error("Could not find active label and nullable is false");
+    }
+
+    return foundLabel ?? "None";
+  }, [options, active, nullable]);
+
+  const includeNullOptions = useMemo(() => {
+    if (nullable) {
+      return [
+        {
+          value: null,
+          label: "None",
+        },
+        ...options,
+      ];
+    }
+
+    return options;
+  }, [options, nullable]);
 
   return (
     <Listbox value={active} onChange={onChange}>
@@ -39,7 +66,7 @@ export const Select = ({ options, active, onChange }: SelectProps) => {
             leaveTo="opacity-0"
           >
             <Listbox.Options className="absolute z-10 mt-1  max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-              {options.map((option) => (
+              {includeNullOptions.map((option) => (
                 <Listbox.Option
                   key={option.value}
                   className={({ active }) =>
