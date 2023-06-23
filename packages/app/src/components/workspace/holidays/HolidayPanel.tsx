@@ -55,7 +55,11 @@ export const HolidayPanel = ({
           },
         }}
         content={{
-          name: holiday.description,
+          name:
+            holiday.description ??
+            `${holiday.start.toLocaleDateString(
+              "en-GB"
+            )} - ${holiday.end.toLocaleDateString("en-GB")}`,
           icon: HolidayIcon,
           endButtons: {
             onEdit: () => setShowEditHolidaySideOver(true),
@@ -92,7 +96,7 @@ const useBasicDetails = (
       },
       field: {
         variant: "text",
-        value: holiday.description,
+        value: holiday.description ?? "",
       },
     },
     {

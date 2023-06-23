@@ -41,18 +41,18 @@ export const getDefaultTaskConfig = (type: TaskType = "DefaultTask") =>
 
 export const createTaskSchema = z.object({
   workspaceId: z.string().cuid2(),
-  taskNumber: z.number().int().positive().optional(),
-  name: z.string().min(1).max(100).optional(),
-  projectId: z.string().cuid2().optional(),
+  taskNumber: z.number().int().positive().nullable(),
+  name: z.string().min(1).max(100).nullable(),
+  projectId: z.string().cuid2().nullable(),
   config: taskConfigSchema,
 });
 
 export const updateTaskSchema = z.object({
   id: z.string().cuid2(),
   workspaceId: z.string().cuid2(),
-  taskNumber: z.number().int().positive().optional(),
-  name: z.string().min(1).max(100).optional(),
-  projectId: z.string().cuid2().optional(),
+  taskNumber: z.number().int().positive().nullable().optional(),
+  name: z.string().min(1).max(100).nullable().optional(),
+  projectId: z.string().cuid2().nullable().optional(),
   config: updateTaskConfigSchema,
 });
 

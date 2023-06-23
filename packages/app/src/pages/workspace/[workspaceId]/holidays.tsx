@@ -98,19 +98,23 @@ const Holidays = ({
 
   const holidayItems = useMemo(
     () =>
-      holidays?.map((holiday) => ({
-        label: holiday.description,
-        subLabel: `${holiday.start.toLocaleDateString(
+      holidays?.map((holiday) => {
+        const displayPeriod = `${holiday.start.toLocaleDateString(
           "en-GB"
-        )} - ${holiday.end.toLocaleDateString("en-GB")}`,
-        icon: HolidayIcon,
-        onClick: () =>
-          setSelectedHoliday({
-            id: holiday.id,
-            index: holidays.findIndex((i) => i.id === holiday.id),
-          }),
-        selected: selectedHoliday?.id === holiday.id,
-      })) ?? [],
+        )} - ${holiday.end.toLocaleDateString("en-GB")}`;
+
+        return {
+          label: holiday.description ?? displayPeriod,
+          subLabel: holiday.description ? undefined : displayPeriod,
+          icon: HolidayIcon,
+          onClick: () =>
+            setSelectedHoliday({
+              id: holiday.id,
+              index: holidays.findIndex((i) => i.id === holiday.id),
+            }),
+          selected: selectedHoliday?.id === holiday.id,
+        };
+      }) ?? [],
     [holidays, selectedHoliday]
   );
 

@@ -49,7 +49,7 @@ export const createTimesheetEntrySchema = z.object({
   taskId: z.string().cuid2(),
   start: z.date(),
   end: z.date(),
-  description: z.string().min(1).max(100).optional(),
+  description: z.string().min(1).max(100).nullable(),
   config: timesheetEntryConfigSchema,
 });
 
@@ -59,6 +59,6 @@ export const updateTimesheetEntrySchema = z.object({
   taskId: z.string().cuid2().optional(),
   start: z.date().optional(),
   end: z.date().optional(),
-  description: z.string().min(1).max(100).optional(),
+  description: z.string().min(1).max(100).nullable().optional(),
   config: updateTimesheetEntryConfigSchema,
 });

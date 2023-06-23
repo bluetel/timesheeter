@@ -9,7 +9,7 @@ export const HolidayIcon = GlobeEuropeAfricaIcon as IconType;
 
 export const createHolidaySchema = z.object({
   workspaceId: z.string().cuid2(),
-  description: z.string().min(1).max(100),
+  description: z.string().min(1).max(100).nullable(),
   start: z.date(),
   end: z.date(),
 });
@@ -17,7 +17,7 @@ export const createHolidaySchema = z.object({
 export const updateHolidaySchema = z.object({
   id: z.string().cuid2(),
   workspaceId: z.string().cuid2(),
-  description: z.string().min(1).max(100).optional(),
+  description: z.string().min(1).max(100).nullable().optional(),
   start: z.date().optional(),
   end: z.date().optional(),
 });

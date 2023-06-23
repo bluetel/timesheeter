@@ -109,7 +109,7 @@ const TimesheetEntries = ({
   const taskItems = useMemo(
     () =>
       timesheetEntries?.map((timesheetEntry) => ({
-        label: timesheetEntry.description ?? ``,
+        label: timesheetEntry.description ?? "No description",
         subLabel:
           timesheetEntry.task.taskNumber &&
           timesheetEntry.task.project?.taskPrefix

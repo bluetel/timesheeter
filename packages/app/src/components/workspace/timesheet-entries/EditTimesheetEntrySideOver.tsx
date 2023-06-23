@@ -33,7 +33,7 @@ type EditTimesheetEntrySideOverProps = {
       }
     | {
         new: false;
-        integration: RouterOutputs["workspace"]["timesheetEntries"]["list"][0];
+        timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"][0];
       };
   workspaceId: string;
   tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"];
@@ -54,12 +54,12 @@ export const EditTimesheetEntrySideOver = ({
       ? {
           new: true as const,
           workspaceId,
-          name: "New integration",
+          name: "New timesheet entry",
           config: getDefaultTimesheetEntryConfig(),
         }
       : {
           new: false as const,
-          ...data.integration,
+          ...data.timesheetEntry,
         };
 
   const methods = useZodForm({
@@ -97,7 +97,7 @@ export const EditTimesheetEntrySideOver = ({
 
     // If just updating, filter out the values that are not changed
     if (!data.new) {
-      const { integration } = data;
+      const { timesheetEntry } = data;
 
       values = {
         ...values,
@@ -105,10 +105,11 @@ export const EditTimesheetEntrySideOver = ({
           ...(Object.fromEntries(
             Object.entries(values.config ?? {}).filter(
               ([key, value]) =>
-                (integration.config as Record<string, unknown>)[key] !== value
+                (timesheetEntry.config as Record<string, unknown>)[key] !==
+                value
             )
           ) as (typeof values)["config"]),
-          type: values.config.type ?? integration.config.type,
+          type: values.config.type ?? timesheetEntry.config.type,
         },
       } as typeof values;
 
@@ -124,7 +125,9 @@ export const EditTimesheetEntrySideOver = ({
     if (!result.success) {
       addNotification({
         variant: "error",
-        primaryText: `Failed to ${data.new ? "create" : "update"} integration`,
+        primaryText: `Failed to ${
+          data.new ? "create" : "update"
+        } timesheet entry`,
         secondaryText: fromZodError(result.error).toString(),
       });
       return;
@@ -135,7 +138,7 @@ export const EditTimesheetEntrySideOver = ({
           onError: (error) => {
             addNotification({
               variant: "error",
-              primaryText: "Failed to create integration",
+              primaryText: "Failed to create timesheet entry",
               secondaryText: error.message,
             });
           },
@@ -144,7 +147,7 @@ export const EditTimesheetEntrySideOver = ({
           onError: (error) => {
             addNotification({
               variant: "error",
-              primaryText: "Failed to update integration",
+              primaryText: "Failed to update timesheet entry",
               secondaryText: error.message,
             });
           },

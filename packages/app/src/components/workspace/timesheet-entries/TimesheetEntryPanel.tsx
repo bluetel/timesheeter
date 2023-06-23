@@ -59,12 +59,12 @@ export const TimesheetEntryPanel = ({
           },
         }}
         content={{
-          name: timesheetEntry.description,
-          description: `${
-            INTEGRATION_DEFINITIONS[timesheetEntry.config.type].name
-          } • ${
-            INTEGRATION_DEFINITIONS[timesheetEntry.config.type].description
-          }`,
+          name: timesheetEntry.description ?? "No descrioption",
+          description:
+            timesheetEntry.task.taskNumber &&
+            timesheetEntry.task.project?.taskPrefix
+              ? `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`
+              : undefined,
           icon: TimesheetEntryIcon,
           endButtons: {
             onEdit: () => setShowEditTimesheetEntrySideOver(true),
