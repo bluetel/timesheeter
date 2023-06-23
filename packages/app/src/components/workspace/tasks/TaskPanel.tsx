@@ -16,14 +16,16 @@ type TaskDetailProps = {
   task: RouterOutputs["workspace"]["tasks"]["list"][number];
   refetchTasks: () => unknown;
   onNewTaskClick: () => void;
+  projects: RouterOutputs["workspace"]["projects"]["listMinimal"];
 };
 
 export const TaskPanel = ({
   task,
   refetchTasks,
   onNewTaskClick,
+  projects,
 }: TaskDetailProps) => {
-  const [showEditTasksideOver, setShowEditTasksideOver] = useState(false);
+  const [showEditTaskSideOver, setShowEditTaskSideOver] = useState(false);
   const [showDeleteTaskModal, setShowDeleteTaskModal] = useState(false);
 
   const basicDetails = useBasicDetails(task);
@@ -37,14 +39,15 @@ export const TaskPanel = ({
         refetchTasks={refetchTasks}
       />
       <EditTaskSideOver
-        show={showEditTasksideOver}
-        onClose={() => setShowEditTasksideOver(false)}
+        show={showEditTaskSideOver}
+        onClose={() => setShowEditTaskSideOver(false)}
         refetchTasks={refetchTasks}
         data={{
           new: false,
           task,
         }}
         workspaceId={task.workspaceId}
+        projects={projects}
       />
       <DetailPanel
         header={{
@@ -59,7 +62,7 @@ export const TaskPanel = ({
           name: task.name ?? "Unnamed task",
           icon: TaskIcon,
           endButtons: {
-            onEdit: () => setShowEditTasksideOver(true),
+            onEdit: () => setShowEditTaskSideOver(true),
             onDelete: () => setShowDeleteTaskModal(true),
           },
         }}

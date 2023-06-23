@@ -72,8 +72,6 @@ type MatchedTaskResult =
 
 // eg AC-1234 - Test description
 
-// make a function that extracts the following
-
 // Prefix 2 letters (eg AC) or null if there is no prefix
 // Task number (eg 1234) or null if there is no task number
 

@@ -18,6 +18,7 @@ import {
   filterConfig,
 } from "@timesheeter/app/server/lib/secret-helpers";
 import { type Task, type PrismaClient } from "@prisma/client";
+import { type WithConfig } from "@timesheeter/app/server/lib/workspace-types";
 
 export const tasksRouter = createTRPCRouter({
   list: protectedProcedure
@@ -50,6 +51,30 @@ export const tasksRouter = createTRPCRouter({
           },
         })
         .then((tasks) => tasks.map((task) => parseTask(task)));
+    }),
+  listMinimal: protectedProcedure
+    .input(
+      z.object({
+        workspaceId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      await authorize({
+        prisma: ctx.prisma,
+        taskId: null,
+        workspaceId: input.workspaceId,
+        userId: ctx.session.user.id,
+      });
+
+      return ctx.prisma.task.findMany({
+        where: {
+          workspaceId: input.workspaceId,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
     }),
   create: protectedProcedure
     .input(createTaskSchema)
@@ -134,11 +159,6 @@ export const tasksRouter = createTRPCRouter({
       return deletedTask;
     }),
 });
-
-type WithConfig = {
-  configSerialized: string;
-  [key: string]: unknown;
-};
 
 export type ParsedTask<TaskType extends WithConfig> = Omit<
   TaskType,

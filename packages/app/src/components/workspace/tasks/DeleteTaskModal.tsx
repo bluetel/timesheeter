@@ -1,11 +1,10 @@
-import { api } from "@timesheeter/app/utils/api";
-import type { ParsedTask } from "@timesheeter/app/server/api/routers/workspace/tasks";
+import { type RouterOutputs, api } from "@timesheeter/app/utils/api";
 import { DeleteConfirmationModal } from "@timesheeter/app/components/ui/DeleteConfirmationModal";
 
 type DeleteTaskModalProps = {
   show: boolean;
   onClose: () => void;
-  task: ParsedTask;
+  task: RouterOutputs["workspace"]["tasks"]["list"][number];
   refetchTasks: () => void;
 };
 

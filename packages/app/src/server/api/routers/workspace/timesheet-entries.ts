@@ -18,6 +18,7 @@ import {
   filterConfig,
 } from "@timesheeter/app/server/lib/secret-helpers";
 import { type TimesheetEntry, type PrismaClient } from "@prisma/client";
+import { type WithConfig } from "@timesheeter/app/server/lib/workspace-types";
 
 export const timesheetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -39,6 +40,20 @@ export const timesheetEntriesRouter = createTRPCRouter({
           where: {
             workspaceId: input.workspaceId,
             userId: ctx.session.user.id,
+          },
+          include: {
+            task: {
+              select: {
+                id: true,
+                taskNumber: true,
+                name: true,
+                project: {
+                  select: {
+                    taskPrefix: true,
+                  },
+                },
+              },
+            },
           },
         })
         .then((timesheetEntries) =>
@@ -130,14 +145,17 @@ export const timesheetEntriesRouter = createTRPCRouter({
     }),
 });
 
-export type ParsedTimesheetEntry = Omit<TimesheetEntry, "configSerialized"> & {
+export type ParsedTimesheetEntry<TimesheetEntryType extends WithConfig> = Omit<
+  TimesheetEntryType,
+  "configSerialized"
+> & {
   config: TimesheetEntryConfig;
 };
 
-export const parseTimesheetEntry = (
-  timesheetEntry: TimesheetEntry,
+export const parseTimesheetEntry = <TimesheetEntryType extends WithConfig>(
+  timesheetEntry: TimesheetEntryType,
   safe = true
-): ParsedTimesheetEntry => {
+): ParsedTimesheetEntry<TimesheetEntryType> => {
   const { configSerialized, ...rest } = timesheetEntry;
 
   const config = JSON.parse(decrypt(configSerialized)) as TimesheetEntryConfig;
@@ -162,7 +180,7 @@ type AuthorizeParams<TimesheetEntryId extends string | null> = {
 };
 
 type AuthorizeResult<TimesheetEntryId extends string | null> =
-  TimesheetEntryId extends null ? null : ParsedTimesheetEntry;
+  TimesheetEntryId extends null ? null : ParsedTimesheetEntry<TimesheetEntry>;
 
 const authorize = async <TimesheetEntryId extends string | null>({
   prisma,

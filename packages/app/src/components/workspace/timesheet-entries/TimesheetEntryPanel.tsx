@@ -1,75 +1,74 @@
-import {
-  INTEGRATION_DEFINITIONS,
-  type IntegrationDetail,
-} from "@timesheeter/app/lib/workspace/integrations";
-import type { ParsedIntegration } from "@timesheeter/app/server/api/routers/workspace/integrations";
-import { EditIntegrationSideOver } from "./EditIntegrationSideOver";
+import { TimesheetEntryIcon } from "@timesheeter/app/lib/workspace/timesheet-entries";
+import { EditTimesheetEntrySideOver } from "./EditTimesheetEntrySideOver";
 import { useState } from "react";
 import { DetailPanel } from "@timesheeter/app/components/ui/DetailPanel/DetailPanel";
-import { DeleteIntegrationModal } from "./DeleteIntegrationModal";
-import { INTEGRATIONS_HELP_TEXT } from "@timesheeter/app/lib/workspace/integrations";
+import { DeleteTimesheetEntryModal } from "./DeleteTimesheetEntryModal";
 import { type RouterOutputs } from "@timesheeter/app/utils/api";
 import {
   BasicDetailList,
   type BasicDetailListItem,
 } from "@timesheeter/app/components/ui/DetailPanel/BasicDetailList";
+import { TIMESHEET_ENTRIES_HELP_TEXT } from "@timesheeter/app/lib";
 
-type IntegrationDetailProps = {
-  integration: ParsedIntegration;
-  refetchIntegrations: () => unknown;
-  onNewIntegrationClick: () => void;
+type TimesheetEntryDetailProps = {
+  timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"][number];
+  refetchTimesheetEntries: () => unknown;
+  onNewTimesheetEntryClick: () => void;
+  tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"];
 };
 
-export const IntegrationPanel = ({
-  integration,
-  refetchIntegrations,
-  onNewIntegrationClick,
-}: IntegrationDetailProps) => {
-  const [showEditIntegrationSideOver, setShowEditIntegrationSideOver] =
+export const TimesheetEntryPanel = ({
+  timesheetEntry,
+  refetchTimesheetEntries,
+  onNewTimesheetEntryClick,
+  tasks,
+}: TimesheetEntryDetailProps) => {
+  const [showEditTimesheetEntrySideOver, setShowEditTimesheetEntrySideOver] =
     useState(false);
-  const [showDeleteIntegrationModal, setShowDeleteIntegrationModal] =
+  const [showDeleteTimesheetEntryModal, setShowDeleteTimesheetEntryModal] =
     useState(false);
 
-  const integrationDetail = INTEGRATION_DEFINITIONS[integration.config.type];
-
-  const basicDetails = useBasicDetails(integration, integrationDetail);
+  const basicDetails = useBasicDetails(timesheetEntry);
 
   return (
     <>
-      <DeleteIntegrationModal
-        integration={integration}
-        onClose={() => setShowDeleteIntegrationModal(false)}
-        show={showDeleteIntegrationModal}
-        refetchIntegrations={refetchIntegrations}
+      <DeleteTimesheetEntryModal
+        timesheetEntry={timesheetEntry}
+        onClose={() => setShowDeleteTimesheetEntryModal(false)}
+        show={showDeleteTimesheetEntryModal}
+        refetchTimesheetEntries={refetchTimesheetEntries}
       />
-      <EditIntegrationSideOver
-        show={showEditIntegrationSideOver}
-        onClose={() => setShowEditIntegrationSideOver(false)}
-        refetchIntegrations={refetchIntegrations}
+      <EditTimesheetEntrySideOver
+        show={showEditTimesheetEntrySideOver}
+        onClose={() => setShowEditTimesheetEntrySideOver(false)}
+        refetchTimesheetEntries={refetchTimesheetEntries}
         data={{
           new: false,
-          integration,
+          timesheetEntry,
         }}
-        workspaceId={integration.workspaceId}
+        workspaceId={timesheetEntry.workspaceId}
+        tasks={tasks}
       />
       <DetailPanel
         header={{
-          title: "Integrations",
-          description: INTEGRATIONS_HELP_TEXT,
+          title: "Timesheet Entries",
+          description: TIMESHEET_ENTRIES_HELP_TEXT,
           newButton: {
-            label: "New integration",
-            onClick: onNewIntegrationClick,
+            label: "New timesheet entry",
+            onClick: onNewTimesheetEntryClick,
           },
         }}
         content={{
-          name: integration.name,
+          name: timesheetEntry.description,
           description: `${
-            INTEGRATION_DEFINITIONS[integration.config.type].name
-          } • ${INTEGRATION_DEFINITIONS[integration.config.type].description}`,
-          icon: integrationDetail.icon,
+            INTEGRATION_DEFINITIONS[timesheetEntry.config.type].name
+          } • ${
+            INTEGRATION_DEFINITIONS[timesheetEntry.config.type].description
+          }`,
+          icon: TimesheetEntryIcon,
           endButtons: {
-            onEdit: () => setShowEditIntegrationSideOver(true),
-            onDelete: () => setShowDeleteIntegrationModal(true),
+            onEdit: () => setShowEditTimesheetEntrySideOver(true),
+            onDelete: () => setShowDeleteTimesheetEntryModal(true),
           },
         }}
         tabs={{
@@ -82,49 +81,50 @@ export const IntegrationPanel = ({
 };
 
 const useBasicDetails = (
-  integration: RouterOutputs["workspace"]["timesheetEntries"]["list"][0],
-  integrationDetail: IntegrationDetail
+  timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"][0]
 ) => {
   const details: BasicDetailListItem[] = [
     {
       label: {
         title: "ID",
-        description: "The unique identifier for this integration",
+        description: "The unique identifier for this timesheet entry",
       },
       field: {
         variant: "text",
-        value: integration.id,
+        value: timesheetEntry.id,
       },
     },
     {
       label: {
-        title: "Name",
-        description: `Descriptive name for the integration, e.g. "James's Toggl"`,
+        title: "Task ID",
+        description: "The ID of the parent task",
       },
       field: {
         variant: "text",
-        value: integration.name,
+        value: timesheetEntry.task?.id ?? "",
+      },
+    },
+    {
+      label: {
+        title: "Task Name",
+        description: "The name of the parent task",
+      },
+      field: {
+        variant: "text",
+        value: timesheetEntry.task?.name ?? "",
+      },
+    },
+    {
+      label: {
+        title: "Description",
+        description: `Description for this timesheet entry e.g. "Implementing new Nav API"`,
+      },
+      field: {
+        variant: "text",
+        value: timesheetEntry.description ?? "",
       },
     },
   ];
-
-  integrationDetail.fields.forEach((field) => {
-    const value =
-      ((integration.config as Record<string, unknown>)[
-        field.accessor
-      ] as string) ?? "";
-
-    details.push({
-      label: {
-        title: field.name,
-        description: field.description,
-      },
-      field: {
-        variant: "text",
-        value,
-      },
-    });
-  });
 
   return details;
 };

@@ -1,14 +1,12 @@
 import { useZodForm } from "@timesheeter/app/utils/zod-form";
 import {
-  createIntegrationSchema,
-  updateIntegrationSchema,
-  INTEGRATION_DEFINITIONS,
-  getDefaultIntegrationConfig,
-  type IntegrationType,
-} from "@timesheeter/app/lib/workspace/integrations";
+  createTimesheetEntrySchema,
+  updateTimesheetEntrySchema,
+  getDefaultTimesheetEntryConfig,
+  TIMESHEET_ENTRIES_HELP_TEXT,
+} from "@timesheeter/app/lib/workspace/timesheet-entries";
 import { api, type RouterOutputs } from "@timesheeter/app/utils/api";
 import React, { useEffect } from "react";
-import { INTEGRATIONS_HELP_TEXT } from "@timesheeter/app/lib/workspace/integrations";
 import { z } from "zod";
 import { SideOver } from "@timesheeter/app/components/ui/SideOver";
 import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicForm";
@@ -17,16 +15,16 @@ import { useNotifications } from "../../ui/notification/NotificationProvider";
 import { fromZodError } from "zod-validation-error";
 
 const mutationSchema = z.union([
-  createIntegrationSchema.extend({
+  createTimesheetEntrySchema.extend({
     new: z.literal(true),
   }),
-  updateIntegrationSchema.extend({
+  updateTimesheetEntrySchema.extend({
     new: z.literal(false),
   }),
 ]);
 
-type EditIntegrationSideOverProps = {
-  refetchIntegrations: () => unknown;
+type EditTimesheetEntrySideOverProps = {
+  refetchTimesheetEntries: () => unknown;
   show: boolean;
   onClose: () => void;
   data:
@@ -35,18 +33,20 @@ type EditIntegrationSideOverProps = {
       }
     | {
         new: false;
-        integration: RouterOutputs["workspace"]["integrations"]["list"][0];
+        integration: RouterOutputs["workspace"]["timesheetEntries"]["list"][0];
       };
   workspaceId: string;
+  tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"];
 };
 
-export const EditIntegrationSideOver = ({
-  refetchIntegrations,
+export const EditTimesheetEntrySideOver = ({
+  refetchTimesheetEntries,
   show,
   onClose,
   data,
   workspaceId,
-}: EditIntegrationSideOverProps) => {
+  tasks,
+}: EditTimesheetEntrySideOverProps) => {
   const { addNotification } = useNotifications();
 
   const getDefaultValues = () =>
@@ -55,7 +55,7 @@ export const EditIntegrationSideOver = ({
           new: true as const,
           workspaceId,
           name: "New integration",
-          config: getDefaultIntegrationConfig(),
+          config: getDefaultTimesheetEntryConfig(),
         }
       : {
           new: false as const,
@@ -79,16 +79,16 @@ export const EditIntegrationSideOver = ({
 
   const mutationArgs = {
     onSuccess: () => {
-      refetchIntegrations();
+      refetchTimesheetEntries();
       handleClose();
     },
   };
 
-  const { mutate: createIntegration } =
-    api.workspace.integrations.create.useMutation(mutationArgs);
+  const { mutate: createTimesheetEntry } =
+    api.workspace.timesheetEntries.create.useMutation(mutationArgs);
 
-  const { mutate: updateIntegration } =
-    api.workspace.integrations.update.useMutation(mutationArgs);
+  const { mutate: updateTimesheetEntry } =
+    api.workspace.timesheetEntries.update.useMutation(mutationArgs);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -131,7 +131,7 @@ export const EditIntegrationSideOver = ({
     }
 
     values.new
-      ? createIntegration(values, {
+      ? createTimesheetEntry(values, {
           onError: (error) => {
             addNotification({
               variant: "error",
@@ -140,7 +140,7 @@ export const EditIntegrationSideOver = ({
             });
           },
         })
-      : updateIntegration(values, {
+      : updateTimesheetEntry(values, {
           onError: (error) => {
             addNotification({
               variant: "error",
@@ -151,12 +151,12 @@ export const EditIntegrationSideOver = ({
         });
   };
 
-  const fields = useIntegrationFields(methods);
+  const fields = useTimesheetEntryFields(methods, tasks);
 
   return (
     <SideOver
-      title={data.new ? "Create Integration" : "Edit Integration"}
-      description={INTEGRATIONS_HELP_TEXT}
+      title={data.new ? "Create Timesheet Entry" : "Edit Timesheet Entry"}
+      description={TIMESHEET_ENTRIES_HELP_TEXT}
       show={show}
       onClose={handleClose}
       actionButtonLabel={data.new ? "Create" : "Update"}
@@ -164,77 +164,51 @@ export const EditIntegrationSideOver = ({
       tabs={{
         multiple: false,
         body: <BasicForm items={fields} />,
-        subDescription:
-          INTEGRATION_DEFINITIONS[methods.getValues("config.type")].description,
       }}
     />
   );
 };
 
-const useIntegrationFields = (
-  methods: ReturnType<typeof useZodForm<typeof mutationSchema>>
+const useTimesheetEntryFields = (
+  methods: ReturnType<typeof useZodForm<typeof mutationSchema>>,
+  tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"]
 ) => {
   const fields: BasicFormItemProps[] = [
     {
       required: true,
       label: {
-        title: "Integration type",
+        title: "Task",
+        description: "The task that this timesheet entry belongs to",
       },
       field: {
         variant: "select",
+        error: methods.formState.errors.taskId,
         select: {
-          options: Object.entries(INTEGRATION_DEFINITIONS).map(
-            ([key, definition]) => ({
-              value: key,
-              label: definition.name,
-            })
-          ),
+          options: tasks.map(({ id, name }) => ({
+            value: id,
+            label: name ?? "Unnamed task",
+          })),
           onChange: (value) =>
-            methods.setValue(
-              "config",
-              getDefaultIntegrationConfig(value as IntegrationType),
-              {
-                shouldValidate: true,
-              }
-            ),
-          active: methods.getValues("config.type"),
+            methods.setValue("taskId", value, {
+              shouldValidate: true,
+            }),
+          active: methods.getValues("taskId") ?? null,
         },
       },
     },
     {
-      required: true,
+      required: false,
       label: {
-        title: "Integration name",
-        description: `Descriptive name for the integration, e.g. "James's Toggl"`,
+        title: "Timesheet entry description",
+        description: `Custom description for this timesheet entry e.g. "Meeting to discuss implementation"`,
       },
       field: {
         variant: "text",
-        register: methods.register("name"),
-        error: methods.formState.errors.name,
+        register: methods.register("description"),
+        error: methods.formState.errors.description,
       },
     },
   ];
-
-  const integrationConfig =
-    INTEGRATION_DEFINITIONS[methods.getValues("config.type")];
-
-  integrationConfig.fields.forEach((field) => {
-    // TODO: Handle field errors
-    // const error = methods.formState.errors.config?.[field.accessor as keyof typeof methods.formState.errors.config];
-
-    fields.push({
-      required: field.required,
-      label: {
-        title: field.name,
-        description: field.description,
-      },
-      field: {
-        variant: "text",
-        register: methods.register(`config.${field.accessor}`),
-        //error: typeof error === "string" ? new FieldError(error) : error,
-      },
-    });
-  });
 
   return fields;
 };

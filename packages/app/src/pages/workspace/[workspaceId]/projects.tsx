@@ -64,7 +64,7 @@ const Projects = ({
       workspaceId: workspaceInfo.workspace.id,
     });
 
-  const [showNewProjectsideOver, setShowNewProjectsideOver] = useState(false);
+  const [showNewProjectSideOver, setShowNewProjectSideOver] = useState(false);
 
   const [selectedProject, setSelectedProject] = useState<{
     id: string;
@@ -74,7 +74,7 @@ const Projects = ({
   const { query } = useRouter();
   useEffect(() => {
     if (query.create) {
-      setShowNewProjectsideOver(true);
+      setShowNewProjectSideOver(true);
     }
   }, [query.create]);
 
@@ -116,8 +116,8 @@ const Projects = ({
     return (
       <>
         <EditProjectSideOver
-          show={showNewProjectsideOver}
-          onClose={() => setShowNewProjectsideOver(false)}
+          show={showNewProjectSideOver}
+          onClose={() => setShowNewProjectSideOver(false)}
           refetchProjects={refetchProjects}
           data={{
             new: true,
@@ -130,7 +130,7 @@ const Projects = ({
             helpText={PROJECTS_HELP_TEXT}
             button={{
               label: "New project",
-              onClick: () => setShowNewProjectsideOver(true),
+              onClick: () => setShowNewProjectSideOver(true),
             }}
             icon={ProjectIcon}
           />
@@ -142,8 +142,8 @@ const Projects = ({
   return (
     <>
       <EditProjectSideOver
-        show={showNewProjectsideOver}
-        onClose={() => setShowNewProjectsideOver(false)}
+        show={showNewProjectSideOver}
+        onClose={() => setShowNewProjectSideOver(false)}
         refetchProjects={refetchProjects}
         data={{ new: true }}
         workspaceId={workspaceInfo.workspace.id}
@@ -164,7 +164,7 @@ const Projects = ({
             <ProjectPanel
               project={project}
               refetchProjects={refetchProjects}
-              onNewProjectClick={() => setShowNewProjectsideOver(true)}
+              onNewProjectClick={() => setShowNewProjectSideOver(true)}
             />
           </div>
         ))}

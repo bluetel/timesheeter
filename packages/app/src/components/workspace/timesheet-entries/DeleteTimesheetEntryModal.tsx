@@ -1,36 +1,35 @@
-import { api } from "@timesheeter/app/utils/api";
-import type { ParsedIntegration } from "@timesheeter/app/server/api/routers/workspace/integrations";
+import { type RouterOutputs, api } from "@timesheeter/app/utils/api";
 import { DeleteConfirmationModal } from "@timesheeter/app/components/ui/DeleteConfirmationModal";
 
-type DeleteIntegrationModalProps = {
+type DeleteTimesheetEntryModalProps = {
   show: boolean;
   onClose: () => void;
-  integration: ParsedIntegration;
-  refetchIntegrations: () => void;
+  timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"][number];
+  refetchTimesheetEntries: () => void;
 };
 
-export const DeleteIntegrationModal = ({
+export const DeleteTimesheetEntryModal = ({
   show,
   onClose,
-  integration,
-  refetchIntegrations,
-}: DeleteIntegrationModalProps) => {
-  const deleteMutation = api.workspace.integrations.delete.useMutation({
+  timesheetEntry,
+  refetchTimesheetEntries,
+}: DeleteTimesheetEntryModalProps) => {
+  const deleteMutation = api.workspace.timesheetEntries.delete.useMutation({
     onSuccess: () => {
-      void refetchIntegrations();
+      void refetchTimesheetEntries();
     },
   });
 
   return (
     <DeleteConfirmationModal
-      title="Delete integration"
-      description="Are you sure you want to delete this integration?"
+      title="Delete timesheet entry"
+      description="Are you sure you want to delete this timesheet entry?"
       show={show}
       onClose={onClose}
       onDelete={() => {
         deleteMutation.mutate({
-          id: integration.id,
-          workspaceId: integration.workspaceId,
+          id: timesheetEntry.id,
+          workspaceId: timesheetEntry.workspaceId,
         });
       }}
     />

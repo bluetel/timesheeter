@@ -30,7 +30,7 @@ const mutationSchema = z.union([
   }),
 ]);
 
-type EditProjectsideOverProps = {
+type EditProjectSideOverProps = {
   refetchProjects: () => unknown;
   show: boolean;
   onClose: () => void;
@@ -51,7 +51,7 @@ export const EditProjectSideOver = ({
   onClose,
   data,
   workspaceId,
-}: EditProjectsideOverProps) => {
+}: EditProjectSideOverProps) => {
   const { addNotification } = useNotifications();
 
   const getDefaultValues = () =>

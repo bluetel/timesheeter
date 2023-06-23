@@ -23,7 +23,7 @@ const mutationSchema = z.union([
   }),
 ]);
 
-type EditTasksideOverProps = {
+type EditTaskSideOverProps = {
   refetchTasks: () => unknown;
   show: boolean;
   onClose: () => void;
@@ -46,7 +46,7 @@ export const EditTaskSideOver = ({
   data,
   workspaceId,
   projects,
-}: EditTasksideOverProps) => {
+}: EditTaskSideOverProps) => {
   const { addNotification } = useNotifications();
 
   const getDefaultValues = () =>

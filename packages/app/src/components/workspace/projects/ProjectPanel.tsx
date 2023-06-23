@@ -32,7 +32,7 @@ export const ProjectPanel = ({
   refetchProjects,
   onNewProjectClick,
 }: ProjectDetailProps) => {
-  const [showEditProjectsideOver, setShowEditProjectsideOver] = useState(false);
+  const [showEditProjectSideOver, setShowEditProjectSideOver] = useState(false);
   const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false);
 
   const basicDetails = useBasicDetails(project);
@@ -46,8 +46,8 @@ export const ProjectPanel = ({
         refetchProjects={refetchProjects}
       />
       <EditProjectSideOver
-        show={showEditProjectsideOver}
-        onClose={() => setShowEditProjectsideOver(false)}
+        show={showEditProjectSideOver}
+        onClose={() => setShowEditProjectSideOver(false)}
         refetchProjects={refetchProjects}
         data={{
           new: false,
@@ -68,7 +68,7 @@ export const ProjectPanel = ({
           name: project.name,
           icon: ProjectIcon,
           endButtons: {
-            onEdit: () => setShowEditProjectsideOver(true),
+            onEdit: () => setShowEditProjectSideOver(true),
             onDelete: () => setShowDeleteProjectModal(true),
           },
         }}
@@ -99,7 +99,7 @@ export const ProjectPanel = ({
                     icon={ProjectIcon}
                     button={{
                       label: "Edit project",
-                      onClick: () => setShowEditProjectsideOver(true),
+                      onClick: () => setShowEditProjectSideOver(true),
                     }}
                     shrink
                   />
