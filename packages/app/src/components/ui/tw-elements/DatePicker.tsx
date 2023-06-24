@@ -1,5 +1,5 @@
 import { Datepicker, Input, initTE } from "tw-elements";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 import { z } from "zod";
 import { useZodForm } from "@timesheeter/app/utils/zod-form";
@@ -34,11 +34,16 @@ export const _DatePicker = ({ value, onChange, formId }: DatePickerProps) => {
   // Listen for changes in the form and update the value
   useEffect(() => {
     const subscription = methods.watch((values) => {
-      if (!values.date) return;
-      onChange(dateStringToDatetime(values.date));
+      if (values.date === undefined) return;
+
+      const datetime = dateStringToDatetime(values.date, value ?? new Date());
+
+      if (datetime === "invalid") return;
+
+      onChange(datetime);
     });
     return () => subscription.unsubscribe();
-  }, [methods, onChange]);
+  }, [methods, onChange, value]);
 
   // On changes in value, update the form
   useEffect(() => {
@@ -54,10 +59,10 @@ export const _DatePicker = ({ value, onChange, formId }: DatePickerProps) => {
   }, [methods, value]);
 
   return (
-    <form id={formId} noValidate>
-      <div className="relative mb-3" data-te-datepicker-init>
+    <form id={formId} className="w-full" noValidate>
+      <div className="relative w-full" data-te-datepicker-init>
         <input
-          type="text"
+          type="button"
           {...methods.register("date")}
           // @ts-expect-error - we know this is a valid value
           onInput={(e: { target: { value: string } }) =>

@@ -1,11 +1,28 @@
-export const dateStringToDatetime = (dateString: string): Date | null => {
-  const [day, month, year] = dateString.split("/").map((num) => parseInt(num));
-
-  if (!day || !month || !year) {
+export const dateStringToDatetime = (
+  dateString: string | null,
+  referenceTime: Date
+): Date | null | "invalid" => {
+  if (!dateString) {
     return null;
   }
 
-  return new Date(year, month - 1, day);
+  const [day, month, year] = dateString.split("/").map((num) => parseInt(num));
+
+  if (!day || !month || !year) {
+    return "invalid";
+  }
+
+  const datetime = new Date(year, month - 1, day);
+
+  // Add the reference time
+  datetime.setHours(referenceTime.getHours());
+  datetime.setMinutes(referenceTime.getMinutes());
+
+  if (datetime.toString() === "Invalid Date") {
+    return "invalid";
+  }
+
+  return datetime;
 };
 
 export const datetimeToDateString = (date: Date | null): string => {
@@ -21,22 +38,32 @@ export const datetimeToDateString = (date: Date | null): string => {
 };
 
 export const timeStringToDatetime = (
-  timeString: string,
+  timeString: string | null | undefined,
   referenceDate: Date
-): Date | null => {
-  const [hours, minutes] = timeString.split(":").map((num) => parseInt(num));
-
-  if (!hours || !minutes) {
+): Date | null | "invalid" => {
+  if (!timeString) {
     return null;
   }
 
-  return new Date(
+  const [hours, minutes] = timeString.split(":").map((num) => parseInt(num));
+
+  if (!hours || !minutes) {
+    return "invalid";
+  }
+
+  const datetime = new Date(
     referenceDate.getFullYear(),
     referenceDate.getMonth(),
     referenceDate.getDate(),
     hours,
     minutes
   );
+
+  if (datetime.toString() === "Invalid Date") {
+    return "invalid";
+  }
+
+  return datetime;
 };
 
 export const datetimeToTimeString = (date: Date | null): string => {
