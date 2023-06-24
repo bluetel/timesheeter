@@ -263,7 +263,7 @@ const useTimesheetEntryFields = (
             shouldValidate: true,
           }),
         error: methods.formState.errors.start,
-        formId: "start",
+        formId: "timesheet-sideover-start",
       },
     },
     {
@@ -280,7 +280,7 @@ const useTimesheetEntryFields = (
             shouldValidate: true,
           }),
         error: methods.formState.errors.end,
-        formId: "end",
+        formId: "timesheet-sideover-end",
       },
     },
   ];
