@@ -110,23 +110,32 @@ const TimesheetEntries = ({
 
   const taskItems = useMemo(
     () =>
-      timesheetEntries?.map((timesheetEntry) => ({
-        label: timesheetEntry.description ?? "No description",
-        subLabel:
+      timesheetEntries?.map((timesheetEntry) => {
+        const ticketNumber =
           timesheetEntry.task.taskNumber &&
           timesheetEntry.task.project?.taskPrefix
             ? `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`
-            : undefined,
-        icon: TimesheetEntryIcon,
-        onClick: () =>
-          setSelectedTask({
-            id: timesheetEntry.id,
-            index: timesheetEntries.findIndex(
-              (i) => i.id === timesheetEntry.id
-            ),
-          }),
-        selected: selectedTask?.id === timesheetEntry.id,
-      })) ?? [],
+            : undefined;
+
+        return {
+          label: timesheetEntry.description ?? "No description",
+          subLabel:
+            ticketNumber && timesheetEntry.task.name
+              ? `${ticketNumber} - ${timesheetEntry.task.name}`
+              : timesheetEntry.task.name
+              ? timesheetEntry.task.name
+              : undefined,
+          icon: TimesheetEntryIcon,
+          onClick: () =>
+            setSelectedTask({
+              id: timesheetEntry.id,
+              index: timesheetEntries.findIndex(
+                (i) => i.id === timesheetEntry.id
+              ),
+            }),
+          selected: selectedTask?.id === timesheetEntry.id,
+        };
+      }) ?? [],
     [timesheetEntries, selectedTask]
   );
 

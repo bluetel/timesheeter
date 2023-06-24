@@ -60,6 +60,11 @@ export const HolidayPanel = ({
             `${holiday.start.toLocaleDateString(
               "en-GB"
             )} - ${holiday.end.toLocaleDateString("en-GB")}`,
+          description: holiday.description
+            ? `${holiday.start.toLocaleDateString(
+                "en-GB"
+              )} - ${holiday.end.toLocaleDateString("en-GB")}`
+            : undefined,
           icon: HolidayIcon,
           endButtons: {
             onEdit: () => setShowEditHolidaySideOver(true),
@@ -91,8 +96,8 @@ const useBasicDetails = (
     },
     {
       label: {
-        title: "Name",
-        description: `Descriptive name for the holiday, e.g. "Paid Leave - Graduation"`,
+        title: "Description",
+        description: `Descriptive for the holiday, e.g. "Paid Leave - Graduation"`,
       },
       field: {
         variant: "text",

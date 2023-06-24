@@ -12,6 +12,10 @@ import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicF
 import { type BasicFormItemProps } from "@timesheeter/app/components/ui/forms/BasicForm/BasicFormItem";
 import { useNotifications } from "../../ui/notification/NotificationProvider";
 import { fromZodError } from "zod-validation-error";
+import {
+  dateStringToDatetime,
+  datetimeToDateString,
+} from "@timesheeter/app/lib";
 
 const mutationSchema = z.union([
   createHolidaySchema.extend({
@@ -90,6 +94,10 @@ export const EditHolidaySideOver = ({
     event.preventDefault();
 
     let values = methods.getValues();
+
+    if (!values.description) {
+      values.description = null;
+    }
 
     // If just updating, filter out the values that are not changed
     if (!data.new) {
@@ -174,9 +182,15 @@ const useHolidayFields = (
           "Date of the start of the holiday, can include weekends, e.g. 22/07/2023",
       },
       field: {
-        variant: "text",
-        register: methods.register("start"),
+        variant: "date",
+        value: methods.getValues("start") ?? null,
+        onChange: (value) => {
+          methods.setValue("start", value ?? undefined, {
+            shouldValidate: true,
+          });
+        },
         error: methods.formState.errors.start,
+        formId: "holiday-sideover-start",
       },
     },
     {
@@ -187,9 +201,15 @@ const useHolidayFields = (
           "Date of the end of the holiday, can include weekends, e.g. 31/07/2023",
       },
       field: {
-        variant: "text",
-        register: methods.register("end"),
+        variant: "date",
+        value: methods.getValues("end") ?? null,
+        onChange: (value) => {
+          methods.setValue("end", value ?? undefined, {
+            shouldValidate: true,
+          });
+        },
         error: methods.formState.errors.end,
+        formId: "holiday-sideover-end",
       },
     },
   ];

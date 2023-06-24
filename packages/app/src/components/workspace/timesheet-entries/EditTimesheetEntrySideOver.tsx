@@ -6,7 +6,7 @@ import {
   TIMESHEET_ENTRIES_HELP_TEXT,
 } from "@timesheeter/app/lib/workspace/timesheet-entries";
 import { api, type RouterOutputs } from "@timesheeter/app/utils/api";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { z } from "zod";
 import { SideOver } from "@timesheeter/app/components/ui/SideOver";
 import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicForm";
@@ -97,6 +97,10 @@ export const EditTimesheetEntrySideOver = ({
     event.preventDefault();
 
     let values = methods.getValues();
+
+    if (!values.description) {
+      values.description = null;
+    }
 
     // If just updating, filter out the values that are not changed
     if (!data.new) {
@@ -195,8 +199,17 @@ const useTimesheetEntryFields = (
   methods: ReturnType<typeof useZodForm<typeof mutationSchema>>,
   tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"]
 ) => {
+  const [initializedTaskId, setInitializedTaskId] = useState(false);
+
   if (!tasks[0]) {
     return null;
+  }
+
+  if (!methods.getValues("taskId") && !initializedTaskId) {
+    setInitializedTaskId(true);
+    methods.setValue("taskId", tasks[0].id, {
+      shouldValidate: true,
+    });
   }
 
   const taskIdFormItem: BasicFormItemProps<true> = {
@@ -228,12 +241,46 @@ const useTimesheetEntryFields = (
       required: false,
       label: {
         title: "Timesheet entry description",
-        description: `Custom description for this timesheet entry e.g. "Meeting to discuss implementation"`,
+        description: `Description for this timesheet entry e.g. "Implementing new Nav API"`,
       },
       field: {
         variant: "text",
         register: methods.register("description"),
         error: methods.formState.errors.description,
+      },
+    },
+    {
+      required: true,
+      label: {
+        title: "Start",
+        description: "The date and time when this timesheet entry started",
+      },
+      field: {
+        variant: "datetime",
+        value: methods.getValues("start") ?? null,
+        onChange: (value) =>
+          methods.setValue("start", value ?? undefined, {
+            shouldValidate: true,
+          }),
+        error: methods.formState.errors.start,
+        formId: "start",
+      },
+    },
+    {
+      required: true,
+      label: {
+        title: "End",
+        description: "The date and time when this timesheet entry ended",
+      },
+      field: {
+        variant: "datetime",
+        value: methods.getValues("end") ?? null,
+        onChange: (value) =>
+          methods.setValue("end", value ?? undefined, {
+            shouldValidate: true,
+          }),
+        error: methods.formState.errors.end,
+        formId: "end",
       },
     },
   ];

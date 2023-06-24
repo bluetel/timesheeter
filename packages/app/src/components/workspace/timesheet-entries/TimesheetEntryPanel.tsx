@@ -30,6 +30,11 @@ export const TimesheetEntryPanel = ({
 
   const basicDetails = useBasicDetails(timesheetEntry);
 
+  const ticketNumber =
+    timesheetEntry.task.taskNumber && timesheetEntry.task.project?.taskPrefix
+      ? `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`
+      : undefined;
+
   return (
     <>
       <DeleteTimesheetEntryModal
@@ -59,11 +64,12 @@ export const TimesheetEntryPanel = ({
           },
         }}
         content={{
-          name: timesheetEntry.description ?? "No descrioption",
+          name: timesheetEntry.description ?? "No description",
           description:
-            timesheetEntry.task.taskNumber &&
-            timesheetEntry.task.project?.taskPrefix
-              ? `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`
+            ticketNumber && timesheetEntry.task.name
+              ? `${ticketNumber} - ${timesheetEntry.task.name}`
+              : timesheetEntry.task.name
+              ? timesheetEntry.task.name
               : undefined,
           icon: TimesheetEntryIcon,
           endButtons: {
@@ -122,6 +128,26 @@ const useBasicDetails = (
       field: {
         variant: "text",
         value: timesheetEntry.description ?? "",
+      },
+    },
+    {
+      label: {
+        title: "Start",
+        description: "The date and time when this timesheet entry started",
+      },
+      field: {
+        variant: "text",
+        value: timesheetEntry.start.toLocaleString("en-GB"),
+      },
+    },
+    {
+      label: {
+        title: "End",
+        description: "The date and time when this timesheet entry ended",
+      },
+      field: {
+        variant: "text",
+        value: timesheetEntry.end.toLocaleString("en-GB"),
       },
     },
   ];

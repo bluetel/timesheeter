@@ -42,9 +42,7 @@ export const holidaysRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       });
 
-      const { start, end, ...rest } = input;
-
-      if (start > end) {
+      if (input.start > input.end) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Start date cannot be after end date",
@@ -53,10 +51,8 @@ export const holidaysRouter = createTRPCRouter({
 
       return ctx.prisma.holiday.create({
         data: {
-          ...rest,
+          ...input,
           userId: ctx.session.user.id,
-          start,
-          end,
         },
       });
     }),

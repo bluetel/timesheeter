@@ -74,6 +74,13 @@ export const timesheetEntriesRouter = createTRPCRouter({
 
       const { config, ...rest } = input;
 
+      if (rest.start > rest.end) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Start date cannot be after end date",
+        });
+      }
+
       const createdTimesheetEntry = await ctx.prisma.timesheetEntry
         .create({
           data: {
@@ -89,12 +96,26 @@ export const timesheetEntriesRouter = createTRPCRouter({
   update: protectedProcedure
     .input(updateTimesheetEntrySchema)
     .mutation(async ({ ctx, input }) => {
-      const { config: oldConfig } = await authorize({
+      const {
+        config: oldConfig,
+        start: existingStart,
+        end: existingEnd,
+      } = await authorize({
         prisma: ctx.prisma,
         timesheetEntryId: input.id,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
+
+      const start = input.start ? input.start : existingStart;
+      const end = input.end ? input.end : existingEnd;
+
+      if (start > end) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Start date cannot be after end date",
+        });
+      }
 
       const { config: updatedConfigValues, ...rest } = input;
 

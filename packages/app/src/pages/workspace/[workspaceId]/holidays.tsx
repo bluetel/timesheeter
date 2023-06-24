@@ -105,7 +105,7 @@ const Holidays = ({
 
         return {
           label: holiday.description ?? displayPeriod,
-          subLabel: holiday.description ? undefined : displayPeriod,
+          subLabel: holiday.description ? displayPeriod : undefined,
           icon: HolidayIcon,
           onClick: () =>
             setSelectedHoliday({

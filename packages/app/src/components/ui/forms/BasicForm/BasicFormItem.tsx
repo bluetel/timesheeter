@@ -1,6 +1,30 @@
 import { type FieldError, type UseFormRegisterReturn } from "react-hook-form";
 import { Select, type SelectProps } from "../../Select";
 import { Toggle } from "../../Toggle";
+import { DatePicker, DateTimePicker, TimePicker } from "../../tw-elements";
+
+type FieldOptions<RequiredType extends boolean> =
+  | {
+      variant: "textarea" | "text" | "number";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      register: UseFormRegisterReturn<any>;
+    }
+  | {
+      variant: "select";
+
+      select: Omit<SelectProps<RequiredType>, "nullable">;
+    }
+  | {
+      variant: "checkbox";
+      checked: boolean;
+      onChange: (checked: boolean) => unknown;
+    }
+  | {
+      variant: "datetime" | "date" | "time";
+      value: Date | null;
+      onChange: (date: Date | null) => void;
+      formId: string;
+    };
 
 export type BasicFormItemProps<RequiredType extends boolean = boolean> = {
   required: RequiredType;
@@ -8,24 +32,9 @@ export type BasicFormItemProps<RequiredType extends boolean = boolean> = {
     title: string;
     description?: string;
   };
-  field:
-    | {
-        variant: "textarea" | "text" | "number";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        register: UseFormRegisterReturn<any>;
-        error?: FieldError;
-      }
-    | {
-        variant: "select";
-        error?: FieldError;
-        select: Omit<SelectProps<RequiredType>, "nullable">;
-      }
-    | {
-        variant: "checkbox";
-        checked: boolean;
-        onChange: (checked: boolean) => unknown;
-        error?: FieldError;
-      };
+  field: FieldOptions<RequiredType> & {
+    error?: FieldError;
+  };
 };
 
 export const BasicFormItem = <RequiredType extends boolean>({
@@ -65,6 +74,9 @@ export const BasicFormItem = <RequiredType extends boolean>({
         {field.variant === "checkbox" && (
           <Toggle checked={field.checked} onChange={field.onChange} />
         )}
+        {field.variant === "date" && <DatePicker {...field} />}
+        {field.variant === "time" && <TimePicker {...field} />}
+        {field.variant === "datetime" && <DateTimePicker {...field} />}
         {field.error && (
           <p className="mt-2 text-sm text-red-600">
             {field.error.message ?? "Unknown error"}
