@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SiJira, SiToggl } from "react-icons/si";
+import { SiGooglesheets, SiJira, SiToggl } from "react-icons/si";
 import { chronRegex, hostnameRegex } from "@timesheeter/app/lib/regex";
 import { type IconType } from "react-icons";
 import { LinkIcon } from "@heroicons/react/24/outline";
@@ -125,6 +125,56 @@ export const INTEGRATION_DEFINITIONS = {
       checkForUpdatesDays: 7,
     },
   },
+  GoogleSheetsIntegration: {
+    name: "Google Sheets",
+    description: "Outputs your timesheet data to your Google Sheets timesheet",
+    icon: SiGooglesheets,
+    fields: [
+      {
+        accessor: "sheetId",
+        name: "Sheet ID",
+        type: "string",
+        required: true,
+        protectCount: 4,
+        description: "Your Google Sheet ID, found in the URL",
+      },
+      {
+        accessor: "serviceAccountEmail",
+        name: "Service Account Email",
+        type: "string",
+        required: true,
+        protectCount: 0,
+        description:
+          "Your Google Service Account Email, make sure to invite it to your sheet",
+      },
+      {
+        accessor: "privateKey",
+        name: "Private Key",
+        type: "string",
+        required: true,
+        protectCount: 4,
+        description: "Your Google Service Account Private Key",
+      },
+    ],
+    configSchema: z.object({
+      type: z.literal("GoogleSheetsIntegration"),
+      sheetId: z.string().min(1),
+      serviceAccountEmail: z.string().email(),
+      privateKey: z.string().min(1),
+    }),
+    updateIntegrationSchema: z.object({
+      type: z.literal("GoogleSheetsIntegration"),
+      sheetId: z.string().min(1).optional(),
+      serviceAccountEmail: z.string().email().optional(),
+      privateKey: z.string().min(1).optional(),
+    }),
+    defaultConfig: {
+      type: "GoogleSheetsIntegration",
+      sheetId: "",
+      serviceAccountEmail: "",
+      privateKey: "",
+    },
+  },
 } as const;
 
 export type IntegrationType = keyof typeof INTEGRATION_DEFINITIONS;
@@ -135,6 +185,7 @@ export type IntegrationDetail =
 export const integrationConfigSchema = z.union([
   INTEGRATION_DEFINITIONS.TogglIntegration.configSchema,
   INTEGRATION_DEFINITIONS.JiraIntegration.configSchema,
+  INTEGRATION_DEFINITIONS.GoogleSheetsIntegration.configSchema,
 ]);
 
 export type IntegrationConfig = z.infer<typeof integrationConfigSchema>;
@@ -142,6 +193,7 @@ export type IntegrationConfig = z.infer<typeof integrationConfigSchema>;
 export const updateIntegrationConfigSchema = z.union([
   INTEGRATION_DEFINITIONS.TogglIntegration.updateIntegrationSchema,
   INTEGRATION_DEFINITIONS.JiraIntegration.updateIntegrationSchema,
+  INTEGRATION_DEFINITIONS.GoogleSheetsIntegration.updateIntegrationSchema,
 ]);
 
 export type UpdateIntegrationConfig = z.infer<
