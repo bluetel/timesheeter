@@ -155,24 +155,48 @@ export const INTEGRATION_DEFINITIONS = {
         protectCount: 4,
         description: "Your Google Service Account Private Key",
       },
+      {
+        accessor: "chronExpression",
+        name: "Chron Expression",
+        type: "string",
+        required: true,
+        protectCount: 0,
+        description: "Chron Expression for when to pull data from Toggl",
+      },
+      {
+        accessor: "commitDelayDays",
+        name: "Commit Delay Days",
+        type: "number",
+        required: true,
+        protectCount: 0,
+        description:
+          "How many days to wait before committing data to the sheet. This is to allow changes to data to be made before committing",
+      },
     ],
     configSchema: z.object({
       type: z.literal("GoogleSheetsIntegration"),
       sheetId: z.string().min(1),
       serviceAccountEmail: z.string().email(),
       privateKey: z.string().min(1),
+      chronExpression: z.string().regex(chronRegex),
+      commitDelayDays: z.number().int().positive().default(2),
     }),
     updateIntegrationSchema: z.object({
       type: z.literal("GoogleSheetsIntegration"),
       sheetId: z.string().min(1).optional(),
       serviceAccountEmail: z.string().email().optional(),
       privateKey: z.string().min(1).optional(),
+      chronExpression: z.string().regex(chronRegex).optional(),
+      commitDelayDays: z.number().int().positive().default(2).optional(),
     }),
     defaultConfig: {
       type: "GoogleSheetsIntegration",
       sheetId: "",
       serviceAccountEmail: "",
       privateKey: "",
+      // Default to every midnight
+      chronExpression: "0 0 * * *",
+      commitDelayDays: 2,
     },
   },
 } as const;
