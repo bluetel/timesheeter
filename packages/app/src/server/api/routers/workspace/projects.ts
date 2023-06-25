@@ -42,6 +42,30 @@ export const projectsRouter = createTRPCRouter({
         })
         .then((projects) => projects.map((project) => parseProject(project)));
     }),
+  listMinimal: protectedProcedure
+    .input(
+      z.object({
+        workspaceId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      await authorize({
+        prisma: ctx.prisma,
+        projectId: null,
+        workspaceId: input.workspaceId,
+        userId: ctx.session.user.id,
+      });
+
+      return ctx.prisma.project.findMany({
+        where: {
+          workspaceId: input.workspaceId,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+    }),
   create: protectedProcedure
     .input(createProjectSchema)
     .mutation(async ({ ctx, input }) => {
@@ -68,29 +92,12 @@ export const projectsRouter = createTRPCRouter({
   update: protectedProcedure
     .input(updateProjectSchema)
     .mutation(async ({ ctx, input }) => {
-      await authorize({
+      const { config: oldConfig } = await authorize({
         prisma: ctx.prisma,
         projectId: input.id,
         workspaceId: input.workspaceId,
         userId: ctx.session.user.id,
       });
-
-      const { config: oldConfig } = await ctx.prisma.project
-        .findUnique({
-          where: {
-            id: input.id,
-          },
-        })
-        .then((project) => {
-          if (!project) {
-            throw new TRPCError({
-              code: "NOT_FOUND",
-              message: "Project not found after authorization",
-            });
-          }
-
-          return parseProject(project, false);
-        });
 
       const { config: updatedConfigValues, ...rest } = input;
 
@@ -148,10 +155,12 @@ export type ParsedProject = Omit<Project, "configSerialized"> & {
 };
 
 export const parseProject = (project: Project, safe = true): ParsedProject => {
-  const config = JSON.parse(decrypt(project.configSerialized)) as ProjectConfig;
+  const { configSerialized, ...rest } = project;
+
+  const config = JSON.parse(decrypt(configSerialized)) as ProjectConfig;
 
   return {
-    ...project,
+    ...rest,
     config: safe
       ? filterConfig<ProjectConfig>(
           config,
@@ -171,7 +180,7 @@ type AuthorizeParams<ProjectId extends string | null> = {
 
 type AuthorizeResult<ProjectId extends string | null> = ProjectId extends null
   ? null
-  : Project;
+  : ParsedProject;
 
 const authorize = async <ProjectId extends string | null>({
   prisma,
@@ -217,5 +226,5 @@ const authorize = async <ProjectId extends string | null>({
     });
   }
 
-  return project as AuthorizeResult<ProjectId>;
+  return parseProject(project) as AuthorizeResult<ProjectId>;
 };

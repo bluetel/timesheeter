@@ -13,7 +13,13 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { classNames } from "@timesheeter/app/utils/tailwind";
 import Image from "next/image";
-import { IntegrationIcon, ProjectIcon } from "@timesheeter/app/lib";
+import {
+  HolidayIcon,
+  IntegrationIcon,
+  ProjectIcon,
+  TaskIcon,
+  TimesheetEntryIcon,
+} from "@timesheeter/app/lib";
 
 export type WorkspaceLayoutProps = {
   workspaceInfo: WorkspaceInfo;
@@ -31,6 +37,13 @@ const navigation = [
   { name: "Dashboard", path: "/dashboard", icon: HomeIcon },
   { name: "Integrations", path: "/integrations", icon: IntegrationIcon },
   { name: "Projects", path: "/projects", icon: ProjectIcon },
+  { name: "Tasks", path: "/tasks", icon: TaskIcon },
+  {
+    name: "Timesheet Entries",
+    path: "/timesheet-entries",
+    icon: TimesheetEntryIcon,
+  },
+  { name: "Holidays", path: "/holidays", icon: HolidayIcon },
 ] as NavigationItem[];
 
 export const WorkspaceLayout = ({
@@ -97,11 +110,15 @@ export const WorkspaceLayout = ({
                 </Transition.Child>
                 <div className="h-0 flex-1 overflow-y-auto pt-5 pb-4">
                   <div className="flex flex-shrink-0 items-center px-4">
-                    <img
-                      className="h-8 w-auto"
-                      src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-                      alt="Your Company"
-                    />
+                    <Link href="/" className="group block">
+                      <Image
+                        alt="logo"
+                        className="h-8 w-auto"
+                        src="/images/logo.png"
+                        width={32}
+                        height={32}
+                      />
+                    </Link>
                   </div>
                   <nav aria-label="Sidebar" className="mt-5">
                     <div className="space-y-1 px-2">
@@ -132,7 +149,10 @@ export const WorkspaceLayout = ({
                   </nav>
                 </div>
                 <div className="flex flex-shrink-0 border-t border-gray-200 p-4">
-                  <Link href="/find-workspace" className="group block flex-shrink-0">
+                  <Link
+                    href="/find-workspace"
+                    className="group block flex-shrink-0"
+                  >
                     <div className="flex items-center">
                       <div>
                         {user.image ? (
@@ -175,14 +195,17 @@ export const WorkspaceLayout = ({
           <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-gray-100">
             <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
               <div className="flex flex-shrink-0 items-center px-4">
-                <Image
-                  alt="logo"
-                  className="h-8 w-auto"
-                  src="/images/logo.png"
-                  width={225}
-                  height={225}
-                />
+                <Link href="/" className="group block">
+                  <Image
+                    alt="logo"
+                    className="h-8 w-auto"
+                    src="/images/logo.png"
+                    width={225}
+                    height={225}
+                  />
+                </Link>
               </div>
+
               <nav className="mt-5 flex-1" aria-label="Sidebar">
                 <div className="space-y-1 px-2">
                   {navigation.map((item) => (
@@ -212,7 +235,10 @@ export const WorkspaceLayout = ({
               </nav>
             </div>
             <div className="flex flex-shrink-0 border-t border-gray-200 p-4">
-              <Link href="/find-workspace" className="group block w-full flex-shrink-0">
+              <Link
+                href="/find-workspace"
+                className="group block w-full flex-shrink-0"
+              >
                 <div className="flex items-center">
                   <div>
                     {user.image ? (
@@ -242,18 +268,19 @@ export const WorkspaceLayout = ({
           </div>
         </div>
       </div>
+
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <div className="lg:hidden">
           <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-1.5">
-            <div>
+            <Link href="/" className="group block">
               <Image
-                alt="App logo"
+                alt="logo"
                 className="h-8 w-auto"
                 src="/images/logo.png"
                 width={225}
                 height={225}
               />
-            </div>
+            </Link>
             <div>
               <button
                 type="button"

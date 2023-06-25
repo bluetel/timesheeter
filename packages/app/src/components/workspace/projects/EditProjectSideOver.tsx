@@ -13,9 +13,12 @@ import { SideOver } from "@timesheeter/app/components/ui/SideOver";
 import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicForm";
 import { type BasicFormItemProps } from "@timesheeter/app/components/ui/forms/BasicForm/BasicFormItem";
 import { useNotifications } from "../../ui/notification/NotificationProvider";
-import { fromZodError } from 'zod-validation-error';
+import { fromZodError } from "zod-validation-error";
 import { ListableForm } from "../../ui/forms/BasicForm/ListableForm";
-import { AdjustmentsVerticalIcon, ArrowPathRoundedSquareIcon } from "@heroicons/react/24/outline";
+import {
+  AdjustmentsVerticalIcon,
+  ArrowPathRoundedSquareIcon,
+} from "@heroicons/react/24/outline";
 import { type IconType } from "react-icons/lib";
 
 const mutationSchema = z.union([
@@ -27,18 +30,18 @@ const mutationSchema = z.union([
   }),
 ]);
 
-type EditProjectsideOverProps = {
+type EditProjectSideOverProps = {
   refetchProjects: () => unknown;
   show: boolean;
   onClose: () => void;
   data:
-  | {
-    new: true;
-  }
-  | {
-    new: false;
-    project: RouterOutputs["workspace"]["projects"]["list"][0];
-  };
+    | {
+        new: true;
+      }
+    | {
+        new: false;
+        project: RouterOutputs["workspace"]["projects"]["list"][0];
+      };
   workspaceId: string;
 };
 
@@ -48,21 +51,21 @@ export const EditProjectSideOver = ({
   onClose,
   data,
   workspaceId,
-}: EditProjectsideOverProps) => {
+}: EditProjectSideOverProps) => {
   const { addNotification } = useNotifications();
 
   const getDefaultValues = () =>
     data.new
       ? {
-        new: true as const,
-        workspaceId,
-        name: "New Project",
-        config: getDefaultProjectConfig(),
-      }
+          new: true as const,
+          workspaceId,
+          name: "New project",
+          config: getDefaultProjectConfig(),
+        }
       : {
-        new: false as const,
-        ...data.project,
-      }
+          new: false as const,
+          ...data.project,
+        };
 
   const methods = useZodForm({
     schema: mutationSchema,
@@ -104,10 +107,12 @@ export const EditProjectSideOver = ({
       values = {
         ...values,
         config: {
-          ...Object.fromEntries(
+          ...(Object.fromEntries(
             Object.entries(values.config ?? {}).filter(
-              ([key, value]) => (project.config as Record<string, unknown>)[key] !== value
-            )) as typeof values["config"],
+              ([key, value]) =>
+                (project.config as Record<string, unknown>)[key] !== value
+            )
+          ) as (typeof values)["config"]),
           type: values.config.type ?? project.config.type,
         },
       } as typeof values;
@@ -116,9 +121,14 @@ export const EditProjectSideOver = ({
       values = Object.fromEntries(
         Object.entries(values).filter(([, value]) => value !== undefined)
       ) as typeof values;
+    }
 
-      // Filter out autoAssignTasks if it's empty
-      values.config.autoAssignTasks = values.config.autoAssignTasks?.filter((task) => task !== "") ?? []
+    // Filter out autoAssignTasks if it's empty
+    values.config.autoAssignTasks =
+      values.config.autoAssignTasks?.filter((task) => task !== "") ?? [];
+
+    if (values.taskPrefix === "") {
+      values.taskPrefix = null;
     }
 
     // Validate form
@@ -133,26 +143,38 @@ export const EditProjectSideOver = ({
       return;
     }
 
-    values.new ? createProject(values, {
-      onError: (error) => {
-        addNotification({
-          variant: "error",
-          primaryText: "Failed to create project",
-          secondaryText: error.message,
+    values.new
+      ? createProject(values, {
+          onError: (error) => {
+            addNotification({
+              variant: "error",
+              primaryText: "Failed to create project",
+              secondaryText: error.message,
+            });
+          },
+        })
+      : updateProject(values, {
+          onError: (error) => {
+            addNotification({
+              variant: "error",
+              primaryText: "Failed to update project",
+              secondaryText: error.message,
+            });
+          },
         });
-      }
-    }) : updateProject(values, {
-      onError: (error) => {
-        addNotification({
-          variant: "error",
-          primaryText: "Failed to update project",
-          secondaryText: error.message,
-        });
-      },
-    });
   };
 
   const fields = useProjectFields(methods);
+
+  const getAutoAssignTasks = () => {
+    const tasks = methods.getValues("config.autoAssignTasks") ?? [];
+
+    if (tasks.length === 0) {
+      return [""];
+    }
+
+    return tasks;
+  };
 
   return (
     <SideOver
@@ -173,15 +195,18 @@ export const EditProjectSideOver = ({
           {
             icon: ArrowPathRoundedSquareIcon as IconType,
             label: "Auto Assign Tasks",
-            body: <ListableForm values={methods.getValues("config.autoAssignTasks") ?? []} onChange={async (newValues) => {
-              methods.setValue("config.autoAssignTasks", newValues)
-
-              // Force re-render
-              await methods.trigger("config");
-              methods.clearErrors("config");
-            }} />,
+            body: (
+              <ListableForm
+                values={getAutoAssignTasks()}
+                onChange={(newValues) =>
+                  methods.setValue("config.autoAssignTasks", newValues, {
+                    shouldValidate: true,
+                  })
+                }
+              />
+            ),
             subDescription: autoAssignTasksHelpText,
-          }
+          },
         ],
       }}
     />
@@ -196,8 +221,7 @@ const useProjectFields = (
       required: true,
       label: {
         title: "Project name",
-        description:
-          `Descriptive name for the project, e.g. "James's Toggl"`
+        description: `Descriptive name for the project, e.g. "Acme Corp"`,
       },
       field: {
         variant: "text",
@@ -209,42 +233,15 @@ const useProjectFields = (
       required: false,
       label: {
         title: "Task Prefix",
-        description:
-          `Prefix for tasks created by this project, e.g. "NA" for "NA-1234"`
+        description: `Prefix for tasks created by this project, e.g. "AC" for "AC-1234"`,
       },
       field: {
         variant: "text",
         register: methods.register("taskPrefix"),
         error: methods.formState.errors.taskPrefix,
       },
-    }
+    },
   ];
-
-  // const projectConfig =
-  //   PROJECT_DEFINITIONS[methods.getValues("config.type")];
-
-  // projectConfig.fields.forEach((field) => {
-  //   // TODO: Handle field errors
-  //   // const error = methods.formState.errors.config?.[field.accessor as keyof typeof methods.formState.errors.config];
-
-  //   // Skip auto assign tasks field
-  //   if (field.accessor === "autoAssignTasks") {
-  //     return;
-  //   }
-
-  //   fields.push({
-  //     required: field.required,
-  //     label: {
-  //       title: field.name,
-  //       description: field.description,
-  //     },
-  //     field: {
-  //       variant: "text",
-  //       register: methods.register(`config.${field.accessor}`),
-  //       //error: typeof error === "string" ? new FieldError(error) : error,
-  //     },
-  //   });
-  //});
 
   return fields;
 };

@@ -11,10 +11,7 @@ import { api } from "@timesheeter/app/utils/api";
 import { getWorkspaceInfoDiscrete } from "@timesheeter/app/server/lib/workspace-info";
 import { useEffect, useMemo, useState } from "react";
 import { ProjectPanel } from "@timesheeter/app/components/workspace/projects/ProjectPanel";
-import {
-  PROJECTS_HELP_TEXT,
-  PROJECT_DEFINITIONS,
-} from "@timesheeter/app/lib/workspace/projects";
+import { PROJECTS_HELP_TEXT } from "@timesheeter/app/lib/workspace/projects";
 import { ProjectIcon } from "@timesheeter/app/lib";
 import { SimpleEmptyState } from "@timesheeter/app/components/ui/SimpleEmptyState";
 import { SelectableList } from "@timesheeter/app/components/ui/SelectableList";
@@ -67,8 +64,7 @@ const Projects = ({
       workspaceId: workspaceInfo.workspace.id,
     });
 
-  const [showNewProjectsideOver, setShowNewProjectsideOver] =
-    useState(false);
+  const [showNewProjectSideOver, setShowNewProjectSideOver] = useState(false);
 
   const [selectedProject, setSelectedProject] = useState<{
     id: string;
@@ -78,7 +74,7 @@ const Projects = ({
   const { query } = useRouter();
   useEffect(() => {
     if (query.create) {
-      setShowNewProjectsideOver(true);
+      setShowNewProjectSideOver(true);
     }
   }, [query.create]);
 
@@ -104,7 +100,7 @@ const Projects = ({
     () =>
       projects?.map((project) => ({
         label: project.name,
-        subLabel: `${project.taskPrefix}-XXXX`,
+        subLabel: project.taskPrefix ? `${project.taskPrefix}-XXXX` : undefined,
         icon: ProjectIcon,
         onClick: () =>
           setSelectedProject({
@@ -112,8 +108,7 @@ const Projects = ({
             index: projects.findIndex((i) => i.id === project.id),
           }),
         selected: selectedProject?.id === project.id,
-      }))
-      ?? [],
+      })) ?? [],
     [projects, selectedProject]
   );
 
@@ -121,8 +116,8 @@ const Projects = ({
     return (
       <>
         <EditProjectSideOver
-          show={showNewProjectsideOver}
-          onClose={() => setShowNewProjectsideOver(false)}
+          show={showNewProjectSideOver}
+          onClose={() => setShowNewProjectSideOver(false)}
           refetchProjects={refetchProjects}
           data={{
             new: true,
@@ -134,8 +129,8 @@ const Projects = ({
             title="No Projects"
             helpText={PROJECTS_HELP_TEXT}
             button={{
-              label: "New Project",
-              onClick: () => setShowNewProjectsideOver(true),
+              label: "New project",
+              onClick: () => setShowNewProjectSideOver(true),
             }}
             icon={ProjectIcon}
           />
@@ -147,8 +142,8 @@ const Projects = ({
   return (
     <>
       <EditProjectSideOver
-        show={showNewProjectsideOver}
-        onClose={() => setShowNewProjectsideOver(false)}
+        show={showNewProjectSideOver}
+        onClose={() => setShowNewProjectSideOver(false)}
         refetchProjects={refetchProjects}
         data={{ new: true }}
         workspaceId={workspaceInfo.workspace.id}
@@ -164,14 +159,12 @@ const Projects = ({
         {projects.map((project) => (
           <div
             key={project.id}
-            className={
-              project.id === selectedProject?.id ? "" : "hidden"
-            }
+            className={project.id === selectedProject?.id ? "" : "hidden"}
           >
             <ProjectPanel
               project={project}
               refetchProjects={refetchProjects}
-              onNewProjectClick={() => setShowNewProjectsideOver(true)}
+              onNewProjectClick={() => setShowNewProjectSideOver(true)}
             />
           </div>
         ))}

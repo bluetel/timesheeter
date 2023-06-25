@@ -30,8 +30,7 @@ export const IntegrationPanel = ({
   const [showDeleteIntegrationModal, setShowDeleteIntegrationModal] =
     useState(false);
 
-  const integrationDetail =
-    INTEGRATION_DEFINITIONS[integration.config.type];
+  const integrationDetail = INTEGRATION_DEFINITIONS[integration.config.type];
 
   const basicDetails = useBasicDetails(integration, integrationDetail);
 
@@ -64,7 +63,9 @@ export const IntegrationPanel = ({
         }}
         content={{
           name: integration.name,
-          description: `${INTEGRATION_DEFINITIONS[integration.config.type].name} • ${INTEGRATION_DEFINITIONS[integration.config.type].description}`,
+          description: `${
+            INTEGRATION_DEFINITIONS[integration.config.type].name
+          } • ${INTEGRATION_DEFINITIONS[integration.config.type].description}`,
           icon: integrationDetail.icon,
           endButtons: {
             onEdit: () => setShowEditIntegrationSideOver(true),
@@ -73,7 +74,7 @@ export const IntegrationPanel = ({
         }}
         tabs={{
           multiple: false,
-          body: <BasicDetailList items={basicDetails} />
+          body: <BasicDetailList items={basicDetails} />,
         }}
       />
     </>
@@ -98,7 +99,7 @@ const useBasicDetails = (
     {
       label: {
         title: "Name",
-        description: `Descriptive name for the integration, e.g. "James's Toggl"`
+        description: `Descriptive name for the integration, e.g. "James's Toggl"`,
       },
       field: {
         variant: "text",
@@ -109,8 +110,9 @@ const useBasicDetails = (
 
   integrationDetail.fields.forEach((field) => {
     const value =
-      ((integration.config as Record<string, unknown>)[field.accessor] as string) ??
-      "";
+      ((integration.config as Record<string, unknown>)[
+        field.accessor
+      ] as string) ?? "";
 
     details.push({
       label: {

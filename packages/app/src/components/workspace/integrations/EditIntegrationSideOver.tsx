@@ -14,7 +14,7 @@ import { SideOver } from "@timesheeter/app/components/ui/SideOver";
 import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicForm";
 import { type BasicFormItemProps } from "@timesheeter/app/components/ui/forms/BasicForm/BasicFormItem";
 import { useNotifications } from "../../ui/notification/NotificationProvider";
-import { fromZodError } from 'zod-validation-error';
+import { fromZodError } from "zod-validation-error";
 
 const mutationSchema = z.union([
   createIntegrationSchema.extend({
@@ -25,20 +25,18 @@ const mutationSchema = z.union([
   }),
 ]);
 
-type MutationSchema = z.infer<typeof mutationSchema>["config"]
-
 type EditIntegrationSideOverProps = {
   refetchIntegrations: () => unknown;
   show: boolean;
   onClose: () => void;
   data:
-  | {
-    new: true;
-  }
-  | {
-    new: false;
-    integration: RouterOutputs["workspace"]["integrations"]["list"][0];
-  };
+    | {
+        new: true;
+      }
+    | {
+        new: false;
+        integration: RouterOutputs["workspace"]["integrations"]["list"][0];
+      };
   workspaceId: string;
 };
 
@@ -54,15 +52,15 @@ export const EditIntegrationSideOver = ({
   const getDefaultValues = () =>
     data.new
       ? {
-        new: true as const,
-        workspaceId,
-        name: "New Integration",
-        config: getDefaultIntegrationConfig(),
-      }
+          new: true as const,
+          workspaceId,
+          name: "New integration",
+          config: getDefaultIntegrationConfig(),
+        }
       : {
-        new: false as const,
-        ...data.integration,
-      }
+          new: false as const,
+          ...data.integration,
+        };
 
   const methods = useZodForm({
     schema: mutationSchema,
@@ -104,21 +102,21 @@ export const EditIntegrationSideOver = ({
       values = {
         ...values,
         config: {
-          ...Object.fromEntries(
+          ...(Object.fromEntries(
             Object.entries(values.config ?? {}).filter(
-              ([key, value]) => (integration.config as Record<string, unknown>)[key] !== value
-            )) as typeof values["config"],
+              ([key, value]) =>
+                (integration.config as Record<string, unknown>)[key] !== value
+            )
+          ) as (typeof values)["config"]),
           type: values.config.type ?? integration.config.type,
         },
       } as typeof values;
-
 
       // Filter out undefined values
       values = Object.fromEntries(
         Object.entries(values).filter(([, value]) => value !== undefined)
       ) as typeof values;
     }
-
 
     // Validate form
     const result = mutationSchema.safeParse(values);
@@ -132,23 +130,25 @@ export const EditIntegrationSideOver = ({
       return;
     }
 
-    values.new ? createIntegration(values, {
-      onError: (error) => {
-        addNotification({
-          variant: "error",
-          primaryText: "Failed to create integration",
-          secondaryText: error.message,
+    values.new
+      ? createIntegration(values, {
+          onError: (error) => {
+            addNotification({
+              variant: "error",
+              primaryText: "Failed to create integration",
+              secondaryText: error.message,
+            });
+          },
+        })
+      : updateIntegration(values, {
+          onError: (error) => {
+            addNotification({
+              variant: "error",
+              primaryText: "Failed to update integration",
+              secondaryText: error.message,
+            });
+          },
         });
-      }
-    }) : updateIntegration(values, {
-      onError: (error) => {
-        addNotification({
-          variant: "error",
-          primaryText: "Failed to update integration",
-          secondaryText: error.message,
-        });
-      },
-    });
   };
 
   const fields = useIntegrationFields(methods);
@@ -164,9 +164,8 @@ export const EditIntegrationSideOver = ({
       tabs={{
         multiple: false,
         body: <BasicForm items={fields} />,
-        subDescription: INTEGRATION_DEFINITIONS[
-          methods.getValues("config.type")
-        ].description,
+        subDescription:
+          INTEGRATION_DEFINITIONS[methods.getValues("config.type")].description,
       }}
     />
   );
@@ -183,38 +182,37 @@ const useIntegrationFields = (
       },
       field: {
         variant: "select",
-        options: Object.entries(INTEGRATION_DEFINITIONS).map(
-          ([key, definition]) => ({
-            value: key,
-            label: definition.name,
-          })
-        ),
-        onChange: async (value) => {
-          methods.setValue(
-            "config",
-            getDefaultIntegrationConfig(value as IntegrationType)
-          );
-
-          // Force re-render
-          await methods.trigger("config");
-          methods.clearErrors("config");
+        select: {
+          options: Object.entries(INTEGRATION_DEFINITIONS).map(
+            ([key, definition]) => ({
+              value: key,
+              label: definition.name,
+            })
+          ),
+          onChange: (value) =>
+            methods.setValue(
+              "config",
+              getDefaultIntegrationConfig(value as IntegrationType),
+              {
+                shouldValidate: true,
+              }
+            ),
+          active: methods.getValues("config.type"),
         },
-        active: methods.getValues("config.type"),
       },
     },
     {
       required: true,
       label: {
         title: "Integration name",
-        description:
-          `Descriptive name for the integration, e.g. "James's Toggl"`
+        description: `Descriptive name for the integration, e.g. "James's Toggl"`,
       },
       field: {
         variant: "text",
         register: methods.register("name"),
         error: methods.formState.errors.name,
       },
-    }
+    },
   ];
 
   const integrationConfig =

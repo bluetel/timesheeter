@@ -13,9 +13,10 @@ export type SelectableListProps = {
       variant?: "normal" | "danger";
     }[];
   }[];
+  loadMore?: () => unknown;
 };
 
-export const SelectableList = ({ items }: SelectableListProps) => (
+export const SelectableList = ({ items, loadMore }: SelectableListProps) => (
   <ul role="list" className="relative z-0 divide-y divide-gray-200">
     {items.map((item, index) => (
       <li key={index} className="bg-white" onClick={item.onClick}>
@@ -72,5 +73,24 @@ export const SelectableList = ({ items }: SelectableListProps) => (
         </div>
       </li>
     ))}
+    {loadMore && (
+      <li className="bg-white">
+        <div
+          className="relative flex h-20 cursor-pointer items-center space-x-3 px-6 py-5 hover:bg-gray-50"
+          onClick={loadMore}
+        >
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center space-x-6">
+              <div>
+                <span className="absolute inset-0" aria-hidden="true" />
+                <p className="text-sm font-medium text-gray-900">
+                  Load more...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+    )}
   </ul>
 );
