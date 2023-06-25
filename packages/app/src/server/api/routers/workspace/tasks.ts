@@ -19,12 +19,14 @@ import {
 } from "@timesheeter/app/server/lib/secret-helpers";
 import { type Task, type PrismaClient } from "@prisma/client";
 import { type WithConfig } from "@timesheeter/app/server/lib/workspace-types";
+import { API_PAGINATION_LIMIT } from "@timesheeter/app/server/lib";
 
 export const tasksRouter = createTRPCRouter({
   list: protectedProcedure
     .input(
       z.object({
         workspaceId: z.string(),
+        page: z.number().int().positive().default(1),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -35,7 +37,13 @@ export const tasksRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       });
 
-      return ctx.prisma.task
+      const taskCountPromise = ctx.prisma.task.count({
+        where: {
+          workspaceId: input.workspaceId,
+        },
+      });
+
+      const tasksPromise = ctx.prisma.task
         .findMany({
           where: {
             workspaceId: input.workspaceId,
@@ -49,8 +57,23 @@ export const tasksRouter = createTRPCRouter({
               },
             },
           },
+          skip: (input.page - 1) * API_PAGINATION_LIMIT,
+          take: API_PAGINATION_LIMIT,
         })
         .then((tasks) => tasks.map((task) => parseTask(task)));
+
+      const [taskCount, tasks] = await Promise.all([
+        taskCountPromise,
+        tasksPromise,
+      ]);
+
+      return {
+        count: taskCount,
+        page: input.page,
+        next:
+          taskCount > input.page * API_PAGINATION_LIMIT ? input.page + 1 : null,
+        data: tasks,
+      };
     }),
   listMinimal: protectedProcedure
     .input(

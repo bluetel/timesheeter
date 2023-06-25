@@ -9,11 +9,9 @@ import {
   BasicDetailList,
   type BasicDetailListItem,
 } from "@timesheeter/app/components/ui/DetailPanel/BasicDetailList";
-import { AdjustmentsVerticalIcon } from "@heroicons/react/24/outline";
-import { type IconType } from "react-icons";
 
 type TaskDetailProps = {
-  task: RouterOutputs["workspace"]["tasks"]["list"][number];
+  task: RouterOutputs["workspace"]["tasks"]["list"]["data"][number];
   refetchTasks: () => unknown;
   onNewTaskClick: () => void;
   projects: RouterOutputs["workspace"]["projects"]["listMinimal"];
@@ -67,14 +65,8 @@ export const TaskPanel = ({
           },
         }}
         tabs={{
-          multiple: true,
-          bodies: [
-            {
-              icon: AdjustmentsVerticalIcon as IconType,
-              label: "Details",
-              body: <BasicDetailList items={basicDetails} />,
-            },
-          ],
+          multiple: false,
+          body: <BasicDetailList items={basicDetails} />,
         }}
       />
     </>
@@ -82,7 +74,7 @@ export const TaskPanel = ({
 };
 
 const useBasicDetails = (
-  task: RouterOutputs["workspace"]["tasks"]["list"][0]
+  task: RouterOutputs["workspace"]["tasks"]["list"]["data"][number]
 ) => {
   const details: BasicDetailListItem[] = [
     {

@@ -7,7 +7,7 @@ import superjson from "superjson";
 import { WorkspaceLayout } from "@timesheeter/app/components/workspace/WorkspaceLayout";
 import { appRouter } from "@timesheeter/app/server/api/root";
 import { createTRPCContext } from "@timesheeter/app/server/api/trpc";
-import { api } from "@timesheeter/app/utils/api";
+import { type RouterOutputs, api } from "@timesheeter/app/utils/api";
 import { getWorkspaceInfoDiscrete } from "@timesheeter/app/server/lib/workspace-info";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -49,6 +49,7 @@ export const getServerSideProps = async (
   await Promise.all([
     helpers.workspace.timesheetEntries.list.prefetch({
       workspaceId: workspaceInfo.workspace.id,
+      page: 1,
     }),
     helpers.workspace.tasks.listMinimal.prefetch({
       workspaceId: workspaceInfo.workspace.id,
@@ -66,22 +67,82 @@ export const getServerSideProps = async (
 const TimesheetEntries = ({
   workspaceInfo,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const { data: timesheetEntries, refetch: refetchTimesheetEntries } =
-    api.workspace.timesheetEntries.list.useQuery({
-      workspaceId: workspaceInfo.workspace.id,
-    });
+  const [pageCount, setPageCount] = useState(1);
+
+  const [timesheetEntries, setTimesheetEntries] = useState<
+    RouterOutputs["workspace"]["timesheetEntries"]["list"]["data"]
+  >([]);
+
+  const { refetch: refetchTimesheetEntries, data: timesheetEntryData } =
+    api.workspace.timesheetEntries.list.useQuery(
+      {
+        workspaceId: workspaceInfo.workspace.id,
+        page: pageCount,
+      },
+      {
+        onSuccess: ({ data: timesheetEntries }) => {
+          setTimesheetEntries((oldEntries) =>
+            // Insert new entries to the beginning of the list so new entries are
+            // kept
+            [...timesheetEntries, ...oldEntries].filter(
+              (timesheetEntry, index, self) =>
+                index === self.findIndex((t) => t.id === timesheetEntry.id)
+            )
+          );
+        },
+      }
+    );
+
+  const fetchNextPage = async () => {
+    setPageCount((oldPageCount) => oldPageCount + 1);
+    await refetchTimesheetEntries();
+  };
 
   const { data: tasks } = api.workspace.tasks.listMinimal.useQuery({
     workspaceId: workspaceInfo.workspace.id,
   });
 
-  const [showNewtimesheetEntriesideOver, setShowNewTimesheetEntriesSideOver] =
+  const [showNewTimesheetEntriesideOver, setShowNewTimesheetEntriesSideOver] =
     useState(false);
 
   const [selectedTask, setSelectedTask] = useState<{
     id: string;
     index: number;
   } | null>(null);
+
+  const timesheetEntryItems = useMemo(
+    () =>
+      timesheetEntries.map((timesheetEntry) => {
+        const ticketNumber =
+          timesheetEntry.task.taskNumber &&
+          timesheetEntry.task.project?.taskPrefix
+            ? `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`
+            : undefined;
+
+        const subDescription =
+          ticketNumber && timesheetEntry.task.name
+            ? `${ticketNumber} - ${timesheetEntry.task.name}`
+            : timesheetEntry.task.name
+            ? timesheetEntry.task.name
+            : undefined;
+
+        return {
+          label:
+            timesheetEntry.description ?? subDescription ?? "Unnamed entry",
+          subLabel: timesheetEntry.description ? subDescription : undefined,
+          icon: TimesheetEntryIcon,
+          onClick: () =>
+            setSelectedTask({
+              id: timesheetEntry.id,
+              index: timesheetEntries.findIndex(
+                (i) => i.id === timesheetEntry.id
+              ),
+            }),
+          selected: selectedTask?.id === timesheetEntry.id,
+        };
+      }),
+    [timesheetEntries, selectedTask]
+  );
 
   const { query } = useRouter();
   useEffect(() => {
@@ -108,50 +169,22 @@ const TimesheetEntries = ({
     }
   }, [timesheetEntries, selectedTask]);
 
-  const taskItems = useMemo(
-    () =>
-      timesheetEntries?.map((timesheetEntry) => {
-        const ticketNumber =
-          timesheetEntry.task.taskNumber &&
-          timesheetEntry.task.project?.taskPrefix
-            ? `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`
-            : undefined;
-
-        return {
-          label: timesheetEntry.description ?? "No description",
-          subLabel:
-            ticketNumber && timesheetEntry.task.name
-              ? `${ticketNumber} - ${timesheetEntry.task.name}`
-              : timesheetEntry.task.name
-              ? timesheetEntry.task.name
-              : undefined,
-          icon: TimesheetEntryIcon,
-          onClick: () =>
-            setSelectedTask({
-              id: timesheetEntry.id,
-              index: timesheetEntries.findIndex(
-                (i) => i.id === timesheetEntry.id
-              ),
-            }),
-          selected: selectedTask?.id === timesheetEntry.id,
-        };
-      }) ?? [],
-    [timesheetEntries, selectedTask]
-  );
-
-  if (!timesheetEntries || taskItems.length === 0) {
+  if (timesheetEntryItems.length === 0) {
     return (
       <>
-        <EditTimesheetEntrySideOver
-          show={showNewtimesheetEntriesideOver}
-          onClose={() => setShowNewTimesheetEntriesSideOver(false)}
-          refetchTimesheetEntries={refetchTimesheetEntries}
-          data={{
-            new: true,
-          }}
-          workspaceId={workspaceInfo.workspace.id}
-          tasks={tasks ?? []}
-        />
+        {tasks?.[0] && (
+          <EditTimesheetEntrySideOver
+            show={showNewTimesheetEntriesideOver}
+            onClose={() => setShowNewTimesheetEntriesSideOver(false)}
+            refetchTimesheetEntries={refetchTimesheetEntries}
+            data={{
+              new: true,
+            }}
+            workspaceId={workspaceInfo.workspace.id}
+            tasks={tasks ?? []}
+            defaultTaskId={tasks?.[0].id}
+          />
+        )}
         <WorkspaceLayout workspaceInfo={workspaceInfo}>
           <SimpleEmptyState
             title="No Timesheet Entries"
@@ -169,23 +202,29 @@ const TimesheetEntries = ({
 
   return (
     <>
-      <EditTimesheetEntrySideOver
-        show={showNewtimesheetEntriesideOver}
-        onClose={() => setShowNewTimesheetEntriesSideOver(false)}
-        refetchTimesheetEntries={refetchTimesheetEntries}
-        data={{ new: true }}
-        workspaceId={workspaceInfo.workspace.id}
-        tasks={tasks ?? []}
-      />
+      {tasks?.[0] && (
+        <EditTimesheetEntrySideOver
+          show={showNewTimesheetEntriesideOver}
+          onClose={() => setShowNewTimesheetEntriesSideOver(false)}
+          refetchTimesheetEntries={refetchTimesheetEntries}
+          data={{ new: true }}
+          workspaceId={workspaceInfo.workspace.id}
+          tasks={tasks ?? []}
+          defaultTaskId={tasks?.[0].id}
+        />
+      )}
       <WorkspaceLayout
         workspaceInfo={workspaceInfo}
         secondAside={
           <nav className="h-full overflow-y-auto">
-            <SelectableList items={taskItems} />
+            <SelectableList
+              items={timesheetEntryItems}
+              loadMore={timesheetEntryData?.next ? fetchNextPage : undefined}
+            />
           </nav>
         }
       >
-        {timesheetEntries.map((timesheetEntry) => (
+        {(timesheetEntries ?? []).map((timesheetEntry) => (
           <div
             key={timesheetEntry.id}
             className={timesheetEntry.id === selectedTask?.id ? "" : "hidden"}

@@ -205,6 +205,7 @@ export const WorkspaceLayout = ({
                   />
                 </Link>
               </div>
+
               <nav className="mt-5 flex-1" aria-label="Sidebar">
                 <div className="space-y-1 px-2">
                   {navigation.map((item) => (
@@ -267,6 +268,7 @@ export const WorkspaceLayout = ({
           </div>
         </div>
       </div>
+
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <div className="lg:hidden">
           <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-1.5">

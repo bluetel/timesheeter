@@ -19,12 +19,14 @@ import {
 } from "@timesheeter/app/server/lib/secret-helpers";
 import { type TimesheetEntry, type PrismaClient } from "@prisma/client";
 import { type WithConfig } from "@timesheeter/app/server/lib/workspace-types";
+import { API_PAGINATION_LIMIT } from "@timesheeter/app/server/lib";
 
 export const timesheetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
     .input(
       z.object({
         workspaceId: z.string(),
+        page: z.number().int().positive().default(1),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -35,7 +37,14 @@ export const timesheetEntriesRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       });
 
-      return ctx.prisma.timesheetEntry
+      const timesheetEntryCountPromise = ctx.prisma.timesheetEntry.count({
+        where: {
+          workspaceId: input.workspaceId,
+          userId: ctx.session.user.id,
+        },
+      });
+
+      const timesheetEntriesPromise = ctx.prisma.timesheetEntry
         .findMany({
           where: {
             workspaceId: input.workspaceId,
@@ -55,12 +64,29 @@ export const timesheetEntriesRouter = createTRPCRouter({
               },
             },
           },
+          skip: (input.page - 1) * API_PAGINATION_LIMIT,
+          take: API_PAGINATION_LIMIT,
         })
         .then((timesheetEntries) =>
           timesheetEntries.map((timesheetEntry) =>
             parseTimesheetEntry(timesheetEntry)
           )
         );
+
+      const [timesheetEntries, timesheetEntryCount] = await Promise.all([
+        timesheetEntriesPromise,
+        timesheetEntryCountPromise,
+      ]);
+
+      return {
+        count: timesheetEntryCount,
+        page: input.page,
+        next:
+          timesheetEntryCount > input.page * API_PAGINATION_LIMIT
+            ? input.page + 1
+            : null,
+        data: timesheetEntries,
+      };
     }),
   create: protectedProcedure
     .input(createTimesheetEntrySchema)

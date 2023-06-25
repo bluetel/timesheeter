@@ -7,7 +7,7 @@ import superjson from "superjson";
 import { WorkspaceLayout } from "@timesheeter/app/components/workspace/WorkspaceLayout";
 import { appRouter } from "@timesheeter/app/server/api/root";
 import { createTRPCContext } from "@timesheeter/app/server/api/trpc";
-import { api } from "@timesheeter/app/utils/api";
+import { type RouterOutputs, api } from "@timesheeter/app/utils/api";
 import { getWorkspaceInfoDiscrete } from "@timesheeter/app/server/lib/workspace-info";
 import { useEffect, useMemo, useState } from "react";
 import { EditTaskSideOver } from "@timesheeter/app/components/workspace/tasks/EditTaskSideOver";
@@ -47,6 +47,7 @@ export const getServerSideProps = async (
   await Promise.all([
     helpers.workspace.tasks.list.prefetch({
       workspaceId: workspaceInfo.workspace.id,
+      page: 1,
     }),
     helpers.workspace.projects.listMinimal.prefetch({
       workspaceId: workspaceInfo.workspace.id,
@@ -64,10 +65,36 @@ export const getServerSideProps = async (
 const Tasks = ({
   workspaceInfo,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const { data: tasks, refetch: refetchTasks } =
-    api.workspace.tasks.list.useQuery({
-      workspaceId: workspaceInfo.workspace.id,
-    });
+  const [pageCount, setPageCount] = useState(1);
+
+  const [tasks, setTasks] = useState<
+    RouterOutputs["workspace"]["tasks"]["list"]["data"]
+  >([]);
+
+  const { refetch: refetchTasks, data: taskData } =
+    api.workspace.tasks.list.useQuery(
+      {
+        workspaceId: workspaceInfo.workspace.id,
+        page: pageCount,
+      },
+      {
+        onSuccess: ({ data: tasks }) => {
+          setTasks((oldTasks) =>
+            // Insert new entries to the beginning of the list so new entries are
+            // kept
+            [...tasks, ...oldTasks].filter(
+              (task, index, self) =>
+                index === self.findIndex((t) => t.id === task.id)
+            )
+          );
+        },
+      }
+    );
+
+  const fetchNextPage = async () => {
+    setPageCount((oldPageCount) => oldPageCount + 1);
+    await refetchTasks();
+  };
 
   const { data: projects } = api.workspace.projects.listMinimal.useQuery({
     workspaceId: workspaceInfo.workspace.id,
@@ -79,6 +106,26 @@ const Tasks = ({
     id: string;
     index: number;
   } | null>(null);
+
+  const taskItems = useMemo(
+    () =>
+      tasks.map((task) => ({
+        id: task.id,
+        label: task.name ?? "Unnamed task",
+        subLabel:
+          task.project?.taskPrefix && task.taskNumber
+            ? `${task.project.taskPrefix}-${task.taskNumber}`
+            : undefined,
+        icon: TaskIcon,
+        onClick: () =>
+          setSelectedTask({
+            id: task.id,
+            index: tasks.findIndex((i) => i.id === task.id),
+          }),
+        selected: selectedTask?.id === task.id,
+      })),
+    [tasks, selectedTask]
+  );
 
   const { query } = useRouter();
   useEffect(() => {
@@ -104,25 +151,6 @@ const Tasks = ({
       setSelectedTask(null);
     }
   }, [tasks, selectedTask]);
-
-  const taskItems = useMemo(
-    () =>
-      tasks?.map((task) => ({
-        label: task.name ?? "Unnamed task",
-        subLabel:
-          task.project?.taskPrefix && task.taskNumber
-            ? `${task.project.taskPrefix}-${task.taskNumber}`
-            : undefined,
-        icon: TaskIcon,
-        onClick: () =>
-          setSelectedTask({
-            id: task.id,
-            index: tasks.findIndex((i) => i.id === task.id),
-          }),
-        selected: selectedTask?.id === task.id,
-      })) ?? [],
-    [tasks, selectedTask]
-  );
 
   if (!tasks || taskItems.length === 0) {
     return (
@@ -166,7 +194,10 @@ const Tasks = ({
         workspaceInfo={workspaceInfo}
         secondAside={
           <nav className="h-full overflow-y-auto">
-            <SelectableList items={taskItems} />
+            <SelectableList
+              items={taskItems}
+              loadMore={taskData?.next ? fetchNextPage : undefined}
+            />
           </nav>
         }
       >

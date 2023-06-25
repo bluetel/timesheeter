@@ -4,7 +4,7 @@ import { DeleteConfirmationModal } from "@timesheeter/app/components/ui/DeleteCo
 type DeleteTimesheetEntryModalProps = {
   show: boolean;
   onClose: () => void;
-  timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"][number];
+  timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"]["data"][number];
   refetchTimesheetEntries: () => void;
 };
 

@@ -11,7 +11,7 @@ const features = [
   },
   {
     name: "Jira",
-    description: "Task information can be imported to automate descriptions",
+    description: "Task information can be imported to automate task naming",
     icon: SiJira,
   },
   {

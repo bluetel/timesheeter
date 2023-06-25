@@ -33,7 +33,7 @@ type EditTaskSideOverProps = {
       }
     | {
         new: false;
-        task: RouterOutputs["workspace"]["tasks"]["list"][number];
+        task: RouterOutputs["workspace"]["tasks"]["list"]["data"][number];
       };
   workspaceId: string;
   projects: RouterOutputs["workspace"]["projects"]["listMinimal"];

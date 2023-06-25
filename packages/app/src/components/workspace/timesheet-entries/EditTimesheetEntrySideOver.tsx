@@ -6,7 +6,7 @@ import {
   TIMESHEET_ENTRIES_HELP_TEXT,
 } from "@timesheeter/app/lib/workspace/timesheet-entries";
 import { api, type RouterOutputs } from "@timesheeter/app/utils/api";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { z } from "zod";
 import { SideOver } from "@timesheeter/app/components/ui/SideOver";
 import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicForm";
@@ -36,10 +36,11 @@ type EditTimesheetEntrySideOverProps = {
       }
     | {
         new: false;
-        timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"][0];
+        timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"]["data"][number];
       };
   workspaceId: string;
   tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"];
+  defaultTaskId: string;
 };
 
 export const EditTimesheetEntrySideOver = ({
@@ -49,6 +50,7 @@ export const EditTimesheetEntrySideOver = ({
   data,
   workspaceId,
   tasks,
+  defaultTaskId,
 }: EditTimesheetEntrySideOverProps) => {
   const { addNotification } = useNotifications();
 
@@ -58,6 +60,7 @@ export const EditTimesheetEntrySideOver = ({
           new: true as const,
           workspaceId,
           name: "New timesheet entry",
+          taskId: defaultTaskId,
           config: getDefaultTimesheetEntryConfig(),
         }
       : {
@@ -199,17 +202,14 @@ const useTimesheetEntryFields = (
   methods: ReturnType<typeof useZodForm<typeof mutationSchema>>,
   tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"]
 ) => {
-  const [initializedTaskId, setInitializedTaskId] = useState(false);
-
   if (!tasks[0]) {
     return null;
   }
 
-  if (!methods.getValues("taskId") && !initializedTaskId) {
-    setInitializedTaskId(true);
-    methods.setValue("taskId", tasks[0].id, {
-      shouldValidate: true,
-    });
+  const taskId = methods.getValues("taskId");
+
+  if (!taskId) {
+    return null;
   }
 
   const taskIdFormItem: BasicFormItemProps<true> = {
@@ -230,7 +230,7 @@ const useTimesheetEntryFields = (
           methods.setValue("taskId", value, {
             shouldValidate: true,
           }),
-        active: methods.getValues("taskId") ?? tasks[0].id,
+        active: taskId,
       },
     },
   };

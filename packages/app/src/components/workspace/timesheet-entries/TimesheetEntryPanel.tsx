@@ -11,7 +11,7 @@ import {
 import { TIMESHEET_ENTRIES_HELP_TEXT } from "@timesheeter/app/lib";
 
 type TimesheetEntryDetailProps = {
-  timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"][number];
+  timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"]["data"][number];
   refetchTimesheetEntries: () => unknown;
   onNewTimesheetEntryClick: () => void;
   tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"];
@@ -35,6 +35,13 @@ export const TimesheetEntryPanel = ({
       ? `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`
       : undefined;
 
+  const subDescription =
+    ticketNumber && timesheetEntry.task.name
+      ? `${ticketNumber} - ${timesheetEntry.task.name}`
+      : timesheetEntry.task.name
+      ? timesheetEntry.task.name
+      : undefined;
+
   return (
     <>
       <DeleteTimesheetEntryModal
@@ -53,6 +60,7 @@ export const TimesheetEntryPanel = ({
         }}
         workspaceId={timesheetEntry.workspaceId}
         tasks={tasks}
+        defaultTaskId={timesheetEntry.task.id}
       />
       <DetailPanel
         header={{
@@ -64,13 +72,8 @@ export const TimesheetEntryPanel = ({
           },
         }}
         content={{
-          name: timesheetEntry.description ?? "No description",
-          description:
-            ticketNumber && timesheetEntry.task.name
-              ? `${ticketNumber} - ${timesheetEntry.task.name}`
-              : timesheetEntry.task.name
-              ? timesheetEntry.task.name
-              : undefined,
+          name: timesheetEntry.description ?? subDescription ?? "Unnamed entry",
+          description: timesheetEntry.description ? subDescription : undefined,
           icon: TimesheetEntryIcon,
           endButtons: {
             onEdit: () => setShowEditTimesheetEntrySideOver(true),
@@ -87,7 +90,7 @@ export const TimesheetEntryPanel = ({
 };
 
 const useBasicDetails = (
-  timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"][0]
+  timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"]["data"][number]
 ) => {
   const details: BasicDetailListItem[] = [
     {
