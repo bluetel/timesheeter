@@ -79,14 +79,13 @@ const Tasks = ({
       },
       {
         onSuccess: ({ data: tasks }) => {
-          setTasks((oldTasks) =>
-            // Insert new entries to the beginning of the list so new entries are
-            // kept
-            [...tasks, ...oldTasks].filter(
-              (task, index, self) =>
-                index === self.findIndex((t) => t.id === task.id)
-            )
-          );
+          setTasks((oldTasks) => {
+            const oldTasksNotInNewTasks = oldTasks.filter(
+              (oldTask) => !tasks.find((task) => task.id === oldTask.id)
+            );
+
+            return [...oldTasksNotInNewTasks, ...tasks];
+          });
         },
       }
     );

@@ -129,7 +129,7 @@ const useBasicDetails = (
     {
       label: {
         title: "Name",
-        description: `Descriptive name for the project, e.g. "James's Toggl"`,
+        description: `Descriptive name for the project, e.g. "Acme Corp"`,
       },
       field: {
         variant: "text",

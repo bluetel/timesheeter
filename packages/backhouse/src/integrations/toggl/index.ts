@@ -6,6 +6,7 @@ import {
     getDefaultTaskConfig,
     ParsedProject,
     parseProject,
+    getDefaultProjectConfig,
 } from "@timesheeter/app";
 import { getAxiosClient, getReportDataWorkspace, getWorkspaces } from "./api";
 import { matchTaskRegex } from "@timesheeter/app";
@@ -25,7 +26,7 @@ export const handleTogglIntegration = async ({ integration }: { integration: Tog
                 workspaceId: integration.workspaceId,
             },
         })
-        .then((projects) => projects.map((project) => parseProject(project)));
+        .then((projects) => projects.map((project) => parseProject(project, false)));
 
     // Handle this synchronously, so duplicate tasks don't get created
 
@@ -87,7 +88,7 @@ const getReportData = async ({ integration }: { integration: TogglIntegration })
     const timeNow = new Date();
     // Use a days lag so if entries are modified on the same day, we don't miss updates
     const until = new Date(timeNow.getTime() - 1 * 24 * 60 * 60 * 1000);
-    const since = new Date(timeNow.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const since = new Date(timeNow.getTime() - 40 * 24 * 60 * 60 * 1000);
 
     return Promise.all(
         workspaces.map((workspace) =>
@@ -110,7 +111,6 @@ const getOrCreateTask = async ({
     description: string;
     projects: ParsedProject[];
 }) => {
-    // See if description starts with a task
     const matchResult = matchTaskRegex(description);
 
     if (matchResult.variant === "with-task") {
@@ -124,7 +124,7 @@ const getOrCreateTask = async ({
                         taskPrefix: matchResult.prefix,
                     },
                 })
-                .then((project) => (project ? parseProject(project) : undefined));
+                .then((project) => (project ? parseProject(project, false) : undefined));
         }
 
         if (!project) {
@@ -134,10 +134,10 @@ const getOrCreateTask = async ({
                         workspaceId: integration.workspaceId,
                         name: `Auto created from Toggl - ${matchResult.prefix}`,
                         taskPrefix: matchResult.prefix,
-                        configSerialized: encrypt(JSON.stringify(getDefaultTimesheetEntryConfig())),
+                        configSerialized: encrypt(JSON.stringify(getDefaultProjectConfig())),
                     },
                 })
-                .then(parseProject)) as ParsedProject;
+                .then((project) => parseProject(project, false))) as ParsedProject;
         }
 
         // Update a task assigned to a project
@@ -173,11 +173,11 @@ const getOrCreateTask = async ({
 
         const descriptionLowercase = description.toLowerCase();
 
-        autoAssignTasks.forEach((matchTerm) => {
+        for (const matchTerm of autoAssignTasks) {
             if (descriptionLowercase.startsWith(matchTerm.toLowerCase())) {
                 return true;
             }
-        });
+        }
     });
 
     let task = await prisma.task.findFirst({

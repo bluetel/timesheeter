@@ -30,17 +30,22 @@ export const TimesheetEntryPanel = ({
 
   const basicDetails = useBasicDetails(timesheetEntry);
 
-  const ticketNumber =
-    timesheetEntry.task.taskNumber && timesheetEntry.task.project?.taskPrefix
-      ? `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`
-      : undefined;
+  const getSubDescription = () => {
+    if (
+      timesheetEntry.task.taskNumber &&
+      timesheetEntry.task.project?.taskPrefix
+    ) {
+      return `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`;
+    }
 
-  const subDescription =
-    ticketNumber && timesheetEntry.task.name
-      ? `${ticketNumber} - ${timesheetEntry.task.name}`
-      : timesheetEntry.task.name
-      ? timesheetEntry.task.name
-      : undefined;
+    if (timesheetEntry.task.name) {
+      return timesheetEntry.task.name;
+    }
+
+    return undefined;
+  };
+
+  const subDescription = getSubDescription();
 
   return (
     <>

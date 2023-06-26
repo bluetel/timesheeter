@@ -81,14 +81,16 @@ const TimesheetEntries = ({
       },
       {
         onSuccess: ({ data: timesheetEntries }) => {
-          setTimesheetEntries((oldEntries) =>
-            // Insert new entries to the beginning of the list so new entries are
-            // kept
-            [...timesheetEntries, ...oldEntries].filter(
-              (timesheetEntry, index, self) =>
-                index === self.findIndex((t) => t.id === timesheetEntry.id)
-            )
-          );
+          setTimesheetEntries((oldEntries) => {
+            const oldTimesheetEntriesNotInNew = oldEntries.filter(
+              (oldEntry) =>
+                !timesheetEntries.find(
+                  (newEntry) => newEntry.id === oldEntry.id
+                )
+            );
+
+            return [...oldTimesheetEntriesNotInNew, ...timesheetEntries];
+          });
         },
       }
     );
@@ -113,18 +115,22 @@ const TimesheetEntries = ({
   const timesheetEntryItems = useMemo(
     () =>
       timesheetEntries.map((timesheetEntry) => {
-        const ticketNumber =
-          timesheetEntry.task.taskNumber &&
-          timesheetEntry.task.project?.taskPrefix
-            ? `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`
-            : undefined;
+        const getSubDescription = () => {
+          if (
+            timesheetEntry.task.taskNumber &&
+            timesheetEntry.task.project?.taskPrefix
+          ) {
+            return `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`;
+          }
 
-        const subDescription =
-          ticketNumber && timesheetEntry.task.name
-            ? `${ticketNumber} - ${timesheetEntry.task.name}`
-            : timesheetEntry.task.name
-            ? timesheetEntry.task.name
-            : undefined;
+          if (timesheetEntry.task.name) {
+            return timesheetEntry.task.name;
+          }
+
+          return undefined;
+        };
+
+        const subDescription = getSubDescription();
 
         return {
           label:

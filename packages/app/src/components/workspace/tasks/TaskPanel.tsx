@@ -28,6 +28,11 @@ export const TaskPanel = ({
 
   const basicDetails = useBasicDetails(task);
 
+  const subLabel =
+    task.project?.taskPrefix && task.taskNumber
+      ? `${task.project.taskPrefix}-${task.taskNumber}`
+      : undefined;
+
   return (
     <>
       <DeleteTaskModal
@@ -58,6 +63,7 @@ export const TaskPanel = ({
         }}
         content={{
           name: task.name ?? "Unnamed task",
+          description: subLabel,
           icon: TaskIcon,
           endButtons: {
             onEdit: () => setShowEditTaskSideOver(true),

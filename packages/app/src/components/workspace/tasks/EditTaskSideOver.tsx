@@ -5,7 +5,7 @@ import {
   getDefaultTaskConfig,
 } from "@timesheeter/app/lib/workspace/tasks";
 import { api, type RouterOutputs } from "@timesheeter/app/utils/api";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { TASKS_HELP_TEXT } from "@timesheeter/app/lib/workspace/tasks";
 import { z } from "zod";
 import { SideOver } from "@timesheeter/app/components/ui/SideOver";
@@ -67,8 +67,16 @@ export const EditTaskSideOver = ({
     defaultValues: getDefaultValues(),
   });
 
+  const [oldData, setOldData] = useState(data);
+
+  // Prevents resetting wrongly if just different reference
   useEffect(() => {
+    if (JSON.stringify(oldData) === JSON.stringify(data)) {
+      return;
+    }
+
     methods.reset(getDefaultValues());
+    setOldData(data);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 

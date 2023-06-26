@@ -6,7 +6,7 @@ import {
   TIMESHEET_ENTRIES_HELP_TEXT,
 } from "@timesheeter/app/lib/workspace/timesheet-entries";
 import { api, type RouterOutputs } from "@timesheeter/app/utils/api";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { z } from "zod";
 import { SideOver } from "@timesheeter/app/components/ui/SideOver";
 import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicForm";
@@ -73,8 +73,16 @@ export const EditTimesheetEntrySideOver = ({
     defaultValues: getDefaultValues(),
   });
 
+  const [oldData, setOldData] = useState(data);
+
+  // Prevents resetting wrongly if just different reference
   useEffect(() => {
+    if (JSON.stringify(oldData) === JSON.stringify(data)) {
+      return;
+    }
+
     methods.reset(getDefaultValues());
+    setOldData(data);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
