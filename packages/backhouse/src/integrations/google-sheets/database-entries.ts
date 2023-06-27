@@ -26,6 +26,7 @@ export const getDatabaseEntries = async ({
         include: {
             task: {
                 select: {
+                    id: true,
                     taskNumber: true,
                     name: true,
                     project: {

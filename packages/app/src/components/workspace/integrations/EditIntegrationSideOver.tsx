@@ -126,6 +126,13 @@ export const EditIntegrationSideOver = ({
       ) as typeof values;
     }
 
+    if (
+      values.config.type === "GoogleSheetsIntegration" &&
+      !values.config.skipTillAfterMonth
+    ) {
+      values.config.skipTillAfterMonth = null;
+    }
+
     // Validate form
     const result = mutationSchema.safeParse(values);
 

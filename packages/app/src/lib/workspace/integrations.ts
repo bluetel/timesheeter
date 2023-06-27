@@ -145,7 +145,7 @@ export const INTEGRATION_DEFINITIONS = {
         type: "string",
         required: true,
         protectCount: -1,
-        description: "Your Google Service Account Private Key",
+        description: `Your Google Service Account Private Key, include "-----BEGIN PRIVATE KEY-----" and newline breakpoints`,
       },
       {
         accessor: "chronExpression",

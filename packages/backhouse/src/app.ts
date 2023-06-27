@@ -10,8 +10,14 @@ import { handleGoogleSheetsIntegration } from "./integrations/google-sheets";
 
 console.log("Starting backhouse worker");
 
-// new Worker<IntegrationJob, unknown>("integrations", handleIntegrationsJob, {
+// const worker = new Worker<IntegrationJob, unknown>("integrations", handleIntegrationsJob, {
 //     connection: connectionConfig,
+// });
+
+// Error handler is required to prevent unhandled errors from crashing the worker
+// worker.on("error", (error) => {
+//     // log the error
+//     console.error("Error in worker", error);
 // });
 
 const handleTest = async () => {

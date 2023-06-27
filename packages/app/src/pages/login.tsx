@@ -55,7 +55,7 @@ const Login = () => {
               </div> :
               <div className="text-center">
                 <h3 className="text-2xl font-semibold text-gray-700 dark:text-white">
-                  Already logged in, redirecting...
+                  Logged in, redirecting...
                 </h3>
               </div>}
           </div>

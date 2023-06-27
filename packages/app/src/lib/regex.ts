@@ -7,4 +7,6 @@ export const hostnameRegex =
 export const taskPrefixRegex = /^[A-Z]{2}$/;
 
 export const monthYearRegex =
-  /^(?:January|February|March|April|May|June|July|August|September|October|November|December)\s\d{4}$/i;
+  /^(?:january|february|march|april|may|june|july|august|september|ictober|november|december)\s\d{4}$/i;
+
+export const ukDateRegex = /(\d{1,2})([-/.])(\d{1,2})\2(\d{4})/;

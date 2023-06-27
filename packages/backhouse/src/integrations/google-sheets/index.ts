@@ -1,7 +1,9 @@
-import { ParsedIntegration, monthYearRegex } from "@timesheeter/app";
-import { GoogleSpreadsheet, GoogleSpreadsheetWorksheet } from "google-spreadsheet";
-import { SheetToProcess, getSheetBasedStartDate } from "./sheets";
+import { ParsedIntegration } from "@timesheeter/app";
+import { GoogleSpreadsheet } from "google-spreadsheet";
+import { applyTransforms, filterExistingSheets, getSheetStart } from "./sheets";
 import { getDatabaseEntries, getDatabaseEntriesStartDate } from "./database-entries";
+import { monthYearToDate } from "./dates";
+import { getTransformedSheetData } from "./transformer";
 
 type GoogleSheetsIntegration = ParsedIntegration & {
     config: {
@@ -16,40 +18,38 @@ export const handleGoogleSheetsIntegration = async ({
 }: {
     integration: GoogleSheetsIntegration;
 }) => {
-    const doc = new GoogleSpreadsheet(sheetId);
-
-    await doc.useServiceAccountAuth({
-        client_email: serviceAccountEmail,
-        private_key: privateKey,
+    const doc = await authenticateGoogleSheet({
+        sheetId,
+        serviceAccountEmail,
+        privateKey: privateKey,
     });
-
-    await doc.loadInfo();
 
     const skipTillAfterMonthDate = skipTillAfterMonth ? monthYearToDate(skipTillAfterMonth) : null;
 
     const sheetsToProcess = await filterExistingSheets(doc.sheetsByIndex, skipTillAfterMonthDate);
+    console.log("sheetsToProcess", sheetsToProcess);
 
     // Last day to file is commitDelayDays ago
-    const lastDayToFile = new Date();
-    lastDayToFile.setDate(lastDayToFile.getDate() - commitDelayDays);
+    const lastDayToProcess = new Date();
+    lastDayToProcess.setDate(lastDayToProcess.getUTCDate() - commitDelayDays);
 
-    // Get the first day of the month after the month of skipTillAfterMonth ie one month later
     let firstDayToProcess = new Date();
 
     if (skipTillAfterMonthDate) {
-        firstDayToProcess.setDate(skipTillAfterMonthDate.getDate());
-        firstDayToProcess.setMonth(skipTillAfterMonthDate.getMonth() + 1);
+        firstDayToProcess.setDate(skipTillAfterMonthDate.getUTCDate());
+        // Get the first day of the month after the month of skipTillAfterMonth ie one month later
+        firstDayToProcess.setMonth(skipTillAfterMonthDate.getUTCMonth() + 1);
     }
 
-    const sheetBasedStartDate = getSheetBasedStartDate(sheetsToProcess);
-
-    if (sheetBasedStartDate && sheetBasedStartDate > firstDayToProcess) {
-        firstDayToProcess = sheetBasedStartDate;
+    const sheetStart = await getSheetStart(sheetsToProcess);
+    console.log("sheetStartDate", sheetStart);
+    if (sheetStart && sheetStart.sheetStartDate > firstDayToProcess) {
+        firstDayToProcess = sheetStart.sheetStartDate;
     }
 
     const databaseEntries = await getDatabaseEntries({
         fromStartDate: firstDayToProcess,
-        toStartDate: lastDayToFile,
+        toStartDate: lastDayToProcess,
     });
 
     // If both are empty, return null
@@ -62,51 +62,43 @@ export const handleGoogleSheetsIntegration = async ({
     if (databaseEntriesBasedStartDate && databaseEntriesBasedStartDate > firstDayToProcess) {
         firstDayToProcess = databaseEntriesBasedStartDate;
     }
+
+    const transformedData = await getTransformedSheetData({
+        databaseEntries,
+        firstDayToProcess,
+        lastDayToProcess,
+    });
+
+    applyTransforms({
+        transformedData,
+        sheetStart,
+        doc,
+        firstDayToProcess,
+        lastDayToProcess,
+    });
 };
 
-const monthYearToDate = (monthYear: string) => {
-    const [month, year] = monthYear.split("/");
+const authenticateGoogleSheet = async ({
+    sheetId,
+    serviceAccountEmail,
+    privateKey,
+}: {
+    sheetId: string;
+    serviceAccountEmail: string;
+    privateKey: string;
+}) => {
+    const privateKeyCorrected = correctPrivateKey(privateKey);
 
-    if (!month || !year) {
-        throw new Error("Invalid month/year");
-    }
+    const doc = new GoogleSpreadsheet(sheetId);
 
-    // Convert to a date
-    const date = new Date(parseInt(year), parseInt(month) - 1);
+    await doc.useServiceAccountAuth({
+        client_email: serviceAccountEmail,
+        private_key: privateKeyCorrected,
+    });
 
-    // Check if valid date
-    if (isNaN(date.getTime())) {
-        throw new Error("Invalid month/year");
-    }
+    await doc.loadInfo();
 
-    return date;
+    return doc;
 };
 
-const filterExistingSheets = async (sheets: GoogleSpreadsheetWorksheet[], skipTillAferMonthDate: Date | null) =>
-    (
-        sheets
-            .map((sheet) => {
-                const titleLowercase = sheet.title.toLocaleLowerCase();
-
-                // Extract the month and year from the sheet title using the regex
-                const result = monthYearRegex.exec(titleLowercase);
-
-                if (!result) {
-                    return null;
-                }
-
-                const sheetStartDate = monthYearToDate(result[0]);
-
-                if (skipTillAferMonthDate && sheetStartDate <= skipTillAferMonthDate) {
-                    return null;
-                }
-
-                return {
-                    sheet,
-                    sheetStartDate,
-                };
-            })
-            .filter(Boolean) as SheetToProcess[]
-    )
-        // sort so most recent is first
-        .sort((a, b) => b.sheetStartDate.getTime() - a.sheetStartDate.getTime());
+const correctPrivateKey = (privateKey: string) => privateKey.split(String.raw`\n`).join("\n");

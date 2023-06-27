@@ -226,5 +226,5 @@ const authorize = async <ProjectId extends string | null>({
     });
   }
 
-  return parseProject(project) as AuthorizeResult<ProjectId>;
+  return parseProject(project, false) as AuthorizeResult<ProjectId>;
 };
