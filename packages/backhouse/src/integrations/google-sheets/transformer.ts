@@ -57,7 +57,28 @@ const findHoliday = (
     dateMidnight: Date
 ): DatabaseEntries["holidays"][number] | null =>
     // On holiday if date is start <= date <= end
-    holidays.find((holiday) => holiday.start <= dateMidnight && dateMidnight <= holiday.end) ?? null;
+    {
+        // Ensure holiday dates are at midnight
+        const holidaysCorrected = holidays.map((holiday) => {
+            const start = new Date(holiday.start);
+            start.setUTCHours(0, 0, 0, 0);
+
+            // End is actually the day after
+            const end = new Date(holiday.end);
+            end.setUTCHours(0, 0, 0, 0);
+            end.setUTCDate(end.getUTCDate() + 1);
+
+            return {
+                ...holiday,
+                start,
+                end,
+            };
+        });
+
+        return (
+            holidaysCorrected.find((holiday) => holiday.start <= dateMidnight && dateMidnight <= holiday.end) ?? null
+        );
+    };
 
 const findTimesheetEntries = (
     timesheetEntries: DatabaseEntries["timesheetEntries"],
