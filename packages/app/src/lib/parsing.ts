@@ -77,6 +77,7 @@ export const datetimeToTimeString = (date: Date | null): string => {
   return `${hours}:${minutes}`;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const customJSONStringify = (obj: any): string => {
   return JSON.stringify(obj, (key, value) => {
     if (typeof value === "bigint") {
@@ -86,11 +87,13 @@ export const customJSONStringify = (obj: any): string => {
   });
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const customJSONParse = (json: string): any => {
   return JSON.parse(json, (key, value) => {
     if (typeof value === "string" && /^-?\d+n$/.test(value)) {
       return BigInt(value.slice(0, -1));
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return value;
   });
 };
