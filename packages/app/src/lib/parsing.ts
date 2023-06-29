@@ -83,6 +83,7 @@ export const customJSONStringify = (obj: any): string => {
     if (typeof value === "bigint") {
       return value.toString() + "n";
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return value;
   });
 };
