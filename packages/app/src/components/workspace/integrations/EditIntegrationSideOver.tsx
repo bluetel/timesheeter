@@ -7,7 +7,7 @@ import {
   type IntegrationType,
 } from "@timesheeter/app/lib/workspace/integrations";
 import { api, type RouterOutputs } from "@timesheeter/app/utils/api";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { INTEGRATIONS_HELP_TEXT } from "@timesheeter/app/lib/workspace/integrations";
 import { z } from "zod";
 import { SideOver } from "@timesheeter/app/components/ui/SideOver";
@@ -67,8 +67,16 @@ export const EditIntegrationSideOver = ({
     defaultValues: getDefaultValues(),
   });
 
+  const [oldData, setOldData] = useState(data);
+
+  // Prevents resetting wrongly if just different reference
   useEffect(() => {
+    if (JSON.stringify(oldData) === JSON.stringify(data)) {
+      return;
+    }
+
     methods.reset(getDefaultValues());
+    setOldData(data);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
@@ -116,6 +124,13 @@ export const EditIntegrationSideOver = ({
       values = Object.fromEntries(
         Object.entries(values).filter(([, value]) => value !== undefined)
       ) as typeof values;
+    }
+
+    if (
+      values.config.type === "GoogleSheetsIntegration" &&
+      !values.config.skipTillAfterMonth
+    ) {
+      values.config.skipTillAfterMonth = null;
     }
 
     // Validate form

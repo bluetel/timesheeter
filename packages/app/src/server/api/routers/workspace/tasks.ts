@@ -265,5 +265,5 @@ const authorize = async <TaskId extends string | null>({
     });
   }
 
-  return parseTask(task) as AuthorizeResult<TaskId>;
+  return parseTask(task, false) as AuthorizeResult<TaskId>;
 };

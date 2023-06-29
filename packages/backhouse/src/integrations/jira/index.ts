@@ -1,5 +1,5 @@
 import { prisma, ParsedIntegration } from "@timesheeter/app";
-import { ThrottledJiraClient } from "./jira/throttled-client";
+import { ThrottledJiraClient } from "./throttled-client";
 
 type JiraIntegration = ParsedIntegration & {
     config: {
@@ -17,13 +17,11 @@ export const handleJiraIntegration = async ({ integration }: { integration: Jira
         strictSSL: true,
     });
 
-    // only get most recent checkForUpdatesDays days in updatedAt
+    // only get tasks with no name
     const tasks = await prisma.task.findMany({
         where: {
             workspaceId: integration.workspaceId,
-            createdAt: {
-                gt: new Date(new Date().getTime() - integration.config.checkForUpdatesDays * 24 * 60 * 60 * 1000),
-            },
+            name: null,
         },
         include: {
             project: true,
@@ -37,7 +35,8 @@ export const handleJiraIntegration = async ({ integration }: { integration: Jira
             }
 
             const issueNumber = `${task.project?.taskPrefix}-${task.taskNumber}`;
-            const jiraTicket = await jiraClient.findIssue(issueNumber);
+
+            const jiraTicket = await jiraClient.findIssue(issueNumber).catch(() => null);
 
             if (!jiraTicket) {
                 return;

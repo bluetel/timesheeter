@@ -263,5 +263,5 @@ const authorize = async <IntegrationId extends string | null>({
     });
   }
 
-  return parseIntegration(integration) as AuthorizeResult<IntegrationId>;
+  return parseIntegration(integration, false) as AuthorizeResult<IntegrationId>;
 };

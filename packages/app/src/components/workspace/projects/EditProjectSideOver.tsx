@@ -6,7 +6,7 @@ import {
   autoAssignTasksHelpText,
 } from "@timesheeter/app/lib/workspace/projects";
 import { api, type RouterOutputs } from "@timesheeter/app/utils/api";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { PROJECTS_HELP_TEXT } from "@timesheeter/app/lib/workspace/projects";
 import { z } from "zod";
 import { SideOver } from "@timesheeter/app/components/ui/SideOver";
@@ -72,8 +72,16 @@ export const EditProjectSideOver = ({
     defaultValues: getDefaultValues(),
   });
 
+  const [oldData, setOldData] = useState(data);
+
+  // Prevents resetting wrongly if just different reference
   useEffect(() => {
+    if (JSON.stringify(oldData) === JSON.stringify(data)) {
+      return;
+    }
+
     methods.reset(getDefaultValues());
+    setOldData(data);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 

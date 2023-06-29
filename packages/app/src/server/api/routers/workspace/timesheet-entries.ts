@@ -283,6 +283,7 @@ const authorize = async <TimesheetEntryId extends string | null>({
   }
 
   return parseTimesheetEntry(
-    timesheetEntry
+    timesheetEntry,
+    false
   ) as AuthorizeResult<TimesheetEntryId>;
 };

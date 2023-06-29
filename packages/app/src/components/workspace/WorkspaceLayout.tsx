@@ -56,7 +56,7 @@ export const WorkspaceLayout = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-full min-h-screen bg-white">
+    <div className="flex h-screen bg-white">
       <Transition.Root show={sidebarOpen} as={Fragment}>
         <Dialog
           as="div"
@@ -294,7 +294,7 @@ export const WorkspaceLayout = ({
             </div>
           </div>
         </div>
-        <div className="relative z-0 flex flex-1 overflow-hidden">
+        <div className="relative z-0 flex max-h-screen flex-1 overflow-hidden">
           <main className="relative z-0 flex-1 overflow-y-auto focus:outline-none xl:order-last">
             {children}
           </main>

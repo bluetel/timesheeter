@@ -86,7 +86,7 @@ export const getReportDataWorkspace = async ({
                 workspace_id: workspaceId,
                 since,
                 until,
-                page: 1,
+                page,
                 order_field: "date",
                 user_agent: "timesheeter",
             },

@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { SiGooglesheets, SiJira, SiToggl } from "react-icons/si";
-import { chronRegex, hostnameRegex } from "@timesheeter/app/lib/regex";
+import {
+  chronRegex,
+  hostnameRegex,
+  monthYearRegex,
+} from "@timesheeter/app/lib/regex";
 import { type IconType } from "react-icons";
 import { LinkIcon } from "@heroicons/react/24/outline";
 
@@ -86,15 +90,6 @@ export const INTEGRATION_DEFINITIONS = {
         protectCount: 0,
         description: "Chron Expression for when to pull data from Jira",
       },
-      {
-        accessor: "checkForUpdatesDays",
-        name: "Check for Updates Days",
-        type: "number",
-        required: true,
-        protectCount: 0,
-        description:
-          "Retroactively check for updates to tasks in the last X days e.g. for a change in name",
-      },
     ],
     configSchema: z.object({
       type: z.literal("JiraIntegration"),
@@ -102,7 +97,6 @@ export const INTEGRATION_DEFINITIONS = {
       username: z.string().min(1),
       host: z.string().regex(hostnameRegex, "Please enter a valid hostname"),
       chronExpression: z.string().regex(chronRegex),
-      checkForUpdatesDays: z.number().int().positive().default(7),
     }),
     updateIntegrationSchema: z.object({
       type: z.literal("JiraIntegration"),
@@ -113,7 +107,6 @@ export const INTEGRATION_DEFINITIONS = {
         .regex(hostnameRegex, "Please enter a valid hostname")
         .optional(),
       chronExpression: z.string().regex(chronRegex).optional(),
-      checkForUpdatesDays: z.number().int().positive().default(7).optional(),
     }),
     defaultConfig: {
       type: "JiraIntegration",
@@ -122,7 +115,6 @@ export const INTEGRATION_DEFINITIONS = {
       host: "",
       // Default to every 15 minutes
       chronExpression: "*/15 * * * *",
-      checkForUpdatesDays: 7,
     },
   },
   GoogleSheetsIntegration: {
@@ -135,7 +127,7 @@ export const INTEGRATION_DEFINITIONS = {
         name: "Sheet ID",
         type: "string",
         required: true,
-        protectCount: 4,
+        protectCount: 0,
         description: "Your Google Sheet ID, found in the URL",
       },
       {
@@ -152,8 +144,8 @@ export const INTEGRATION_DEFINITIONS = {
         name: "Private Key",
         type: "string",
         required: true,
-        protectCount: 4,
-        description: "Your Google Service Account Private Key",
+        protectCount: -1,
+        description: `Your Google Service Account Private Key, include "-----BEGIN PRIVATE KEY-----" and newline breakpoints`,
       },
       {
         accessor: "chronExpression",
@@ -172,6 +164,14 @@ export const INTEGRATION_DEFINITIONS = {
         description:
           "How many days to wait before committing data to the sheet. This is to allow changes to data to be made before committing",
       },
+      {
+        accessor: "skipTillAfterMonth",
+        name: "Skip Till After Month",
+        type: "string",
+        required: false,
+        protectCount: 0,
+        description: `Skips writing entries before and including this month. Useful for when you have an existing timesheet and want to start using this tool. E.g. "March 2021"`,
+      },
     ],
     configSchema: z.object({
       type: z.literal("GoogleSheetsIntegration"),
@@ -180,6 +180,11 @@ export const INTEGRATION_DEFINITIONS = {
       privateKey: z.string().min(1),
       chronExpression: z.string().regex(chronRegex),
       commitDelayDays: z.number().int().positive().default(2),
+      skipTillAfterMonth: z
+        .string()
+        .regex(monthYearRegex)
+        .nullable()
+        .default(null),
     }),
     updateIntegrationSchema: z.object({
       type: z.literal("GoogleSheetsIntegration"),
@@ -188,6 +193,12 @@ export const INTEGRATION_DEFINITIONS = {
       privateKey: z.string().min(1).optional(),
       chronExpression: z.string().regex(chronRegex).optional(),
       commitDelayDays: z.number().int().positive().default(2).optional(),
+      skipTillAfterMonth: z
+        .string()
+        .regex(monthYearRegex)
+        .nullable()
+        .default(null)
+        .optional(),
     }),
     defaultConfig: {
       type: "GoogleSheetsIntegration",
@@ -197,6 +208,7 @@ export const INTEGRATION_DEFINITIONS = {
       // Default to every midnight
       chronExpression: "0 0 * * *",
       commitDelayDays: 2,
+      skipTillAfterMonth: null,
     },
   },
 } as const;
