@@ -1,6 +1,6 @@
 import { monthYearRegex } from "@timesheeter/app";
 import { GoogleSpreadsheet, type GoogleSpreadsheetWorksheet } from "google-spreadsheet";
-import { dateToMonthYear, monthYearToDate } from "./dates";
+import { monthYearToDate } from "./dates";
 import { TransformedData } from "./transformer";
 import { createBlankSheet } from "./blank-sheet";
 
