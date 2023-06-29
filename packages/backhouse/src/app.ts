@@ -21,16 +21,17 @@ worker.on("error", (error) => {
     console.error("Error in worker", error);
 });
 
-// create fastify app listening on port 9999
 const bullBoardApp = fastify();
 const serverAdapter = new FastifyAdapter();
 
-const queue = new Queue<IntegrationJob>("integrations", {
-    connection: connectionConfig,
-});
-
 createBullBoard({
-    queues: [new BullMQAdapter(queue)],
+    queues: [
+        new BullMQAdapter(
+            new Queue("integrations", {
+                connection: connectionConfig,
+            })
+        ),
+    ],
     serverAdapter,
 });
 
