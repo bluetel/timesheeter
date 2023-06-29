@@ -37,6 +37,6 @@ createBullBoard({
 });
 
 bullBoardApp.register(serverAdapter.registerPlugin());
-bullBoardApp.listen({ port: env.BULL_BOARD_PORT });
+bullBoardApp.listen({ port: env.BULL_BOARD_PORT, host: "0.0.0.0" });
 
 console.log(`BullBoard running on http://localhost:${env.BULL_BOARD_PORT}`);
