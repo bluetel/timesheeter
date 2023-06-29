@@ -8,7 +8,8 @@ export const PROJECTS_HELP_TEXT =
 
 export const ProjectIcon = FolderIcon as IconType;
 
-export const autoAssignTasksHelpText = `Entries that start with these names will automatically be assigned to this project (e.g. Standup in "Standup - New feature discussion"), even if they don't have a task prefix" as const`;
+export const autoAssignTasksHelpText =
+  `Entries that start with these names will automatically be assigned to this project (e.g. Standup in "Standup - New feature discussion"), even if they don't have a task prefix` as const;
 
 export const PROJECT_DEFINITIONS = {
   DefaultProject: {
