@@ -78,6 +78,8 @@ export const integrationsRouter = createTRPCRouter({
           repeat: {
             pattern: config.chronExpression,
           },
+          jobId: `integration-${createdIntegration.id}-jobId`,
+          repeatJobKey: `integration-${createdIntegration.id}-repeatJobKey`,
         }
       );
 
@@ -133,6 +135,8 @@ export const integrationsRouter = createTRPCRouter({
           repeat: {
             pattern: updatedConfig.chronExpression,
           },
+          jobId: `integration-${input.id}-jobId`,
+          repeatJobKey: `integration-${input.id}-repeatJobKey`,
         }
       );
 
