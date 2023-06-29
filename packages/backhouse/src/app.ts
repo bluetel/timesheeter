@@ -25,7 +25,7 @@ worker.on("error", (error) => {
 const bullBoardApp = fastify();
 const serverAdapter = new FastifyAdapter();
 
-const queue = new Queue<IntegrationJob, unknown>("integrations", {
+const queue = new Queue<IntegrationJob>("integrations", {
     connection: connectionConfig,
 });
 
