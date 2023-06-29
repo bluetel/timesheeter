@@ -51,8 +51,6 @@ export const handleGoogleSheetsIntegration = async ({
         toStartDate: lastDayToProcess,
     });
 
-    console.log("database entries", databaseEntries, sheetStart?.sheetStartDate, firstDayToProcess, lastDayToProcess);
-
     // If both are empty, return null
     if (databaseEntries.holidays.length === 0 && databaseEntries.timesheetEntries.length === 0) {
         return null;
@@ -69,11 +67,6 @@ export const handleGoogleSheetsIntegration = async ({
         firstDayToProcess,
         lastDayToProcess,
     });
-    console.log("firstDayToProcess", firstDayToProcess);
-    console.log("lastDayToProcess", lastDayToProcess);
-
-    console.log("databaseEntriesbasedStartDate", databaseEntriesBasedStartDate);
-    console.log("sheetStart", sheetStart?.sheetStartDate);
 
     applyTransforms({
         transformedData,
