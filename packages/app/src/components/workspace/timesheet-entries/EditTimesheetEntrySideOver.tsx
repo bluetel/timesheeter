@@ -13,9 +13,6 @@ import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicF
 import { type BasicFormItemProps } from "@timesheeter/app/components/ui/forms/BasicForm/BasicFormItem";
 import { useNotifications } from "../../ui/notification/NotificationProvider";
 import { fromZodError } from "zod-validation-error";
-import { SimpleEmptyState } from "../../ui/SimpleEmptyState";
-import { TaskIcon } from "@timesheeter/app/lib";
-import { useRouter } from "next/router";
 
 const mutationSchema = z.union([
   createTimesheetEntrySchema.extend({
@@ -172,9 +169,7 @@ export const EditTimesheetEntrySideOver = ({
         });
   };
 
-  const fields = useTimesheetEntryFields(methods, tasks);
-
-  const { push } = useRouter();
+  const fields = useTimesheetEntryFields(methods, tasks, defaultTaskId);
 
   return (
     <SideOver
@@ -186,21 +181,7 @@ export const EditTimesheetEntrySideOver = ({
       onFormSubmit={handleSubmit}
       tabs={{
         multiple: false,
-        body: fields ? (
-          <BasicForm items={fields} />
-        ) : (
-          <SimpleEmptyState
-            title="No tasks yet"
-            icon={TaskIcon}
-            helpText="Create a task first then come back here"
-            shrink
-            button={{
-              label: "Create task",
-              onClick: () =>
-                push(`/workspace/${workspaceId}/tasks?create=true`),
-            }}
-          />
-        ),
+        body: <BasicForm items={fields} />,
       }}
     />
   );
@@ -208,16 +189,13 @@ export const EditTimesheetEntrySideOver = ({
 
 const useTimesheetEntryFields = (
   methods: ReturnType<typeof useZodForm<typeof mutationSchema>>,
-  tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"]
+  tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"],
+  defaultTaskId: string
 ) => {
-  if (!tasks[0]) {
-    return null;
-  }
-
-  const taskId = methods.getValues("taskId");
+  let taskId = methods.getValues("taskId");
 
   if (!taskId) {
-    return null;
+    taskId = defaultTaskId;
   }
 
   const taskIdFormItem: BasicFormItemProps<true> = {
