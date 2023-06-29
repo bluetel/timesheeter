@@ -55,6 +55,8 @@ services:
     environment:
       - BULLMQ_REDIS_HOST=bullmq-redis
       - APP_DB_HOST=app-db
+    ports:
+      - ${BULL_BOARD_PORT}:${BULL_BOARD_PORT}
     build:
       context: .
       dockerfile: Dockerfile.backhouse

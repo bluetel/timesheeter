@@ -28,6 +28,12 @@ export const env = createEnv({
     BULLMQ_REDIS_PASSWORD: z.string(),
     BULLMQ_REDIS_HOST: z.string(),
     BULLMQ_REDIS_PORT: z.string(),
+
+    BULL_BOARD_PORT: z
+      .string()
+      .default("9999")
+      .transform((s) => parseInt(s, 10))
+      .pipe(z.number()),
   },
   client: {},
   runtimeEnv: {
@@ -41,5 +47,6 @@ export const env = createEnv({
     BULLMQ_REDIS_PASSWORD: process.env.BULLMQ_REDIS_PASSWORD,
     BULLMQ_REDIS_HOST: process.env.BULLMQ_REDIS_HOST,
     BULLMQ_REDIS_PORT: process.env.BULLMQ_REDIS_PORT,
+    BULL_BOARD_PORT: process.env.BULL_BOARD_PORT,
   },
 });

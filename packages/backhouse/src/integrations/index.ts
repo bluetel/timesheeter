@@ -17,7 +17,7 @@ export const handleIntegrationsJob = async (job: Job<IntegrationJob, unknown>) =
         })
         .then((integration) => {
             if (!integration) {
-                throw new Error(`Integration with id ${integration} not found`);
+                throw new Error(`Integration with id ${integrationId} not found`);
             }
 
             return parseIntegration(integration, false);
