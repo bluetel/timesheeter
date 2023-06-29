@@ -122,7 +122,6 @@ export const filterExistingSheets = async (sheets: GoogleSpreadsheetWorksheet[],
                 const sheetStartDate = monthYearToDate(result[0]);
 
                 if (skipTillAferMonthDate && sheetStartDate <= skipTillAferMonthDate) {
-                    console.log("Skipping sheet", sheet.title);
                     return null;
                 }
 
@@ -155,15 +154,13 @@ export const applyTransforms = async ({
         startDate: date,
         sheetStart,
     });
-    console.log(JSON.stringify(transformedData));
+
     while (date <= lastDayToProcess) {
         cursor = await updateCursor({
             doc,
             newDate: date,
             ...cursor,
         });
-        console.log("cursor", cursor.currentRow, date.getTime(), lastDayToProcess.getTime());
-
         // Find transformed data for this date
         const dataForDate = transformedData.filter((data) => data.date.getTime() === date.getTime());
 
@@ -184,7 +181,7 @@ export const applyTransforms = async ({
             // Delay for 1 second to avoid rate limiting
             await new Promise((resolve) => setTimeout(resolve, 1000));
         }
-        console.log("updating date", isNaN(date.getTime()), date);
+
         // get utc date doesn't work for some reason
         date.setDate(date.getDate() + 1);
     }

@@ -212,11 +212,6 @@ const calculateOvertime = (
         timeWorked += duration;
     }
 
-    console.log(
-        "overtime",
-        overtimeCalculations.map((a) => a.overtime)
-    );
-
     return overtimeCalculations;
 };
 
