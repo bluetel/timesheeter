@@ -4,7 +4,7 @@ import { handleTogglIntegration } from "./toggl";
 import { handleJiraIntegration } from "./jira";
 import { handleGoogleSheetsIntegration } from "./google-sheets";
 
-export const handleIntegrationsJob = async (job: Job<IntegrationJob, unknown>) => {
+export const handleIntegrationsJob = async (job: Job<IntegrationJob>) => {
     const { integrationId } = job.data;
 
     console.log("Processing integration", integrationId);

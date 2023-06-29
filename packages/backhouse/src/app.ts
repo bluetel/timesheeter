@@ -11,7 +11,7 @@ import { FastifyAdapter } from "@bull-board/fastify";
 
 console.log("Starting Backhouse Worker");
 
-const worker = new Worker<IntegrationJob, unknown>("integrations", handleIntegrationsJob, {
+const worker = new Worker<IntegrationJob>("integrations", handleIntegrationsJob, {
     connection: connectionConfig,
 });
 
