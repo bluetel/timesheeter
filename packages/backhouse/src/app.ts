@@ -27,6 +27,7 @@ const serverAdapter = new FastifyAdapter();
 createBullBoard({
     queues: [
         new BullMQAdapter(
+            // @ts-ignore - Types have separate declarations of a private property '_repeat'.
             new Queue("integrations", {
                 connection: connectionConfig,
             })
