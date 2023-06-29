@@ -1,4 +1,4 @@
-import { Queue, RedisConnection } from "bullmq";
+import { Queue } from "bullmq";
 import { env } from "@timesheeter/app/env";
 
 export const connectionConfig = {
@@ -7,16 +7,13 @@ export const connectionConfig = {
   password: env.BULLMQ_REDIS_PASSWORD,
 } as const;
 
-const queueConfig = {
-  connection: connectionConfig,
-} as const;
-
 export type IntegrationJob = {
   integrationId: string;
 };
 
 export const integrationsQueue = new Queue<IntegrationJob, unknown>(
   "integrations",
-  queueConfig,
-  RedisConnection
+  {
+    connection: connectionConfig,
+  }
 );

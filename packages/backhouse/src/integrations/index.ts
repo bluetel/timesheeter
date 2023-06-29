@@ -7,6 +7,8 @@ import { handleGoogleSheetsIntegration } from "./google-sheets";
 export const handleIntegrationsJob = async (job: Job<IntegrationJob, unknown>) => {
     const { integrationId } = job.data;
 
+    console.log("Processing integration", integrationId);
+
     const integration = await prisma.integration
         .findUnique({
             where: {
