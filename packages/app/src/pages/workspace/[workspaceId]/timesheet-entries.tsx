@@ -19,6 +19,7 @@ import { SelectableList } from "@timesheeter/app/components/ui/SelectableList";
 import { useRouter } from "next/router";
 import { TimesheetEntryPanel } from "@timesheeter/app/components/workspace/timesheet-entries/TimesheetEntryPanel";
 import { EditTimesheetEntrySideOver } from "@timesheeter/app/components/workspace/timesheet-entries/EditTimesheetEntrySideOver";
+import { TaskIcon } from "@timesheeter/app/lib";
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext
@@ -104,7 +105,7 @@ const TimesheetEntries = ({
     workspaceId: workspaceInfo.workspace.id,
   });
 
-  const [showNewTimesheetEntriesideOver, setShowNewTimesheetEntriesSideOver] =
+  const [showNewTimesheetEntriesSideOver, setShowNewTimesheetEntriesSideOver] =
     useState(false);
 
   const [selectedTask, setSelectedTask] = useState<{
@@ -175,22 +176,38 @@ const TimesheetEntries = ({
     }
   }, [timesheetEntries, selectedTask]);
 
+  const { push } = useRouter();
+
+  if (!tasks?.[0]) {
+    return (
+      <SimpleEmptyState
+        title="Tasks are required for timesheet entries"
+        icon={TaskIcon}
+        helpText="Create a task first then come back here"
+        shrink
+        button={{
+          label: "Create task",
+          onClick: () =>
+            push(`/workspace/${workspaceInfo.workspace.id}/tasks?create=true`),
+        }}
+      />
+    );
+  }
+
   if (timesheetEntryItems.length === 0) {
     return (
       <>
-        {tasks?.[0] && (
-          <EditTimesheetEntrySideOver
-            show={showNewTimesheetEntriesideOver}
-            onClose={() => setShowNewTimesheetEntriesSideOver(false)}
-            refetchTimesheetEntries={refetchTimesheetEntries}
-            data={{
-              new: true,
-            }}
-            workspaceId={workspaceInfo.workspace.id}
-            tasks={tasks ?? []}
-            defaultTaskId={tasks?.[0].id}
-          />
-        )}
+        <EditTimesheetEntrySideOver
+          show={showNewTimesheetEntriesSideOver}
+          onClose={() => setShowNewTimesheetEntriesSideOver(false)}
+          refetchTimesheetEntries={refetchTimesheetEntries}
+          data={{
+            new: true,
+          }}
+          workspaceId={workspaceInfo.workspace.id}
+          tasks={tasks ?? []}
+          defaultTaskId={tasks?.[0].id}
+        />
         <WorkspaceLayout workspaceInfo={workspaceInfo}>
           <SimpleEmptyState
             title="No Timesheet Entries"
@@ -210,7 +227,7 @@ const TimesheetEntries = ({
     <>
       {tasks?.[0] && (
         <EditTimesheetEntrySideOver
-          show={showNewTimesheetEntriesideOver}
+          show={showNewTimesheetEntriesSideOver}
           onClose={() => setShowNewTimesheetEntriesSideOver(false)}
           refetchTimesheetEntries={refetchTimesheetEntries}
           data={{ new: true }}

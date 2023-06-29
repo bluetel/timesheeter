@@ -5,6 +5,8 @@ import { type IntegrationJob, connectionConfig } from "@timesheeter/app";
 import { Worker } from "bullmq";
 import { handleIntegrationsJob } from "@timesheeter/backhouse/integrations";
 
+console.log("Starting Backhouse Worker");
+
 const worker = new Worker<IntegrationJob, unknown>("integrations", handleIntegrationsJob, {
     connection: connectionConfig,
 });
