@@ -185,7 +185,6 @@ const TimesheetEntries = ({
           title="Tasks are required for timesheet entries"
           icon={TaskIcon}
           helpText="Create a task first then come back here"
-          shrink
           button={{
             label: "Create task",
             onClick: () =>
