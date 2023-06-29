@@ -180,17 +180,21 @@ const TimesheetEntries = ({
 
   if (!tasks?.[0]) {
     return (
-      <SimpleEmptyState
-        title="Tasks are required for timesheet entries"
-        icon={TaskIcon}
-        helpText="Create a task first then come back here"
-        shrink
-        button={{
-          label: "Create task",
-          onClick: () =>
-            push(`/workspace/${workspaceInfo.workspace.id}/tasks?create=true`),
-        }}
-      />
+      <WorkspaceLayout workspaceInfo={workspaceInfo}>
+        <SimpleEmptyState
+          title="Tasks are required for timesheet entries"
+          icon={TaskIcon}
+          helpText="Create a task first then come back here"
+          shrink
+          button={{
+            label: "Create task",
+            onClick: () =>
+              push(
+                `/workspace/${workspaceInfo.workspace.id}/tasks?create=true`
+              ),
+          }}
+        />
+      </WorkspaceLayout>
     );
   }
 
