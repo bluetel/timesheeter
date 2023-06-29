@@ -183,7 +183,6 @@ const getOrCreateTask = async ({
     let task = await prisma.task.findFirst({
         where: {
             name: description,
-            projectId: autoAssignProject?.id ?? null,
             workspaceId: integration.workspaceId,
         },
     });

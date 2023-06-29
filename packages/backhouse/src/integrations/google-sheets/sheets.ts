@@ -60,14 +60,14 @@ export const getSheetStart = async (sheetsToProcess: SheetToProcess[]) => {
     const startMonth = sheetStartDate.getUTCMonth();
     const startYear = sheetStartDate.getUTCFullYear();
 
-    let startDate = new Date(startYear, startMonth + 1, lastEntryDay + 1, 0, 0, 0, 0);
+    let startDate = new Date(Date.UTC(startYear, startMonth, lastEntryDay + 1, 0, 0, 0, 0));
 
     // Ensure the date is valid
     if (isNaN(startDate.getTime())) {
         //  Assume in format Wednesday 26
         const lastEntryDate = lastEntryCellValue.split(" ")[1];
 
-        startDate = new Date(startYear, startMonth + 1, parseInt(lastEntryDate) + 1, 0, 0, 0, 0);
+        startDate = new Date(Date.UTC(startYear, startMonth, parseInt(lastEntryDate) + 1, 0, 0, 0, 0));
 
         if (isNaN(startDate.getTime())) {
             throw new Error("Invalid start date");
@@ -105,21 +105,29 @@ export const getSheetStart = async (sheetsToProcess: SheetToProcess[]) => {
     };
 };
 
+const sheetTitleToDate = (title: string) => {
+    // Split the title by spaces and get the first 2 words
+    const titleWords = title.toLocaleLowerCase().split(" ").slice(0, 2).join(" ");
+
+    // Extract the month and year from the sheet title using the regex
+    const result = monthYearRegex.exec(titleWords);
+
+    if (!result) {
+        return null;
+    }
+
+    return monthYearToDate(result[0]);
+};
+
 export const filterExistingSheets = async (sheets: GoogleSpreadsheetWorksheet[], skipTillAferMonthDate: Date | null) =>
     (
         sheets
             .map((sheet) => {
-                // Split the title by spaces and get the first 2 words
-                const titleWords = sheet.title.toLocaleLowerCase().split(" ").slice(0, 2).join(" ");
+                const sheetStartDate = sheetTitleToDate(sheet.title);
 
-                // Extract the month and year from the sheet title using the regex
-                const result = monthYearRegex.exec(titleWords);
-
-                if (!result) {
+                if (!sheetStartDate) {
                     return null;
                 }
-
-                const sheetStartDate = monthYearToDate(result[0]);
 
                 if (skipTillAferMonthDate && sheetStartDate <= skipTillAferMonthDate) {
                     return null;
@@ -151,8 +159,8 @@ export const applyTransforms = async ({
     const date = new Date(firstDayToProcess);
     let cursor = await createSheetStartIfBlank({
         doc,
-        startDate: date,
         sheetStart,
+        startDate: date,
     });
 
     while (date <= lastDayToProcess) {
@@ -182,8 +190,7 @@ export const applyTransforms = async ({
             await new Promise((resolve) => setTimeout(resolve, 1000));
         }
 
-        // get utc date doesn't work for some reason
-        date.setDate(date.getDate() + 1);
+        date.setUTCDate(date.getUTCDate() + 1);
     }
 };
 
@@ -199,7 +206,6 @@ const createSheetStartIfBlank = async ({
     if (sheetStart) {
         return {
             currentSheet: sheetStart.sheet,
-            currentDate: sheetStart.sheetStartDate,
             currentRow: sheetStart.sheetStartRow,
         };
     }
@@ -208,7 +214,6 @@ const createSheetStartIfBlank = async ({
 
     return {
         currentSheet: sheet,
-        currentDate: startDate,
         currentRow: FIRST_ENTRY_ROW,
     };
 };
@@ -217,29 +222,31 @@ const updateCursor = async ({
     doc,
     newDate,
     currentSheet,
-    currentDate,
     currentRow,
 }: {
     doc: GoogleSpreadsheet;
     newDate: Date;
-    currentDate: Date;
     currentSheet: GoogleSpreadsheetWorksheet;
     currentRow: number;
 }) => {
+    const currentSheetMonth = sheetTitleToDate(currentSheet.title);
+
+    if (!currentSheetMonth) {
+        throw new Error("Invalid sheet title");
+    }
+
     // If newDate is in a different month, create a new sheet
-    if (newDate.getUTCMonth() !== currentDate.getUTCMonth()) {
+    if (newDate.getUTCMonth() !== currentSheetMonth.getUTCMonth()) {
         const sheet = await createBlankSheet({ startDate: newDate, doc });
 
         return {
             currentSheet: sheet,
-            currentDate: newDate,
             currentRow: FIRST_ENTRY_ROW,
         };
     }
 
     return {
         currentSheet,
-        currentDate: newDate,
         currentRow,
     };
 };

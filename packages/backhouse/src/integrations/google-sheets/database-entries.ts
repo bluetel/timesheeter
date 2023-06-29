@@ -63,22 +63,10 @@ export const getDatabaseEntriesStartDate = ({ holidays, timesheetEntries }: Data
         return null;
     }
 
-    const earliestEntry = allStartDates.sort((a, b) => a.getTime() - b.getTime())[0];
+    const earliestEntry = new Date(allStartDates.sort((a, b) => a.getTime() - b.getTime())[0]);
 
     // Set to midnight
     earliestEntry.setUTCHours(0, 0, 0, 0);
 
     return earliestEntry;
 };
-
-// todo:
-
-// fix overtime not being applied
-
-// fix first column date not being foramtted
-
-// fix column sizes
-
-// marking non current sheets as completed if not already
-
-// details and overtime columns are missing

@@ -217,7 +217,7 @@ const calculateOvertime = (
 
 const calculateIsWorkDay = (bankHolidays: Date[], date: Date): boolean => {
     // If weekend then not a work day, needs to not be utc
-    const day = date.getDay();
+    const day = date.getUTCDay();
 
     if (day === 0 || day === 6) {
         return false;

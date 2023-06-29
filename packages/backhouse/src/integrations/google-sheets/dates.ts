@@ -37,7 +37,7 @@ export const monthYearToDate = (monthYear: string) => {
 
     const monthIndex = getMonthIndex(month);
 
-    const date = new Date(parseInt(year), monthIndex, 1);
+    const date = new Date(Date.UTC(parseInt(year), monthIndex, 1));
 
     // Check if valid date
     if (isNaN(date.getTime())) {
@@ -78,6 +78,6 @@ export const getBankHolidayDates = async () => {
     return data["england-and-wales"].events.map(({ date: dateString }) => {
         const [day, month, year] = dateString.split("-");
 
-        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        return new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
     });
 };

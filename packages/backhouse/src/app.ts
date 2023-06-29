@@ -1,13 +1,14 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { type IntegrationJob, connectionConfig, env } from "@timesheeter/app";
+import { type IntegrationJob, connectionConfig, env, prisma, parseIntegration } from "@timesheeter/app";
 import { Worker, Queue } from "bullmq";
 import { handleIntegrationsJob } from "@timesheeter/backhouse/integrations";
 import fastify from "fastify";
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { FastifyAdapter } from "@bull-board/fastify";
+import { handleGoogleSheetsIntegration } from "./integrations/google-sheets";
 
 console.log("Starting Backhouse Worker");
 
@@ -39,4 +40,4 @@ createBullBoard({
 bullBoardApp.register(serverAdapter.registerPlugin());
 bullBoardApp.listen({ port: env.BULL_BOARD_PORT, host: "0.0.0.0" });
 
-console.log(`BullBoard running on http://localhost:${env.BULL_BOARD_PORT}`);
+console.log(`BullBoard running on http://0.0.0.0:${env.BULL_BOARD_PORT}`);
