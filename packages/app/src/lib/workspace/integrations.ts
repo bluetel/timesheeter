@@ -127,7 +127,7 @@ export const INTEGRATION_DEFINITIONS = {
         name: "Sheet ID",
         type: "string",
         required: true,
-        protectCount: 4,
+        protectCount: 0,
         description: "Your Google Sheet ID, found in the URL",
       },
       {

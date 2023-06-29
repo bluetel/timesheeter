@@ -37,7 +37,6 @@ export const monthYearToDate = (monthYear: string) => {
 
     const monthIndex = getMonthIndex(month);
 
-    // Convert to a date
     const date = new Date(parseInt(year), monthIndex, 1);
 
     // Check if valid date

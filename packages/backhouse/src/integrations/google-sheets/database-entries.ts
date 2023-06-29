@@ -8,10 +8,14 @@ export const getDatabaseEntries = async ({
     toStartDate: Date;
 }) => {
     const holidays = await prisma.holiday.findMany({
+        // Holidays have a start and an end date, the start date may be before the from date and the end date may be after the to date
+        // so we need to check if the start date is before the to date and the end date is after the from date
         where: {
             start: {
-                gte: fromStartDate,
                 lte: toStartDate,
+            },
+            end: {
+                gte: fromStartDate,
             },
         },
     });
@@ -59,5 +63,22 @@ export const getDatabaseEntriesStartDate = ({ holidays, timesheetEntries }: Data
         return null;
     }
 
-    return allStartDates.sort((a, b) => a.getTime() - b.getTime())[0];
+    const earliestEntry = allStartDates.sort((a, b) => a.getTime() - b.getTime())[0];
+
+    // Set to midnight
+    earliestEntry.setUTCHours(0, 0, 0, 0);
+
+    return earliestEntry;
 };
+
+// todo:
+
+// fix overtime not being applied
+
+// fix first column date not being foramtted
+
+// fix column sizes
+
+// marking non current sheets as completed if not already
+
+// details and overtime columns are missing

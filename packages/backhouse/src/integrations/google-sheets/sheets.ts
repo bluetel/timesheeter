@@ -31,47 +31,77 @@ export const getSheetStart = async (sheetsToProcess: SheetToProcess[]) => {
 
     const { rowCount } = sheet;
 
-    let lastEntryRow = null as number | null;
+    let lastDateEntryRow = null as number | null;
 
-    for (let i = rowCount - 1; i >= HEADER_ROW; i--) {
+    for (let i = rowCount - 1; i > HEADER_ROW; i--) {
         const dateCell = sheet.getCell(i, DATE_COLUMN);
 
         if (dateCell.value) {
-            lastEntryRow = i;
+            lastDateEntryRow = i;
             break;
         }
     }
 
     // Scenario for an empty timesheet
-    if (lastEntryRow === null) {
+    if (lastDateEntryRow === null) {
         return { sheet, sheetStartDate, sheetStartRow: FIRST_ENTRY_ROW };
     }
 
     // The dates are in the format "26 Friday" so we need to extract the date
-    const lastEntryCellValue = sheet.getCell(lastEntryRow, DATE_COLUMN).value;
+    const lastEntryCellValue = sheet.getCell(lastDateEntryRow, DATE_COLUMN).value;
 
     if (typeof lastEntryCellValue !== "string") {
         throw new Error("Invalid date cell value");
     }
 
     const lastEntryDay = parseInt(lastEntryCellValue.split(" ")[0]);
-    console.log("lastEntryDay", lastEntryDay);
 
     // Construct a date, using the month and year from the sheet start date
     const startMonth = sheetStartDate.getUTCMonth();
     const startYear = sheetStartDate.getUTCFullYear();
 
-    const startDate = new Date(startYear, startMonth, lastEntryDay + 1);
+    let startDate = new Date(startYear, startMonth + 1, lastEntryDay + 1, 0, 0, 0, 0);
 
     // Ensure the date is valid
     if (isNaN(startDate.getTime())) {
-        throw new Error("Invalid start date");
+        //  Assume in format Wednesday 26
+        const lastEntryDate = lastEntryCellValue.split(" ")[1];
+
+        startDate = new Date(startYear, startMonth + 1, parseInt(lastEntryDate) + 1, 0, 0, 0, 0);
+
+        if (isNaN(startDate.getTime())) {
+            throw new Error("Invalid start date");
+        }
+    }
+
+    let startRow = 0;
+
+    // Keep going down from last entry row until we find an empty row
+    for (let i = lastDateEntryRow; i <= rowCount; i++) {
+        let allEmpty = true;
+        for (let j = 0; j < 6; j++) {
+            const cell = sheet.getCell(i, j);
+
+            if (cell.value) {
+                allEmpty = false;
+                break;
+            }
+        }
+
+        if (allEmpty) {
+            startRow = i + 2;
+            break;
+        }
+    }
+
+    if (startRow === 0) {
+        throw new Error("Failed to find a start row");
     }
 
     return {
         sheet,
-        sheetStartDate,
-        sheetStartRow: lastEntryRow + 2,
+        sheetStartDate: startDate,
+        sheetStartRow: startRow,
     };
 };
 
@@ -125,37 +155,38 @@ export const applyTransforms = async ({
         startDate: date,
         sheetStart,
     });
-
+    console.log(JSON.stringify(transformedData));
     while (date <= lastDayToProcess) {
         cursor = await updateCursor({
             doc,
             newDate: date,
             ...cursor,
         });
-
-        let addedRowCount = 0;
+        console.log("cursor", cursor.currentRow, date.getTime(), lastDayToProcess.getTime());
 
         // Find transformed data for this date
-        const dataForDate = transformedData.filter((data) => data.date === date);
+        const dataForDate = transformedData.filter((data) => data.date.getTime() === date.getTime());
 
         // If there is data for this date, add it to the sheet
-
-        for (const data of dataForDate) {
-            for (const [rowIndex, row] of data.cells.entries()) {
-                for (const [columnIndex, cellValue] of row.entries()) {
-                    const cell = cursor.currentSheet.getCell(rowIndex, columnIndex);
-                    cell.value = cellValue;
+        if (dataForDate) {
+            for (const data of dataForDate) {
+                for (const [rowIndex, row] of data.cells.entries()) {
+                    for (const [columnIndex, cellValue] of row.entries()) {
+                        const cell = cursor.currentSheet.getCell(rowIndex + cursor.currentRow, columnIndex);
+                        cell.value = cellValue;
+                    }
                 }
+                cursor.currentRow += data.cells.length + 2;
             }
-            addedRowCount += data.cells.length + 2;
+
+            await cursor.currentSheet.saveUpdatedCells();
+
+            // Delay for 1 second to avoid rate limiting
+            await new Promise((resolve) => setTimeout(resolve, 1000));
         }
-
-        await cursor.currentSheet.saveUpdatedCells();
-
-        // Delay for 1 second to avoid rate limiting
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        date.setDate(date.getUTCDate() + 1);
+        console.log("updating date", isNaN(date.getTime()), date);
+        // get utc date doesn't work for some reason
+        date.setDate(date.getDate() + 1);
     }
 };
 

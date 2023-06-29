@@ -27,22 +27,21 @@ export const handleGoogleSheetsIntegration = async ({
     const skipTillAfterMonthDate = skipTillAfterMonth ? monthYearToDate(skipTillAfterMonth) : null;
 
     const sheetsToProcess = await filterExistingSheets(doc.sheetsByIndex, skipTillAfterMonthDate);
-    console.log("sheetsToProcess", sheetsToProcess);
 
     // Last day to file is commitDelayDays ago
     const lastDayToProcess = new Date();
-    lastDayToProcess.setDate(lastDayToProcess.getUTCDate() - commitDelayDays);
+    lastDayToProcess.setUTCDate(lastDayToProcess.getUTCDate() - commitDelayDays);
+    lastDayToProcess.setUTCHours(0, 0, 0, 0);
 
-    let firstDayToProcess = new Date();
+    let firstDayToProcess = new Date(0);
 
     if (skipTillAfterMonthDate) {
-        firstDayToProcess.setDate(skipTillAfterMonthDate.getUTCDate());
+        firstDayToProcess.setUTCDate(1);
         // Get the first day of the month after the month of skipTillAfterMonth ie one month later
-        firstDayToProcess.setMonth(skipTillAfterMonthDate.getUTCMonth() + 1);
+        firstDayToProcess.setUTCMonth(skipTillAfterMonthDate.getUTCMonth() + 1);
     }
-
     const sheetStart = await getSheetStart(sheetsToProcess);
-    console.log("sheetStartDate", sheetStart);
+
     if (sheetStart && sheetStart.sheetStartDate > firstDayToProcess) {
         firstDayToProcess = sheetStart.sheetStartDate;
     }
@@ -51,6 +50,8 @@ export const handleGoogleSheetsIntegration = async ({
         fromStartDate: firstDayToProcess,
         toStartDate: lastDayToProcess,
     });
+
+    console.log("database entries", databaseEntries, sheetStart?.sheetStartDate, firstDayToProcess, lastDayToProcess);
 
     // If both are empty, return null
     if (databaseEntries.holidays.length === 0 && databaseEntries.timesheetEntries.length === 0) {
@@ -68,6 +69,11 @@ export const handleGoogleSheetsIntegration = async ({
         firstDayToProcess,
         lastDayToProcess,
     });
+    console.log("firstDayToProcess", firstDayToProcess);
+    console.log("lastDayToProcess", lastDayToProcess);
+
+    console.log("databaseEntriesbasedStartDate", databaseEntriesBasedStartDate);
+    console.log("sheetStart", sheetStart?.sheetStartDate);
 
     applyTransforms({
         transformedData,

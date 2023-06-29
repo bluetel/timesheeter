@@ -21,17 +21,19 @@ export const getTransformedSheetData = async ({
 
     const sheetEntries: TransformedData[] = [];
     const bankHolidays = await getBankHolidayDates();
-
     const date = new Date(firstDayToProcess);
 
     while (date <= lastDayToProcess) {
         const holiday = findHoliday(holidays, date);
+        const isWorkDay = calculateIsWorkDay(bankHolidays, date);
 
-        if (holiday) {
+        if (holiday && isWorkDay) {
             sheetEntries.push({
-                date,
+                date: new Date(date),
                 cells: formatHolidayCells(holiday, date),
             });
+
+            date.setUTCDate(date.getUTCDate() + 1);
             continue;
         }
 
@@ -39,50 +41,56 @@ export const getTransformedSheetData = async ({
 
         if (timesheetEntriesForDate.length > 0) {
             sheetEntries.push({
-                date,
-                cells: formatTimesheetEntryCells(timesheetEntriesForDate, date, bankHolidays),
+                date: new Date(date),
+                cells: formatTimesheetEntryCells(timesheetEntriesForDate, date, isWorkDay),
             });
         }
 
-        date.setDate(date.getUTCDate() + 1);
+        date.setUTCDate(date.getUTCDate() + 1);
     }
 
     return sheetEntries;
 };
 
-const findHoliday = (holidays: DatabaseEntries["holidays"], date: Date): DatabaseEntries["holidays"][number] | null =>
+const findHoliday = (
+    holidays: DatabaseEntries["holidays"],
+    dateMidnight: Date
+): DatabaseEntries["holidays"][number] | null =>
     // On holiday if date is start <= date <= end
-    holidays.find((holiday) => holiday.start <= date && date <= holiday.end) ?? null;
+    holidays.find((holiday) => holiday.start <= dateMidnight && dateMidnight <= holiday.end) ?? null;
 
 const findTimesheetEntries = (
     timesheetEntries: DatabaseEntries["timesheetEntries"],
-    date: Date
+    dateMidnight: Date
     // match any entries that start on this date
-): DatabaseEntries["timesheetEntries"] => {
-    const dateStart = date.getUTCDate();
-
-    return timesheetEntries.filter((timesheetEntry) => timesheetEntry.start.getUTCDate() === dateStart);
-};
+): DatabaseEntries["timesheetEntries"] =>
+    timesheetEntries.filter((timesheetEntry) => timesheetEntry.start.toDateString() === dateMidnight.toDateString());
 
 const formatHolidayCells = (holiday: DatabaseEntries["holidays"][number], date: Date): string[][] => {
-    const monthYearDate = dateToMonthYear(date);
+    const dateFormatted = date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        weekday: "long",
+    });
 
-    return [[monthYearDate, "", "HOLIDAYS", "8", holiday.description ?? ""]];
+    return [[dateFormatted, "", "HOLIDAYS", "8.00", holiday.description ?? ""]];
 };
 
 const formatTimesheetEntryCells = (
     timesheetEntriesDate: DatabaseEntries["timesheetEntries"],
     date: Date,
-    bankHolidays: Date[]
+    isWorkDay: boolean
 ): string[][] => {
-    const monthYearDate = dateToMonthYear(date);
+    const dateFormatted = date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        weekday: "long",
+    });
 
-    const groupedEntries = groupEntriesToTasks(timesheetEntriesDate, date, bankHolidays);
+    const groupedEntries = groupEntriesToTasks(timesheetEntriesDate, isWorkDay);
 
     return groupedEntries.map((entry, index) => {
         const { projectName, jiraTask, time, details, overtime } = entry;
 
-        return [index === 0 ? monthYearDate : "", projectName, jiraTask, time, details, overtime];
+        return [index === 0 ? dateFormatted : "", projectName, jiraTask, time, details, overtime];
     });
 };
 
@@ -102,10 +110,9 @@ type GroupedEntryNumber = Omit<GroupedEntry, "time" | "overtime"> & {
 
 const groupEntriesToTasks = (
     timesheetEntriesDate: DatabaseEntries["timesheetEntries"],
-    date: Date,
-    bankHolidays: Date[]
+    isWorkDay: boolean
 ): GroupedEntry[] => {
-    const overtimeCalculations = calculateOvertime(timesheetEntriesDate, date, bankHolidays);
+    const overtimeCalculations = calculateOvertime(timesheetEntriesDate, isWorkDay);
 
     const groupedEntries = overtimeCalculations.reduce((acc, { timesheetEntry, overtime }) => {
         const { task } = timesheetEntry;
@@ -138,11 +145,14 @@ const groupEntriesToTasks = (
         return acc;
     }, [] as GroupedEntryNumber[]);
 
-    return groupedEntries.map((groupedEntry) => ({
-        ...groupedEntry,
-        time: formatTime(groupedEntry.time),
-        overtime: formatTime(groupedEntry.overtime),
-    }));
+    return groupedEntries.map((groupedEntry) => {
+        const formattedOvertimeTime = formatTime(groupedEntry.overtime);
+        return {
+            ...groupedEntry,
+            time: formatTime(groupedEntry.time),
+            overtime: formattedOvertimeTime === "0.00" ? "" : formattedOvertimeTime,
+        };
+    });
 };
 
 /** Formats milliseconds to quarter hourly eg 0.25 hours or 1.25 hours */
@@ -162,24 +172,21 @@ const OVERTIME_MILLISECONDS = 28800000 as const;
 /**  Need to calculate overtime, overtime is applied to each entry based on the hours already worked in that day, ie later entries might have overtime applied to them, earlier ones won't. There are 8 hours */
 const calculateOvertime = (
     timesheetEntriesDate: DatabaseEntries["timesheetEntries"],
-    date: Date,
-    bankHolidays: Date[]
+    isWorkDay: boolean
 ): OvertimeCalculation[] => {
     // sort most recent
     const sortedTimesheetEntries = timesheetEntriesDate.sort((a, b) => b.start.getTime() - a.start.getTime());
 
-    // If date is a bank holiday, then overtime is applied to all entries
-    const isBankHoliday = bankHolidays.some((bankHoliday) => bankHoliday === date);
-
-    if (isBankHoliday) {
+    // If not a workday, then overtime is applied to all entries
+    if (!isWorkDay) {
         return sortedTimesheetEntries.map((timesheetEntry) => ({
             timesheetEntry,
             overtime: 8,
         }));
     }
 
-    let timeWorked = 0;
     const overtimeCalculations: OvertimeCalculation[] = [];
+    let timeWorked = 0;
 
     for (const timesheetEntry of timesheetEntriesDate) {
         const duration = timesheetEntry.end.getTime() - timesheetEntry.start.getTime();
@@ -195,6 +202,7 @@ const calculateOvertime = (
                 overtime: 0,
             });
         } else {
+            // Only some of the time is overtime
             overtimeCalculations.push({
                 timesheetEntry,
                 overtime: timeWorked + duration - OVERTIME_MILLISECONDS,
@@ -204,5 +212,26 @@ const calculateOvertime = (
         timeWorked += duration;
     }
 
+    console.log(
+        "overtime",
+        overtimeCalculations.map((a) => a.overtime)
+    );
+
     return overtimeCalculations;
+};
+
+const calculateIsWorkDay = (bankHolidays: Date[], date: Date): boolean => {
+    // If weekend then not a work day, needs to not be utc
+    const day = date.getDay();
+
+    if (day === 0 || day === 6) {
+        return false;
+    }
+
+    // If bank holiday then not a work day
+    if (bankHolidays.some((bankHoliday) => bankHoliday.getTime() === date.getTime())) {
+        return false;
+    }
+
+    return true;
 };
