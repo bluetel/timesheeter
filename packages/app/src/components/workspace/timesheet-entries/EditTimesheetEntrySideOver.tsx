@@ -13,6 +13,7 @@ import { BasicForm } from "@timesheeter/app/components/ui/forms/BasicForm/BasicF
 import { type BasicFormItemProps } from "@timesheeter/app/components/ui/forms/BasicForm/BasicFormItem";
 import { useNotifications } from "../../ui/notification/NotificationProvider";
 import { fromZodError } from "zod-validation-error";
+import { customJSONStringify } from "@timesheeter/app/lib";
 
 const mutationSchema = z.union([
   createTimesheetEntrySchema.extend({
@@ -74,7 +75,7 @@ export const EditTimesheetEntrySideOver = ({
 
   // Prevents resetting wrongly if just different reference
   useEffect(() => {
-    if (JSON.stringify(oldData) === JSON.stringify(data)) {
+    if (customJSONStringify(oldData) === customJSONStringify(data)) {
       return;
     }
 
