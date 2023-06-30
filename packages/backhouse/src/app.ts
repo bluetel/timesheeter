@@ -1,14 +1,13 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { type IntegrationJob, connectionConfig, env, prisma, parseIntegration } from "@timesheeter/app";
+import { type IntegrationJob, connectionConfig, env } from "@timesheeter/app";
 import { Worker, Queue } from "bullmq";
 import { handleIntegrationsJob } from "@timesheeter/backhouse/integrations";
 import fastify from "fastify";
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { FastifyAdapter } from "@bull-board/fastify";
-import { handleGoogleSheetsIntegration } from "./integrations/google-sheets";
 
 console.log("Starting Backhouse Worker");
 
