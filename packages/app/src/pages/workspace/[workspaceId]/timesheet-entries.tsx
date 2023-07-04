@@ -70,10 +70,6 @@ const TimesheetEntries = ({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const [pageCount, setPageCount] = useState(1);
 
-  const [timesheetEntries, setTimesheetEntries] = useState<
-    RouterOutputs["workspace"]["timesheetEntries"]["list"]["data"]
-  >([]);
-
   const { refetch: refetchTimesheetEntries, data: timesheetEntryData } =
     api.workspace.timesheetEntries.list.useQuery(
       {
@@ -95,6 +91,10 @@ const TimesheetEntries = ({
         },
       }
     );
+
+  const [timesheetEntries, setTimesheetEntries] = useState<
+    RouterOutputs["workspace"]["timesheetEntries"]["list"]["data"]
+  >(timesheetEntryData?.data ?? []);
 
   const fetchNextPage = async () => {
     setPageCount((oldPageCount) => oldPageCount + 1);

@@ -67,10 +67,6 @@ const Tasks = ({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const [pageCount, setPageCount] = useState(1);
 
-  const [tasks, setTasks] = useState<
-    RouterOutputs["workspace"]["tasks"]["list"]["data"]
-  >([]);
-
   const { refetch: refetchTasks, data: taskData } =
     api.workspace.tasks.list.useQuery(
       {
@@ -89,6 +85,10 @@ const Tasks = ({
         },
       }
     );
+
+  const [tasks, setTasks] = useState<
+    RouterOutputs["workspace"]["tasks"]["list"]["data"]
+  >(taskData?.data ?? []);
 
   const fetchNextPage = async () => {
     setPageCount((oldPageCount) => oldPageCount + 1);
