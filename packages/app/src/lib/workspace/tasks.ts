@@ -77,17 +77,10 @@ type MatchedTaskResult =
 
 // description (eg Test description) or null if there is no description
 
-const taskRegex = /^([A-Z]{1,8})-([0-9]+)(?:\s-\s(.+))?$/;
+const taskRegex = /^([A-Za-z]{1,8})-([0-9]+)(?:\s-\s(.+))?$/;
 
 export const matchTaskRegex = (rawDescription: string): MatchedTaskResult => {
-  // See if description starts with a task
-  // Convert the first 2 letters to uppercase and join wqith rest in case the task prefix has
-  // accidentially been entered in lowercase
-  const capitalizedDescription = `${rawDescription
-    .slice(0, 2)
-    .toUpperCase()}${rawDescription.slice(2)}`;
-
-  const match = capitalizedDescription.match(taskRegex);
+  const match = rawDescription.match(taskRegex);
 
   if (match) {
     const [, prefix, taskNumber, customDescription] = match;
@@ -95,7 +88,7 @@ export const matchTaskRegex = (rawDescription: string): MatchedTaskResult => {
     if (prefix && taskNumber) {
       return {
         variant: "with-task",
-        prefix,
+        prefix: prefix.toUpperCase(),
         taskNumber: parseInt(taskNumber, 10),
         description: customDescription ? customDescription.trim() : null,
       };
