@@ -72,12 +72,12 @@ type MatchedTaskResult =
 
 // eg AC-1234 - Test description
 
-// Prefix 2 letters (eg AC) or null if there is no prefix
+// Prefix 1-8 letters (eg AC) or null if there is no prefix
 // Task number (eg 1234) or null if there is no task number
 
 // description (eg Test description) or null if there is no description
 
-const taskRegex = /^([A-Z]{2})-([0-9]+)(?:\s-\s(.+))?$/;
+const taskRegex = /^([A-Z]{1,8})-([0-9]+)(?:\s-\s(.+))?$/;
 
 export const matchTaskRegex = (rawDescription: string): MatchedTaskResult => {
   // See if description starts with a task
