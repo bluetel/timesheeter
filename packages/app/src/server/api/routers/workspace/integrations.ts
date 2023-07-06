@@ -69,7 +69,7 @@ export const integrationsRouter = createTRPCRouter({
         .then(parseIntegration);
 
       // Queue the integration for processing
-      await integrationsQueue.add(
+      const { repeatJobKey } = await integrationsQueue.add(
         "processIntegration",
         {
           integrationId: createdIntegration.id,
@@ -83,7 +83,17 @@ export const integrationsRouter = createTRPCRouter({
         }
       );
 
-      return createdIntegration;
+      // Update the integration with the repeat job key
+      return ctx.prisma.integration
+        .update({
+          where: {
+            id: createdIntegration.id,
+          },
+          data: {
+            repeatJobKey,
+          },
+        })
+        .then(parseIntegration);
     }),
   update: protectedProcedure
     .input(updateIntegrationSchema)
@@ -140,14 +150,16 @@ export const integrationsRouter = createTRPCRouter({
         }
       );
 
-      return ctx.prisma.integration.update({
-        where: {
-          id: input.id,
-        },
-        data: {
-          repeatJobKey,
-        },
-      });
+      return ctx.prisma.integration
+        .update({
+          where: {
+            id: input.id,
+          },
+          data: {
+            repeatJobKey,
+          },
+        })
+        .then(parseIntegration);
     }),
   delete: protectedProcedure
     .input(
