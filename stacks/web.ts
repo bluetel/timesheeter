@@ -1,5 +1,6 @@
 import { NextjsSite, StackContext, use } from 'sst/constructs';
 import { Dns } from './dns';
+import { sstEnv } from './env';
 
 export function Web({ stack, app }: StackContext) {
   const dns = use(Dns);
@@ -21,7 +22,7 @@ export function Web({ stack, app }: StackContext) {
     memorySize: 1024,
     // Validated in packages/web/src/env.ts, example in .env.example
     environment: {
-      NEXTAUTH_URL: 'http://localhost:6020', // FIXME: how to pass in this URL?
+      NEXTAUTH_URL: sstEnv.NEXTAUTH_URL, // FIXME: how to pass in this URL?
       NEXT_PUBLIC_REGION: stack.region,
     },
   });

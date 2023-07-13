@@ -7,7 +7,8 @@ if [[ -n "${CI}" ]]; then
 	echo "DB is started by CI"
 else
 	echo "Starting DB and Redis"
-	docker-compose -f docker-compose-dev.yml --project-directory "${SCRIPT_DIR}/.." up -d --remove-orphans
+	# start and import .env.local
+	docker-compose --env-file .env.local -f docker-compose-dev.yml --project-directory "${SCRIPT_DIR}/.." up -d --remove-orphans
 	# "$SCRIPT_DIR/wait-for-local-contanainers.sh"
 fi
 

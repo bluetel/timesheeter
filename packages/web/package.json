@@ -11,15 +11,15 @@
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "next lint",
-    "db:seed": "prisma db seed",
-    "db:seed:clean": "CLEAN_SEED=true prisma db seed",
-    "generate": "prisma generate",
+    "db:seed": "./scripts/seed-prisma.sh",
+    "db:seed:clean": "./scripts/seed-prisma-clean.sh",
+    "generate": "./scripts/generate-prisma.sh",
     "build-storybook": "build-storybook",
     "clean": "rimraf .build .next",
-    "format": "prisma format",
+    "format": "./scripts/format.sh",
     "migrate": "pnpm run migrate:dev",
-    "migrate:dev": "pnpm run format && prisma migrate dev",
-    "migrate:test": "pnpm init:db:test && dotenv -e .env.vitest -- prisma migrate dev --skip-seed --skip-generate"
+    "migrate:dev": "pnpm run format && ./scripts/migrate-dev.sh",
+    "migrate:test": "pnpm init:db:test && dotenv -e .env.vitest -- ./scripts/migrate-test.sh"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.369.0",

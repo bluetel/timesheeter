@@ -1,4 +1,12 @@
 import { SSTConfig } from 'sst';
+import { existsSync } from 'fs';
+
+// If a .env file exists throw an error
+if (existsSync('.env')) {
+  throw new Error(
+    'Please rename .env to .env.local .env.staging or .env.production, this is because .env is always deployed to AWS and we want to avoid this'
+  );
+}
 
 const awsRegionCodes = [
   'us-east-1',
@@ -27,6 +35,15 @@ type AwsRegionCode = (typeof awsRegionCodes)[number];
 
 const config = {
   config(input) {
+    if (
+      input.stage !== undefined &&
+      input.stage !== 'dev' &&
+      input.stage !== 'staging' &&
+      input.stage !== 'production'
+    ) {
+      throw new Error(`Invalid stage ${input.stage}`);
+    }
+
     const stage = input.stage ?? 'dev';
 
     return {

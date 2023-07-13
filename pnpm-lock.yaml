@@ -20,6 +20,9 @@ importers:
       tslib:
         specifier: ^2.4.0
         version: 2.4.0
+      zod:
+        specifier: ^3.21.4
+        version: 3.21.4
     devDependencies:
       '@tsconfig/node18-strictest-esm':
         specifier: ^1.0.1

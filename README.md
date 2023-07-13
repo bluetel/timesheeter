@@ -1,60 +1,35 @@
 # Timesheeter
 
-Graphical interface for the toggl timesheet bot
-
-# ToDos
-
-- [x] Add holiday support
-- [x] Add support for google sheet integration
-- [ ] Add support for viewing integration logs
-- [x] Refine task creation based off project auto assign rules
-
-# Issues
-
-- [ ] Fix issue with refresh on paginated pages doens't appear 
-
---------------------
-
-# Serverless Stack + Prisma - Starter Kit
-
-## What is this?
-
-If you want to build a serverless app with AWS CDK, Lambda, and Postgres, this is the template for you.
-
-You can click "Use this template" button in GitHub to fork this repo. You can [merge](https://stackoverflow.com/a/69563752) in improvements in this repo to your project over time.
-
-Clone your copy of this template, then do a search and replace for "myapp" to give it a name.
+Fully serverless open source timesheeting app designed to be deployed to AWS.
 
 ## Quickstart
 
-### Prerequisites
-
-Assumes you have [Node 18](https://nodejs.org/en/download/current/) installed and AWS credentials [configured](https://docs.sst.dev/advanced/iam-credentials).
-
-### Setup
-
 ```shell
-npm i -g pnpm  # install pnpm globally
-pnpm i  # install dependencies + generate types from DB and GQL schemas
-pnpm dev  # start local dev server
+nvm use
+npm install -g pnpm
+pnpm install
+pnpm dev
 ```
+
+Login to the AWS CLI
+
+Then make a .env.local file (see .env.example)
+
+Environment variables named .env.staging and .env.production will be used for those environments.
+
+Don't write secrets to .env files, these are deployed to production.
+
+It might take a few minutes to deploy the first time/setup.
+
+After a while you will be asked to cd into packages/web and run `pnpm dev:web` to start the frontend dev server, this links into SST's live lambda development.
 
 ## Features
 
-All features are optional, delete what you don't need.
-
-Click links to learn more and view documentation.
-
 - 🌩 [Serverless Stack](https://serverless-stack.com/) - powerful CDK developer experience tools
 - 🌤 [AWS CDK](https://aws.amazon.com/cdk/) - cloud-native infrastructure as code
-- ፨ [GraphQL API](https://docs.serverless-stack.com/constructs/GraphQLApi)
-  - ⇅ [AWS AppSync](https://docs.aws.amazon.com/appsync/latest/devguide/what-is-appsync.html) - serverless GraphQL AWS service
-  - ✽ [Code generation](https://www.graphql-code-generator.com/) of [TypeScript](https://www.graphql-code-generator.com/docs/guides/front-end-typescript-only) + [apollo client](https://www.graphql-code-generator.com/plugins/typescript-react-apollo)
-- 🌐 [REST API gateway](https://docs.serverless-stack.com/api)
-- 🖥 [NextJS](https://nextjs.org/) frontend w/ Material-UI
-  - 🎨 [Material-UI](https://mui.com/material-ui/getting-started/overview/) - react components and styling solution
+- ፨ [TRPC](https://trpc.io/) - RPC over HTTP and full type safety
+- 🖥 [NextJS](https://nextjs.org/) frontend wuth Tailwind CSS
   - 🔓 [NextAuth.js](https://next-auth.js.org/) - authentication and session management
-- 🔓 [AWS Cognito](https://aws.amazon.com/cognito/) - authentication backend
 - 💾 [Prisma ORM](https://www.prisma.io/docs/)
   - 📚 Prisma engine lambda layer
   - 📜 Prisma DB migration CDK script

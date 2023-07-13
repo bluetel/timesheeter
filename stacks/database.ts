@@ -1,28 +1,28 @@
 import { Config, RDS, StackContext, use } from 'sst/constructs';
 
 import { Duration, RemovalPolicy } from 'aws-cdk-lib';
-import { APP_NAME } from '@timesheeter/common';
 import { Network } from 'stacks/network';
-import { IS_PRODUCTION } from './config';
+import { sstEnv } from './env';
 
 export function Database({ stack, app }: StackContext) {
   const net = use(Network);
 
-  const defaultDatabaseName = APP_NAME;
+  const defaultDatabaseName = sstEnv.APP_NAME;
   const rds = new RDS(stack, 'DB', {
     cdk: {
       cluster: {
         vpc: net.vpc,
-        removalPolicy: IS_PRODUCTION ? RemovalPolicy.SNAPSHOT : RemovalPolicy.DESTROY,
+        removalPolicy: sstEnv.IS_PRODUCTION ? RemovalPolicy.SNAPSHOT : RemovalPolicy.DESTROY,
       },
     },
     engine: 'postgresql11.13',
     defaultDatabaseName,
     scaling: {
-      autoPause: IS_PRODUCTION
+      autoPause: sstEnv.IS_PRODUCTION
         ? false
         : // go to sleep after this length of inactivity
-          Duration.hours(4).toMinutes(),
+          Duration.minutes(sstEnv.IS_PRODUCTION ? 30 : 5).toMinutes(),
+      // Min here is 2 :/
       minCapacity: 'ACU_2',
       maxCapacity: 'ACU_4',
     },

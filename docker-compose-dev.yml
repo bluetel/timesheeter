@@ -4,7 +4,6 @@ services:
   local-db:
     container_name: local-db
     image: postgres
-    env_file: .env
     environment:
       - POSTGRES_USER=${APP_DB_USER}
       - POSTGRES_PASSWORD=${APP_DB_PASSWORD}
@@ -17,7 +16,6 @@ services:
 
   local-redis:
     container_name: local-redis
-    env_file: .env
     image: docker.io/bitnami/redis:latest
     environment:
       - REDIS_PASSWORD=${BULLMQ_REDIS_PASSWORD}
