@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { type IntegrationJob, connectionConfig, env } from '../../web/dist';
+import { type IntegrationJob, connectionConfig, env } from '@timesheeter/web';
 import { Worker, Queue } from 'bullmq';
 import { handleIntegrationsJob } from '@timesheeter/backhouse/integrations';
 import fastify from 'fastify';

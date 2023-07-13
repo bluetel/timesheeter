@@ -1,4 +1,4 @@
-import { monthYearRegex } from '../../../../web/dist';
+import { monthYearRegex } from '../@timesheeter/web';
 import { GoogleSpreadsheet, type GoogleSpreadsheetWorksheet } from 'google-spreadsheet';
 import { monthYearToDate } from './dates';
 import { TransformedData } from './transformer';

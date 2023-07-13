@@ -2,8 +2,11 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "module": "esnext",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "paths": {
+      "@timesheeter/common/*": ["./packages/common/src/*"]
+    }
   },
   "include": ["stacks"],
-  "references": [{ "path": "./common" }, { "path": "./backend" }]
+  "references": [{ "path": "./packages/*" }]
 }

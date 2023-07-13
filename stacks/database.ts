@@ -1,7 +1,7 @@
 import { Config, RDS, StackContext, use } from 'sst/constructs';
 
 import { Duration, RemovalPolicy } from 'aws-cdk-lib';
-import { APP_NAME } from 'common';
+import { APP_NAME } from '@timesheeter/common';
 import { Network } from 'stacks/network';
 import { IS_PRODUCTION } from './config';
 

@@ -1,14 +1,12 @@
 import { NextjsSite, StackContext, use } from 'sst/constructs';
-import { Auth } from './auth';
 import { Dns } from './dns';
 
 export function Web({ stack, app }: StackContext) {
-  const { userPool, webClient, cognitoDomainName } = use(Auth);
   const dns = use(Dns);
 
   // docs: https://docs.serverless-stack.com/constructs/NextjsSite
   const frontendSite = new NextjsSite(stack, 'Web', {
-    path: 'web',
+    path: 'packages/web',
     customDomain: dns.domainName
       ? {
           domainName: dns.domainName,
@@ -25,9 +23,6 @@ export function Web({ stack, app }: StackContext) {
     environment: {
       NEXTAUTH_URL: 'http://localhost:6020', // FIXME: how to pass in this URL?
       NEXT_PUBLIC_REGION: stack.region,
-      NEXT_PUBLIC_COGNITO_CLIENT_ID: webClient.userPoolClientId,
-      NEXT_PUBLIC_COGNITO_USER_POOL_ID: userPool.userPoolId,
-      NEXT_PUBLIC_COGNITO_DOMAIN_NAME: cognitoDomainName,
     },
   });
 

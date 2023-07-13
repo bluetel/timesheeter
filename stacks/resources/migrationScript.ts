@@ -31,13 +31,13 @@ export class DbMigrationScript extends Construct {
     const migrationFunction = new Function(this, 'MigrationScriptLambda', {
       vpc,
       enableLiveDev: false,
-      handler: 'packages/web/src/repo/runMigrations.handler',
+      handler: 'packages/web/src/sst/run-migrations.handler',
       layers: [migrationLayer],
       copyFiles: [
         { from: 'packages/web/prisma/schema.prisma' },
         { from: 'packages/web/prisma/migrations' },
-        { from: 'packages/web/prisma/schema.prisma', to: 'packages/web/src/repo/schema.prisma' },
-        { from: 'packages/web/prisma/migrations', to: 'packages/web/src/repo/migrations' },
+        { from: 'packages/web/prisma/schema.prisma', to: 'packages/web/src/sst/schema.prisma' },
+        { from: 'packages/web/prisma/migrations', to: 'packages/web/src/sst/migrations' },
         { from: 'packages/web/package.json', to: 'packages/web/src/package.json' },
       ],
 

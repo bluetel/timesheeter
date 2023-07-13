@@ -1,0 +1,24 @@
+{
+  "name": "@timesheeter/common",
+  "version": "1.0.0",
+  "description": "Code shared between the client and server",
+  "main": "./dist/src/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsc -w",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint --ext .js,.ts,.tsx src",
+    "clean": "rimraf dist"
+  },
+  "devDependencies": {
+    "@apollo/client": "^3.6.5",
+    "@types/node": "^18.0.0",
+    "typescript": "^4.7.4"
+  },
+  "keywords": [],
+  "author": "",
+  "peerDependencies": {
+    "@apollo/client": "^3.6.5"
+  }
+}

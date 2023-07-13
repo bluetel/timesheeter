@@ -1,6 +1,6 @@
 {
-  "extends": "../tsconfig.base.json",
-  "include": ["src", "graphql"],
+  "extends": "../../tsconfig.base.json",
+  "include": ["src"],
   "compilerOptions": {
     "outDir": "./dist",
     "module": "esnext",

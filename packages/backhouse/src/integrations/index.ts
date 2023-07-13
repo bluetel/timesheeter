@@ -1,4 +1,4 @@
-import { type IntegrationJob, parseIntegration, prisma } from '../../../web/dist';
+import { type IntegrationJob, parseIntegration, prisma } from '@timesheeter/web';
 import { type Job } from 'bullmq';
 import { handleTogglIntegration } from './toggl';
 import { handleJiraIntegration } from './jira';

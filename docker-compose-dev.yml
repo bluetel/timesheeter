@@ -1,0 +1,34 @@
+version: "3"
+
+services:
+  local-db:
+    container_name: local-db
+    image: postgres
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${APP_DB_USER}
+      - POSTGRES_PASSWORD=${APP_DB_PASSWORD}
+      - POSTGRES_DB=${APP_DB_NAME}
+      - PGPORT=${APP_DB_PORT}
+    volumes:
+      - local-db:/var/lib/postgresql/data
+    restart: always
+    network_mode: host
+
+  local-redis:
+    container_name: local-redis
+    env_file: .env
+    image: docker.io/bitnami/redis:latest
+    environment:
+      - REDIS_PASSWORD=${BULLMQ_REDIS_PASSWORD}
+      - REDIS_PORT_NUMBER=${BULLMQ_REDIS_PORT}
+    volumes:
+      - 'bullmq-redis:/bitnami/redis/data'
+    restart: always
+    network_mode: host
+
+volumes:
+  local-db:
+    driver: local
+  bullmq-redis:
+    driver: local

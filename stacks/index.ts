@@ -1,6 +1,5 @@
 import * as sst from 'sst/constructs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { Auth } from './auth';
 import { BastionHost } from './bastionHost';
 import { Database } from './database';
 import { DatabaseMigrations } from './databaseMigrations';
@@ -23,13 +22,5 @@ export default function main(app: sst.App) {
     // N.B. bundle settings are defined in Layers
   });
 
-  app
-    .stack(Network)
-    .stack(Dns)
-    .stack(Layers)
-    .stack(Database)
-    .stack(BastionHost)
-    .stack(DatabaseMigrations)
-    .stack(Auth)
-    .stack(Web);
+  app.stack(Network).stack(Dns).stack(Layers).stack(Database).stack(BastionHost).stack(DatabaseMigrations).stack(Web);
 }
