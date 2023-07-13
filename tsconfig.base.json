@@ -1,0 +1,23 @@
+{
+  "extends": "@tsconfig/node18-strictest-esm/tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "moduleResolution": "node",
+    "incremental": true,
+    "outDir": "./dist",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "importsNotUsedAsValues": "remove",
+    "noUncheckedIndexedAccess": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "exactOptionalPropertyTypes": false,
+    "importHelpers": true,
+    "baseUrl": ".",
+    "types": ["vitest/globals"],
+    "paths": {
+      "@timesheeter/web/*": ["./packages/web/src/*"],
+      "@timesheeter/backhouse/*": ["./packages/backhouse/src/*"]
+    }
+  },
+  "files": ["./index.d.ts"]
+}

@@ -9,5 +9,20 @@ yarn-error.log*
 .env
 .env*.local
 
-node_modules/
 dist/
+
+# dependencies
+node_modules
+
+# sst
+.sst
+.build
+
+# opennext
+.open-next
+
+# misc
+.DS_Store
+
+# local env files
+.env*.local
