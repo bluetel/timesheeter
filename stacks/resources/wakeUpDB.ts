@@ -1,9 +1,9 @@
-import { ServerlessCluster } from 'aws-cdk-lib/aws-rds';
+import { DatabaseInstance, ServerlessCluster } from 'aws-cdk-lib/aws-rds';
 import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
 export interface WakeDBProps {
-  cluster: ServerlessCluster;
+  database: DatabaseInstance;
 }
 
 /**
@@ -11,7 +11,7 @@ export interface WakeDBProps {
  * Prevents errors running migrations or other tasks during deployment.
  */
 export class WakeDB extends Construct {
-  constructor(scope: Construct, id: string, { cluster }: WakeDBProps) {
+  constructor(scope: Construct, id: string, { database }: WakeDBProps) {
     super(scope, id);
 
     // call modifyCurrentDBClusterCapacity with capacity=2 (min) to wake up the database
@@ -24,14 +24,14 @@ export class WakeDB extends Construct {
         action: 'modifyCurrentDBClusterCapacity',
         parameters: {
           Capacity: 2,
-          DBClusterIdentifier: cluster.clusterIdentifier,
+          DBClusterIdentifier: database.instanceIdentifier,
           SecondsBeforeTimeout: 10,
           TimeoutAction: 'RollbackCapacityChange',
         },
         physicalResourceId: PhysicalResourceId.of(Date.now().toString()), // Update physical id to always fetch the latest version
       },
       policy: AwsCustomResourcePolicy.fromSdkCalls({
-        resources: [cluster.clusterArn],
+        resources: [database.instanceArn],
       }),
     });
   }

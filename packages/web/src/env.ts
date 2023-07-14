@@ -1,5 +1,28 @@
-import { createEnv } from "@t3-oss/env-nextjs";
-import { z } from "zod";
+import { createEnv } from '@t3-oss/env-nextjs';
+import { z } from 'zod';
+import fs from 'fs';
+
+// See what file exists at ../../.env.* and load it, local, staging, or production
+const envPath = fs.existsSync('../../.env.local')
+  ? '../../.env.local'
+  : fs.existsSync('../../.env.staging')
+  ? '../../.env.staging'
+  : '../../.env.production';
+
+import { config as dotenvConfig } from 'dotenv';
+
+dotenvConfig({ path: envPath });
+
+// These need to be manually evaluated when being imported with dotenv
+
+const { APP_DB_USER, APP_DB_PASSWORD, APP_DB_HOST, APP_DB_PORT, APP_DB_NAME, BULLMQ_REDIS_HOST, BULLMQ_REDIS_PORT } =
+  process.env;
+
+// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+process.env.BULLMQ_REDIS_PATH = `redis://${BULLMQ_REDIS_HOST}:${BULLMQ_REDIS_PORT}`;
+
+// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+process.env.DATABASE_URL = `postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@${APP_DB_HOST}:${APP_DB_PORT}/${APP_DB_NAME}`;
 
 export const env = createEnv({
   /**
@@ -8,11 +31,8 @@ export const env = createEnv({
    */
   server: {
     DATABASE_URL: z.string().url(),
-    NODE_ENV: z.enum(["development", "test", "production"]),
-    NEXTAUTH_SECRET:
-      process.env.NODE_ENV === "production"
-        ? z.string().min(1)
-        : z.string().min(1),
+    NODE_ENV: z.enum(['development', 'test', 'production']),
+    NEXTAUTH_SECRET: process.env.NODE_ENV === 'production' ? z.string().min(1) : z.string().min(1),
     NEXTAUTH_URL: z.preprocess(
       // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
       // Since NextAuth.js automatically uses the VERCEL_URL if present.
@@ -25,13 +45,11 @@ export const env = createEnv({
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
 
-    BULLMQ_REDIS_PASSWORD: z.string(),
-    BULLMQ_REDIS_HOST: z.string(),
-    BULLMQ_REDIS_PORT: z.string(),
+    BULLMQ_REDIS_PATH: z.string().url(),
 
     BULL_BOARD_PORT: z
       .string()
-      .default("9999")
+      .default('9999')
       .transform((s) => parseInt(s, 10))
       .pipe(z.number()),
   },
@@ -44,9 +62,7 @@ export const env = createEnv({
     CONFIG_SECRET_KEY: process.env.CONFIG_SECRET_KEY,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-    BULLMQ_REDIS_PASSWORD: process.env.BULLMQ_REDIS_PASSWORD,
-    BULLMQ_REDIS_HOST: process.env.BULLMQ_REDIS_HOST,
-    BULLMQ_REDIS_PORT: process.env.BULLMQ_REDIS_PORT,
+    BULLMQ_REDIS_PATH: process.env.BULLMQ_REDIS_PATH,
     BULL_BOARD_PORT: process.env.BULL_BOARD_PORT,
   },
 });

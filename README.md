@@ -17,11 +17,13 @@ Then make a .env.local file (see .env.example)
 
 Environment variables named .env.staging and .env.production will be used for those environments.
 
-Don't write secrets to .env files, these are deployed to production.
+Don't write secrets to .env files, use .env.local
 
 It might take a few minutes to deploy the first time/setup.
 
 After a while you will be asked to cd into packages/web and run `pnpm dev:web` to start the frontend dev server, this links into SST's live lambda development.
+
+Caution: A lot of the scipts are only curently executable from the root directory.
 
 ## Features
 

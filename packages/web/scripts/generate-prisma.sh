@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd ../../../
+cd ../../
 
 if [ -f .env.local ]; then
   cp .env.local packages/web/.env

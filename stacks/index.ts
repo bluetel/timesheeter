@@ -7,6 +7,7 @@ import { Dns } from './dns';
 import { Layers } from './layers';
 import { Network } from './network';
 import { Web } from './web';
+import { ElastiCache } from './elastiCache';
 
 // deal with dynamic imports of node built-ins (e.g. "crypto")
 // from https://github.com/evanw/esbuild/pull/2067#issuecomment-1073039746
@@ -22,5 +23,13 @@ export default function main(app: sst.App) {
     // N.B. bundle settings are defined in Layers
   });
 
-  app.stack(Network).stack(Dns).stack(Layers).stack(Database).stack(BastionHost).stack(DatabaseMigrations).stack(Web);
+  app
+    .stack(Network)
+    .stack(Dns)
+    .stack(Layers)
+    .stack(Database)
+    .stack(ElastiCache)
+    .stack(BastionHost)
+    .stack(DatabaseMigrations)
+    .stack(Web);
 }

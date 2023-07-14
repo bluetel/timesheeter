@@ -4,7 +4,7 @@ import { existsSync } from 'fs';
 // If a .env file exists throw an error
 if (existsSync('.env')) {
   throw new Error(
-    'Please rename .env to .env.local .env.staging or .env.production, this is because .env is always deployed to AWS and we want to avoid this'
+    'Please rename .env to .env.local, this is because .env is always deployed to Staging and Production and we want to avoid this'
   );
 }
 
@@ -47,7 +47,7 @@ const config = {
     const stage = input.stage ?? 'dev';
 
     return {
-      name: 'aws-timesheeter',
+      name: 'timesheeter-aws',
       region: 'eu-west-2' as AwsRegionCode,
       stage,
     };

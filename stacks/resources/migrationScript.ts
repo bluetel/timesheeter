@@ -4,14 +4,20 @@ import { Construct } from 'constructs';
 import { App, Function, Script } from 'sst/constructs';
 import { PRISMA_VERSION } from '../layers';
 import { PrismaLayer } from './prismaLayer';
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 interface DbMigrationScriptProps {
   vpc?: IVpc;
   dbSecretsArn: string;
+  dbSecretsManagerAccessPolicy: PolicyStatement;
 }
 
 export class DbMigrationScript extends Construct {
-  constructor(scope: Construct, id: string, { vpc, dbSecretsArn }: DbMigrationScriptProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    { vpc, dbSecretsArn, dbSecretsManagerAccessPolicy }: DbMigrationScriptProps
+  ) {
     super(scope, id);
 
     const app = App.of(scope) as App;
@@ -50,6 +56,9 @@ export class DbMigrationScript extends Construct {
         DB_SECRET_ARN: dbSecretsArn,
       },
     });
+
+    // grant access to secrets manager
+    migrationFunction.addToRolePolicy(dbSecretsManagerAccessPolicy);
 
     // script to run migrations for us during deployment
     new Script(this, 'MigrationScript', {
