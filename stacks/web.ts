@@ -3,9 +3,12 @@ import { Dns } from './dns';
 import { sstEnv } from './env';
 import { Database, makeDatabaseUrl } from './database';
 import { BullmqElastiCache } from './bullmq-elasticache';
+import { Network } from './network';
+import { SubnetType } from 'aws-cdk-lib/aws-ec2';
 
 export async function Web({ stack, app }: StackContext) {
   const dns = use(Dns);
+  const { vpc } = use(Network);
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
   const { bullmqElastiCache, elastiCacheAccessPolicy } = use(BullmqElastiCache);
 
@@ -25,6 +28,14 @@ export async function Web({ stack, app }: StackContext) {
     cdk: {
       distribution: {
         comment: `NextJS distribution for ${app.name} (${app.stage})`,
+      },
+      server: {
+        vpc,
+        vpcSubnets: vpc.selectSubnets({ subnetType: SubnetType.PRIVATE_WITH_EGRESS }),
+      },
+      revalidation: {
+        vpc,
+        vpcSubnets: vpc.selectSubnets({ subnetType: SubnetType.PRIVATE_WITH_EGRESS }),
       },
     },
     memorySize: 1024,
@@ -46,7 +57,6 @@ export async function Web({ stack, app }: StackContext) {
 
   stack.addOutputs({
     WebURL: frontendSite.customDomainUrl || frontendSite.url || 'unknown',
-    DatabaseUrl: makeDatabaseUrl(),
   });
 
   return { frontendSite };

@@ -65,12 +65,51 @@ export const env = createEnv({
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
 
-    BULLMQ_REDIS_PATH: z.string(),
+    BULLMQ_REDIS_PATH: z.unknown().transform((s) => {
+      let sFormatted = s;
 
+      if (
+        // Check for non-substituted DATABASE_URL, this occurs when building on local machine
+        typeof s === 'string' &&
+        s.includes('{')
+      ) {
+        sFormatted = undefined;
+      }
+
+      if (!sFormatted) {
+        sFormatted = '127.0.0.1';
+      }
+
+      if (typeof sFormatted !== 'string') {
+        throw new Error('BULLMQ_REDIS_PATH is not a string');
+      }
+
+      return sFormatted;
+    }),
     BULLMQ_REDIS_PORT: z
-      .string()
-      .default('6379')
-      .transform((s) => parseInt(s, 10)),
+      .unknown()
+      .transform((s) => {
+        let sFormatted = s;
+
+        if (
+          // Check for non-substituted DATABASE_URL, this occurs when building on local machine
+          typeof s === 'string' &&
+          s.includes('{')
+        ) {
+          sFormatted = undefined;
+        }
+
+        if (!sFormatted) {
+          sFormatted = '6379';
+        }
+
+        if (typeof sFormatted !== 'string') {
+          throw new Error('BULLMQ_REDIS_PORT is not a string');
+        }
+
+        return parseInt(sFormatted, 10);
+      })
+      .pipe(z.number()),
 
     BULL_BOARD_PORT: z
       .string()

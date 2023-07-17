@@ -13,6 +13,8 @@ interface DbMigrationScriptProps {
 }
 
 export class DbMigrationScript extends Construct {
+  public readonly functionName: string;
+
   constructor(
     scope: Construct,
     id: string,
@@ -56,6 +58,8 @@ export class DbMigrationScript extends Construct {
         DB_SECRET_ARN: dbSecretsArn,
       },
     });
+
+    this.functionName = migrationFunction.functionName;
 
     // grant access to secrets manager
     migrationFunction.addToRolePolicy(dbSecretsManagerAccessPolicy);

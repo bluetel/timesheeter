@@ -5,13 +5,11 @@ import { RemovalPolicy } from 'aws-cdk-lib';
 import { Network } from './network';
 import { sstEnv } from './env';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
-import * as cdk from 'aws-cdk-lib';
 
 export function Database({ stack, app }: StackContext) {
   const net = use(Network);
 
-  const defaultDatabaseName = sstEnv.APP_NAME;
+  const databaseName = sstEnv.APP_NAME;
 
   const databaseSecurityGroup = new ec2.SecurityGroup(stack, 'database-security-group', {
     vpc: net.vpc,
@@ -30,7 +28,6 @@ export function Database({ stack, app }: StackContext) {
       version: rds.PostgresEngineVersion.VER_15,
     }),
     vpc: net.vpc,
-    subnetGroup: net.vpc.selectSubnets({ subnetType: ec2.SubnetType.PUBLIC }),
     securityGroups: [databaseSecurityGroup],
     instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE4_GRAVITON, ec2.InstanceSize.MICRO),
     multiAz: false,
@@ -38,12 +35,13 @@ export function Database({ stack, app }: StackContext) {
     storageType: rds.StorageType.GP2,
     deletionProtection: app.stage === 'production',
     removalPolicy: app.stage === 'production' ? RemovalPolicy.SNAPSHOT : RemovalPolicy.DESTROY,
+    databaseName,
   });
 
   // output the address of the database
   stack.addOutputs({
     DatabaseAddress: { value: database.dbInstanceEndpointAddress },
-    DatabaseName: { value: defaultDatabaseName },
+    DatabaseName: { value: databaseName },
   });
 
   database.connections.allowDefaultPortFrom(net.defaultLambdaSecurityGroup, 'Allow access from lambda functions');
@@ -55,14 +53,14 @@ export function Database({ stack, app }: StackContext) {
   }
 
   const config = [
-    new Config.Parameter(stack, 'DATABASE_NAME', { value: defaultDatabaseName }),
+    new Config.Parameter(stack, 'DATABASE_NAME', { value: databaseName }),
     new Config.Parameter(stack, 'DB_ARN', { value: database.instanceArn }),
     new Config.Parameter(stack, 'DB_SECRET_ARN', { value: database.secret.secretArn }),
     new Config.Parameter(stack, 'PRISMA_CONNECTION_LIMIT', { value: prismaConnectionLimit.toString() ?? '' }),
   ];
 
   stack.addOutputs({
-    DBName: { value: defaultDatabaseName, description: 'Name of the default database' },
+    DBName: { value: databaseName, description: 'Name of the default database' },
     GetSecretsCommand: {
       value: `aws secretsmanager get-secret-value --region ${stack.region} --secret-id ${database.secret.secretArn} --query SecretString --output text`,
       description: 'Command to get DB connection info and credentials',
@@ -97,7 +95,7 @@ export function Database({ stack, app }: StackContext) {
   return {
     database,
     databaseAccessPolicy,
-    defaultDatabaseName,
+    databaseName,
     secretsManagerAccessPolicy,
     secretArn: database.secret.secretArn,
   };
@@ -109,10 +107,10 @@ export function Database({ stack, app }: StackContext) {
 export function makeDatabaseUrl() {
   const prismaConnectionLimit = process.env.PRISMA_CONNECTION_LIMIT ?? 5;
 
-  const { database, defaultDatabaseName } = use(Database);
+  const { database, databaseName } = use(Database);
 
   const dbUsername = database.secret?.secretValueFromJson('username');
   const dbPassword = database.secret?.secretValueFromJson('password');
 
-  return `postgresql://${dbUsername}:${dbPassword}@${database.dbInstanceEndpointAddress}:${database.dbInstanceEndpointPort}/${defaultDatabaseName}?connection_limit=${prismaConnectionLimit}`;
+  return `postgresql://${dbUsername}:${dbPassword}@${database.dbInstanceEndpointAddress}:${database.dbInstanceEndpointPort}/${databaseName}?connection_limit=${prismaConnectionLimit}`;
 }
