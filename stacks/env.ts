@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 // SST Build Environment Variables, a lot of these will also be the NextJS app
 const sstEnvSchema = z.object({
+  IS_LOCAL: z.boolean().default(false),
   APP_NAME: z.string().default('timesheeter'),
-  NODE_ENV: z.enum(['development', 'test', 'production']),
   NEXTAUTH_SECRET: process.env.NODE_ENV === 'production' ? z.string().min(1) : z.string().min(1),
   NEXTAUTH_URL: z.preprocess(
     // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
@@ -16,6 +16,12 @@ const sstEnvSchema = z.object({
 
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
+
+  BULL_BOARD_PORT: z
+    .string()
+    .default('9999')
+    .transform((s) => parseInt(s, 10))
+    .pipe(z.number()),
 });
 
 export const sstEnv = sstEnvSchema.parse(process.env);

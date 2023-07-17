@@ -1,4 +1,4 @@
-import { prisma, ParsedIntegration } from '../@timesheeter/web';
+import { prisma, ParsedIntegration } from '@timesheeter/web';
 import { ThrottledJiraClient } from './throttled-client';
 
 type JiraIntegration = ParsedIntegration & {

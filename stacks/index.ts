@@ -7,7 +7,9 @@ import { Dns } from './dns';
 import { Layers } from './layers';
 import { Network } from './network';
 import { Web } from './web';
-import { ElastiCache } from './elastiCache';
+import { BullmqElastiCache } from './bullmq-elasticache';
+import { Ecs } from './ecs';
+import { Backhouse } from './backhouse';
 
 // deal with dynamic imports of node built-ins (e.g. "crypto")
 // from https://github.com/evanw/esbuild/pull/2067#issuecomment-1073039746
@@ -28,8 +30,10 @@ export default function main(app: sst.App) {
     .stack(Dns)
     .stack(Layers)
     .stack(Database)
-    .stack(ElastiCache)
+    .stack(BullmqElastiCache)
     .stack(BastionHost)
     .stack(DatabaseMigrations)
+    // .stack(Ecs)
+    // .stack(Backhouse)
     .stack(Web);
 }

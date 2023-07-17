@@ -42,3 +42,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
+.sst*
+
+# Recusively exclude node_modules
+**/node_modules
+**/dist
+**/build
+**/out
+**/.sst
+**/.next

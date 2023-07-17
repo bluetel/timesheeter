@@ -27,7 +27,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx"
-    // "**/*.cjs",
+, "scripts/run-migrations.js"    // "**/*.cjs",
     // "**/*.mjs"
   ],
   "exclude": ["../../node_modules", "**/*.cjs", "**/*.mjs"]

@@ -1,23 +1,25 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "resolveJsonModule": true,
-        "target": "es2021",
-        "outDir": "./dist",
-        "baseUrl": ".",
-        "experimentalDecorators": true,
-        "strict": true,
-        // allow es modules to be imported in typescript
-        "allowSyntheticDefaultImports": true,
-        "esModuleInterop": true,
-        // aallow outside modules to be imported in typescript
-        "isolatedModules": false,
-        "skipLibCheck": true,
-        "paths": {
-            "@timesheeter/backhouse/*": ["./src/*"]
-        }
-    },
-    "include": ["test/**/*.spec.ts", "src/**/*.ts"],
-    "exclude": ["node_modules"]
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "target": "es2021",
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "experimentalDecorators": true,
+    "strict": true,
+    // allow es modules to be imported in typescript
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    // aallow outside modules to be imported in typescript
+    "isolatedModules": false,
+    "skipLibCheck": true,
+    "paths": {
+      "@timesheeter/backhouse/*": ["./src/*"],
+      "@timesheeter/web/*": ["../web/src/*"],
+      "@timesheeter/web": ["../web/src/index.ts"]
+    }
+  },
+  "include": ["test/**/*.spec.ts", "src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

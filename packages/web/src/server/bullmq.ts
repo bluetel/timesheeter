@@ -2,7 +2,8 @@ import { type ConnectionOptions, Queue } from 'bullmq';
 import { env } from '@timesheeter/web/env';
 
 export const connectionConfig = {
-  path: env.BULLMQ_REDIS_PATH,
+  host: env.BULLMQ_REDIS_PATH,
+  port: env.BULLMQ_REDIS_PORT,
 } as const satisfies ConnectionOptions;
 
 export type IntegrationJob = {

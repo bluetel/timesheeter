@@ -1,12 +1,12 @@
 import { Config, StackContext, use } from 'sst/constructs';
 import * as elasticache from 'aws-cdk-lib/aws-elasticache';
-import { Network } from 'stacks/network';
+import { Network } from './network';
 import { sstEnv } from './env';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
-export function ElastiCache({ stack, app }: StackContext) {
-  const elastiCacheName = `${sstEnv.APP_NAME}-bullmq`;
+export function BullmqElastiCache({ stack, app }: StackContext) {
+  const elastiCacheName = `${sstEnv.APP_NAME}-${app.stage}-elasticache-bullmq`;
   const net = use(Network);
 
   const elastiCacheSubnetGroup = new elasticache.CfnSubnetGroup(stack, 'bullmq-subnet-group', {
@@ -20,7 +20,13 @@ export function ElastiCache({ stack, app }: StackContext) {
     allowAllOutbound: true,
   });
 
-  const elastiCache = new elasticache.CfnCacheCluster(stack, 'bullmq', {
+  elasticCacheSecurityGroup.addIngressRule(
+    ec2.Peer.ipv4(net.vpc.vpcCidrBlock),
+    ec2.Port.allTraffic(),
+    'allow all traffic from vpc'
+  );
+
+  const bullmqElastiCache = new elasticache.CfnCacheCluster(stack, 'bullmq', {
     clusterName: elastiCacheName,
     cacheSubnetGroupName: elastiCacheSubnetGroup.ref,
     vpcSecurityGroupIds: [elasticCacheSecurityGroup.securityGroupId],
@@ -36,13 +42,13 @@ export function ElastiCache({ stack, app }: StackContext) {
 
   // output the address of the database
   stack.addOutputs({
-    ElastiCacheAddress: { value: elastiCache.attrRedisEndpointAddress },
+    ElastiCacheAddress: { value: bullmqElastiCache.attrRedisEndpointAddress },
     ElastiCacheName: { value: elastiCacheName },
   });
 
   const config = [
     new Config.Parameter(stack, 'BULLMQ_REDIS_PATH', {
-      value: elastiCache.attrRedisEndpointAddress,
+      value: bullmqElastiCache.attrRedisEndpointAddress,
     }),
   ];
 
@@ -51,17 +57,21 @@ export function ElastiCache({ stack, app }: StackContext) {
   // Redis connection for local dev can be overridden
   // https://docs.sst.dev/environment-variables#is_local
   const localBullmqRedisPath = process.env['BULLMQ_REDIS_PATH'];
-  if (process.env.IS_LOCAL && localBullmqRedisPath) {
+  if (sstEnv.IS_LOCAL && localBullmqRedisPath) {
     app.addDefaultFunctionEnv({
       ['BULLMQ_REDIS_PATH']: localBullmqRedisPath,
     });
   }
 
+  const elasticacheArn = `arn:aws:elasticache:${stack.region}:${stack.account}:cluster:${elastiCacheName}`;
+
   const elastiCacheAccessPolicy = new iam.PolicyStatement({
     effect: iam.Effect.ALLOW,
-    actions: ['elasticache:DescribeCacheClusters'],
-    resources: [elastiCache.ref],
+    actions: ['*'],
+    resources: [elasticacheArn],
   });
 
-  return { elastiCache, elastiCacheAccessPolicy };
+  app.addDefaultFunctionPermissions([elastiCacheAccessPolicy]);
+
+  return { bullmqElastiCache, elastiCacheAccessPolicy };
 }

@@ -1,4 +1,4 @@
-import { ukDateRegex } from '../@timesheeter/web';
+import { ukDateRegex } from '@timesheeter/web';
 import axios from 'axios';
 import { z } from 'zod';
 

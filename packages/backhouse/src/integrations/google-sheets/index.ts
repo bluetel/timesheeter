@@ -1,4 +1,4 @@
-import { ParsedIntegration } from '../@timesheeter/web';
+import { ParsedIntegration } from '@timesheeter/web';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { applyTransforms, filterExistingSheets, getSheetStart } from './sheets';
 import { getDatabaseEntries, getDatabaseEntriesStartDate } from './database-entries';

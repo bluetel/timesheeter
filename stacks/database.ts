@@ -2,7 +2,7 @@ import { Config, RDS, StackContext, use } from 'sst/constructs';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { RemovalPolicy } from 'aws-cdk-lib';
-import { Network } from 'stacks/network';
+import { Network } from './network';
 import { sstEnv } from './env';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
@@ -58,7 +58,7 @@ export function Database({ stack, app }: StackContext) {
   // DB connection for local dev can be overridden
   // https://docs.sst.dev/environment-variables#is_local
   const localDatabaseUrl = process.env['DATABASE_URL'];
-  if (process.env.IS_LOCAL && localDatabaseUrl) {
+  if (sstEnv.IS_LOCAL && localDatabaseUrl) {
     app.addDefaultFunctionEnv({
       ['DATABASE_URL']: localDatabaseUrl,
     });
@@ -75,6 +75,8 @@ export function Database({ stack, app }: StackContext) {
     actions: ['secretsmanager:GetSecretValue'],
     resources: [database.secret.secretArn],
   });
+
+  app.addDefaultFunctionPermissions([databaseAccessPolicy, secretsManagerAccessPolicy]);
 
   return { database, databaseAccessPolicy, defaultDatabaseName, secretsManagerAccessPolicy };
 }

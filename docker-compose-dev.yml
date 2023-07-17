@@ -18,8 +18,8 @@ services:
     container_name: local-redis
     image: docker.io/bitnami/redis:latest
     environment:
-      - REDIS_PASSWORD=${BULLMQ_REDIS_PASSWORD}
       - REDIS_PORT_NUMBER=${BULLMQ_REDIS_PORT}
+      - ALLOW_EMPTY_PASSWORD=yes
     volumes:
       - 'bullmq-redis:/bitnami/redis/data'
     restart: always

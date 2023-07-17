@@ -7,9 +7,9 @@ import {
   ParsedProject,
   parseProject,
   getDefaultProjectConfig,
-} from '../@timesheeter/web';
+} from '@timesheeter/web';
 import { getAxiosClient, getReportDataWorkspace, getWorkspaces } from './api';
-import { matchTaskRegex } from '../@timesheeter/web';
+import { matchTaskRegex } from '@timesheeter/web';
 
 type TogglIntegration = ParsedIntegration & {
   config: {

@@ -1,4 +1,4 @@
-import { prisma } from '../@timesheeter/web';
+import { prisma } from '@timesheeter/web';
 
 export const getDatabaseEntries = async ({
   fromStartDate,
