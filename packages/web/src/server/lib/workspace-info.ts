@@ -1,7 +1,7 @@
-import { type GetServerSidePropsContext } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@timesheeter/web/server/auth";
-import { prisma } from "@timesheeter/web/server/db";
+import { type GetServerSidePropsContext } from 'next';
+import { getServerSession } from 'next-auth';
+import { getAuthOptions } from '@timesheeter/web/server/auth';
+import { getPrismaClient } from '@timesheeter/web/server/db';
 
 export type WorkspaceInfo = {
   user: {
@@ -38,21 +38,23 @@ export const getWorkspaceInfo = async ({
   res,
   params,
 }: GetServerSidePropsContext): Promise<WorkspaceInfoResult> => {
-  const session = await getServerSession(req, res, authOptions);
+  const prisma = await getPrismaClient();
+
+  const session = await getServerSession(req, res, await getAuthOptions());
 
   if (!session) {
     return {
       redirect: {
-        destination: "/login",
+        destination: '/login',
         permanent: false,
       },
     };
   }
 
-  if (!params?.workspaceId || typeof params.workspaceId !== "string") {
+  if (!params?.workspaceId || typeof params.workspaceId !== 'string') {
     return {
       redirect: {
-        destination: "/find-workspace",
+        destination: '/find-workspace',
         permanent: false,
       },
     };
@@ -74,7 +76,7 @@ export const getWorkspaceInfo = async ({
   if (!membershipQuery) {
     return {
       redirect: {
-        destination: "/find-workspace",
+        destination: '/find-workspace',
         permanent: false,
       },
     };
@@ -120,7 +122,7 @@ export const getWorkspaceInfoDiscrete = async (
 ): Promise<WorkspaceInfoResultDiscrete> => {
   const workspaceInfo = await getWorkspaceInfo(context);
 
-  if ("redirect" in workspaceInfo) {
+  if ('redirect' in workspaceInfo) {
     return {
       ...workspaceInfo,
       props: null,

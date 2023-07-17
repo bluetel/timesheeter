@@ -4,10 +4,14 @@ import { sstEnv } from './env';
 import { Database, makeDatabaseUrl } from './database';
 import { BullmqElastiCache } from './bullmq-elasticache';
 
-export function Web({ stack, app }: StackContext) {
+export async function Web({ stack, app }: StackContext) {
   const dns = use(Dns);
-  const { databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
+  const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
   const { bullmqElastiCache, elastiCacheAccessPolicy } = use(BullmqElastiCache);
+
+  if (!database.secret) {
+    throw new Error('Database secret not found');
+  }
 
   // docs: https://docs.serverless-stack.com/constructs/NextjsSite
   const frontendSite = new NextjsSite(stack, 'Web', {
@@ -34,6 +38,7 @@ export function Web({ stack, app }: StackContext) {
       NEXT_PUBLIC_REGION: stack.region,
       BULLMQ_REDIS_PATH: bullmqElastiCache.attrRedisEndpointAddress,
       BULLMQ_REDIS_PORT: bullmqElastiCache.attrRedisEndpointPort,
+      DB_SECRET_ARN: database.secret.secretArn,
     },
   });
 
@@ -41,6 +46,7 @@ export function Web({ stack, app }: StackContext) {
 
   stack.addOutputs({
     WebURL: frontendSite.customDomainUrl || frontendSite.url || 'unknown',
+    DatabaseUrl: makeDatabaseUrl(),
   });
 
   return { frontendSite };

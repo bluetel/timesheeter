@@ -5,17 +5,33 @@ import { RemovalPolicy } from 'aws-cdk-lib';
 import { Network } from './network';
 import { sstEnv } from './env';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as cdk from 'aws-cdk-lib';
 
 export function Database({ stack, app }: StackContext) {
   const net = use(Network);
 
   const defaultDatabaseName = sstEnv.APP_NAME;
 
+  const databaseSecurityGroup = new ec2.SecurityGroup(stack, 'database-security-group', {
+    vpc: net.vpc,
+    description: 'database security group',
+    allowAllOutbound: true,
+  });
+
+  databaseSecurityGroup.addIngressRule(
+    ec2.Peer.ipv4(net.vpc.vpcCidrBlock),
+    ec2.Port.allTraffic(),
+    'allow all traffic from vpc'
+  );
+
   const database = new rds.DatabaseInstance(stack, 'main', {
     engine: rds.DatabaseInstanceEngine.postgres({
       version: rds.PostgresEngineVersion.VER_15,
     }),
     vpc: net.vpc,
+    subnetGroup: net.vpc.selectSubnets({ subnetType: ec2.SubnetType.PUBLIC }),
+    securityGroups: [databaseSecurityGroup],
     instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE4_GRAVITON, ec2.InstanceSize.MICRO),
     multiAz: false,
     allocatedStorage: 10,
@@ -66,7 +82,7 @@ export function Database({ stack, app }: StackContext) {
 
   const databaseAccessPolicy = new iam.PolicyStatement({
     effect: iam.Effect.ALLOW,
-    actions: ['rds-db:connect'],
+    actions: ['rds-db:*'],
     resources: [database.instanceArn],
   });
 
@@ -78,19 +94,25 @@ export function Database({ stack, app }: StackContext) {
 
   app.addDefaultFunctionPermissions([databaseAccessPolicy, secretsManagerAccessPolicy]);
 
-  return { database, databaseAccessPolicy, defaultDatabaseName, secretsManagerAccessPolicy };
+  return {
+    database,
+    databaseAccessPolicy,
+    defaultDatabaseName,
+    secretsManagerAccessPolicy,
+    secretArn: database.secret.secretArn,
+  };
 }
 
 /**
  * Generate a database connection string (DSN).
  */
 export function makeDatabaseUrl() {
-  const prismaConnectionLimit = process.env.PRISMA_CONNECTION_LIMIT || 5;
+  const prismaConnectionLimit = process.env.PRISMA_CONNECTION_LIMIT ?? 5;
 
-  const rds = use(Database);
-  const { database, defaultDatabaseName } = rds;
+  const { database, defaultDatabaseName } = use(Database);
+
   const dbUsername = database.secret?.secretValueFromJson('username');
   const dbPassword = database.secret?.secretValueFromJson('password');
 
-  return `postgresql://${dbUsername}:${dbPassword}@${database.dbInstanceEndpointAddress}/${defaultDatabaseName}?connection_limit=${prismaConnectionLimit}`;
+  return `postgresql://${dbUsername}:${dbPassword}@${database.dbInstanceEndpointAddress}:${database.dbInstanceEndpointPort}/${defaultDatabaseName}?connection_limit=${prismaConnectionLimit}`;
 }

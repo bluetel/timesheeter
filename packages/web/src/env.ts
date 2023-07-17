@@ -24,9 +24,9 @@ export const env = createEnv({
       .transform((s) => {
         let sFormatted = s;
 
-        // Check for non-substituted DATABASE_URL
         if (
           s === 'postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@${APP_DB_HOST}:${APP_DB_PORT}/${APP_DB_NAME}' ||
+          // Check for non-substituted DATABASE_URL, this occurs when building on local machine
           (typeof s === 'string' && s.includes('{'))
         ) {
           // need to reconstruct the database url from individual components

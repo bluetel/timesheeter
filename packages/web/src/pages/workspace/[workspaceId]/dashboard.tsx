@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { StartingPointsEmptyState } from "@timesheeter/web/components/ui/StartingPointsEmptyState";
 import { WorkspaceLayout } from "@timesheeter/web/components/workspace/WorkspaceLayout";
 import { INTEGRATIONS_HELP_TEXT } from "@timesheeter/web/lib/workspace/integrations";
-import { prisma } from "@timesheeter/web/server/db";
+import { getPrismaClient } from "@timesheeter/web/server/db";
 import { getWorkspaceInfo } from "@timesheeter/web/server/lib/workspace-info";
 import {
   HOLIDAYS_HELP_TEXT,
@@ -23,6 +23,8 @@ import {
 export const getServerSideProps = async (
   context: GetServerSidePropsContext
 ) => {
+  const prisma = await getPrismaClient();
+
   const workspaceInfo = await getWorkspaceInfo(context);
 
   if ("redirect" in workspaceInfo) {

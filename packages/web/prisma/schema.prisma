@@ -3,6 +3,7 @@
 
 generator client {
   provider      = "prisma-client-js"
+  // Need the second for AWS ARM architecture
   binaryTargets = ["native", "linux-arm64-openssl-1.0.x"]
 }
 

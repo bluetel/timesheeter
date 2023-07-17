@@ -1,13 +1,14 @@
 import type { GetServerSidePropsContext } from "next";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@timesheeter/web/server/auth";
-import { prisma } from "@timesheeter/web/server/db";
+import { getAuthOptions } from "@timesheeter/web/server/auth";
+import { getPrismaClient } from "@timesheeter/web/server/db";
 
 export const getServerSideProps = async ({
   req,
   res,
 }: GetServerSidePropsContext) => {
-  const session = await getServerSession(req, res, authOptions);
+  const prisma = await getPrismaClient();
+  const session = await getServerSession(req, res, await getAuthOptions());
 
   if (!session) {
     return {

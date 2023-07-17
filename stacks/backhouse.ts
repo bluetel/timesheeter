@@ -9,12 +9,16 @@ import { Ecs } from './ecs';
 import { Network } from './network';
 import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
 
-export const Backhouse = ({ stack }: StackContext) => {
+export const Backhouse = async ({ stack }: StackContext) => {
   const { cluster } = use(Ecs);
   const net = use(Network);
 
-  const { databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
+  const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
   const { elastiCacheAccessPolicy, bullmqElastiCache } = use(BullmqElastiCache);
+
+  if (!database.secret) {
+    throw new Error('Database secret not found');
+  }
 
   const taskRole = new iam.Role(stack, 'BackhouseTaskRole', {
     assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
@@ -48,6 +52,8 @@ export const Backhouse = ({ stack }: StackContext) => {
     },
   });
 
+  const rawDatabaseUrl = await makeDatabaseUrl();
+
   // A tarballed image exists at dist/backhouse.tar.gz
   taskDefinition.addContainer('BackhouseContainer', {
     image: ecs.ContainerImage.fromDockerImageAsset(dockerImageAsset),
@@ -63,7 +69,7 @@ export const Backhouse = ({ stack }: StackContext) => {
       },
     ],
     environment: {
-      DATABASE_URL: makeDatabaseUrl(),
+      DATABASE_URL: rawDatabaseUrl,
       NEXTAUTH_URL: sstEnv.NEXTAUTH_URL,
       NEXTAUTH_SECRET: sstEnv.NEXTAUTH_SECRET,
       CONFIG_SECRET_KEY: sstEnv.CONFIG_SECRET_KEY,
@@ -72,6 +78,7 @@ export const Backhouse = ({ stack }: StackContext) => {
       NEXT_PUBLIC_REGION: stack.region,
       BULLMQ_REDIS_PATH: bullmqElastiCache.attrRedisEndpointAddress,
       BULLMQ_REDIS_PORT: bullmqElastiCache.attrRedisEndpointPort,
+      DB_SECRET_ARN: database.secret.secretArn,
     },
   });
 
