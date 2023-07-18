@@ -18,7 +18,8 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
-      "@timesheeter/web/*": ["./src/*"]
+      "@timesheeter/web/*": ["./src/*"],
+      "@timesheeter/web": ["./src/index.ts"]
     },
     "outDir": "./dist"
   },
@@ -26,8 +27,8 @@
     "../../.eslintrc.cjs",
     "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx"
-, "scripts/run-migrations.js"    // "**/*.cjs",
+    "**/*.tsx",
+    "scripts/run-migrations.js" // "**/*.cjs",
     // "**/*.mjs"
   ],
   "exclude": ["../../node_modules", "**/*.cjs", "**/*.mjs"]

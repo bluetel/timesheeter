@@ -1,4 +1,4 @@
-import { prisma, ParsedIntegration } from '@timesheeter/web';
+import { getPrismaClient, ParsedIntegration } from '@timesheeter/web';
 import { ThrottledJiraClient } from './throttled-client';
 
 type JiraIntegration = ParsedIntegration & {
@@ -8,6 +8,8 @@ type JiraIntegration = ParsedIntegration & {
 };
 
 export const handleJiraIntegration = async ({ integration }: { integration: JiraIntegration }) => {
+  const prisma = await getPrismaClient();
+
   const jiraClient = new ThrottledJiraClient({
     protocol: 'https',
     host: integration.config.host,

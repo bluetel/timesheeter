@@ -7,18 +7,18 @@ import { sstEnv } from './env';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
 export function Database({ stack, app }: StackContext) {
-  const net = use(Network);
+  const { defaultLambdaSecurityGroup, vpc } = use(Network);
 
   const databaseName = sstEnv.APP_NAME;
 
   const databaseSecurityGroup = new ec2.SecurityGroup(stack, 'database-security-group', {
-    vpc: net.vpc,
+    vpc,
     description: 'database security group',
     allowAllOutbound: true,
   });
 
   databaseSecurityGroup.addIngressRule(
-    ec2.Peer.ipv4(net.vpc.vpcCidrBlock),
+    ec2.Peer.ipv4(vpc.vpcCidrBlock),
     ec2.Port.allTraffic(),
     'allow all traffic from vpc'
   );
@@ -27,7 +27,7 @@ export function Database({ stack, app }: StackContext) {
     engine: rds.DatabaseInstanceEngine.postgres({
       version: rds.PostgresEngineVersion.VER_15,
     }),
-    vpc: net.vpc,
+    vpc,
     securityGroups: [databaseSecurityGroup],
     instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE4_GRAVITON, ec2.InstanceSize.MICRO),
     multiAz: false,
@@ -44,7 +44,7 @@ export function Database({ stack, app }: StackContext) {
     DatabaseName: { value: databaseName },
   });
 
-  database.connections.allowDefaultPortFrom(net.defaultLambdaSecurityGroup, 'Allow access from lambda functions');
+  database.connections.allowDefaultPortFrom(defaultLambdaSecurityGroup, 'Allow access from lambda functions');
 
   const prismaConnectionLimit = process.env.PRISMA_CONNECTION_LIMIT || 5;
 

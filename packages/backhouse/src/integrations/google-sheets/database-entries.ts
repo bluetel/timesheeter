@@ -1,4 +1,4 @@
-import { prisma } from '@timesheeter/web';
+import { getPrismaClient } from '@timesheeter/web';
 
 export const getDatabaseEntries = async ({
   fromStartDate,
@@ -7,6 +7,8 @@ export const getDatabaseEntries = async ({
   fromStartDate: Date;
   toStartDate: Date;
 }) => {
+  const prisma = await getPrismaClient();
+
   const holidays = await prisma.holiday.findMany({
     // Holidays have a start and an end date, the start date may be before the from date and the end date may be after the to date
     // so we need to check if the start date is before the to date and the end date is after the from date

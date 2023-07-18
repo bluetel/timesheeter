@@ -33,7 +33,7 @@ export default function main(app: sst.App) {
     .stack(BullmqElastiCache)
     .stack(BastionHost)
     .stack(DatabaseMigrations)
-    // .stack(Ecs)
-    // .stack(Backhouse)
+    .stack(Ecs)
+    .stack(Backhouse)
     .stack(Web);
 }

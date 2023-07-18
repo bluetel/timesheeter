@@ -6,20 +6,21 @@ import * as cdk from 'aws-cdk-lib';
 import * as autoscaling from 'aws-cdk-lib/aws-autoscaling';
 
 export const Ecs = ({ stack }: StackContext) => {
-  const net = use(Network);
+  const { vpc, defaultLambdaSecurityGroup } = use(Network);
 
   const cluster = new ecs.Cluster(stack, 'TimesheeterEcsCluster', {
-    vpc: net.vpc,
+    vpc: vpc,
     containerInsights: true,
   });
 
   const asg = new autoscaling.AutoScalingGroup(stack, 'TimesheeterEcsASG', {
-    vpc: net.vpc,
+    vpc,
+    vpcSubnets: vpc.selectSubnets({ subnetType: ec2.SubnetType.PUBLIC }),
     instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.NANO),
     minCapacity: 1,
     maxCapacity: 2,
     machineImage: ecs.EcsOptimizedImage.amazonLinux2(),
-    securityGroup: net.defaultLambdaSecurityGroup,
+    securityGroup: defaultLambdaSecurityGroup,
     desiredCapacity: 1,
     healthCheck: autoscaling.HealthCheck.ec2({ grace: cdk.Duration.minutes(5) }),
   });

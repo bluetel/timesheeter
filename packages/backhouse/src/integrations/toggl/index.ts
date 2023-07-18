@@ -1,5 +1,5 @@
 import {
-  prisma,
+  getPrismaClient,
   ParsedIntegration,
   encrypt,
   getDefaultTimesheetEntryConfig,
@@ -18,6 +18,8 @@ type TogglIntegration = ParsedIntegration & {
 };
 
 export const handleTogglIntegration = async ({ integration }: { integration: TogglIntegration }) => {
+  const prisma = await getPrismaClient();
+
   const reportData = await getReportData({ integration });
 
   const projects = await prisma.project
@@ -111,6 +113,8 @@ const getOrCreateTask = async ({
   description: string;
   projects: ParsedProject[];
 }) => {
+  const prisma = await getPrismaClient();
+
   const matchResult = matchTaskRegex(description);
 
   if (matchResult.variant === 'with-task') {

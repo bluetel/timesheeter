@@ -4,7 +4,7 @@ import { Database } from './database';
 import { DbMigrationScript } from './resources/migrationScript';
 
 export function DatabaseMigrations({ stack, app }: StackContext) {
-  const net = use(Network);
+  const { vpc } = use(Network);
   const { database, secretsManagerAccessPolicy } = use(Database);
 
   if (!database.secret) {
@@ -13,7 +13,7 @@ export function DatabaseMigrations({ stack, app }: StackContext) {
 
   // run migrations
   const migrationScript = new DbMigrationScript(stack, 'MigrationScript', {
-    vpc: net.vpc,
+    vpc,
     dbSecretsArn: database.secret.secretArn,
     dbSecretsManagerAccessPolicy: secretsManagerAccessPolicy,
   });

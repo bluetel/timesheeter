@@ -8,7 +8,7 @@ import { WorkspaceLayout } from "@timesheeter/web/components/workspace/Workspace
 import { appRouter } from "@timesheeter/web/server/api/root";
 import { createTRPCContext } from "@timesheeter/web/server/api/trpc";
 import { type RouterOutputs, api } from "@timesheeter/web/utils/api";
-import { getWorkspaceInfoDiscrete } from "@timesheeter/web/server/lib/workspace-info";
+import { type WorkspaceInfo, getWorkspaceInfoDiscrete } from "@timesheeter/web/server/lib/workspace-info";
 import { useEffect, useMemo, useState } from "react";
 import {
   TIMESHEET_ENTRIES_HELP_TEXT,
@@ -21,9 +21,23 @@ import { TimesheetEntryPanel } from "@timesheeter/web/components/workspace/times
 import { EditTimesheetEntrySideOver } from "@timesheeter/web/components/workspace/timesheet-entries/EditTimesheetEntrySideOver";
 import { TaskIcon } from "@timesheeter/web/lib";
 
+type GetServerSidePropsResult = {
+  redirect: {
+    destination: string;
+    permanent: boolean;
+  }
+} | {
+  props: {
+    workspaceInfo: WorkspaceInfo
+    trpcState: unknown
+  };
+} | {
+  notFound: true
+}
+
 export const getServerSideProps = async (
   context: GetServerSidePropsContext
-) => {
+): Promise<GetServerSidePropsResult> => {
   const { redirect, props: workspaceInfo } = await getWorkspaceInfoDiscrete(
     context
   );

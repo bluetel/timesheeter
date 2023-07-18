@@ -1,4 +1,4 @@
-import { type IntegrationJob, parseIntegration, prisma } from '@timesheeter/web';
+import { type IntegrationJob, parseIntegration, getPrismaClient } from '@timesheeter/web';
 import { type Job } from 'bullmq';
 import { handleTogglIntegration } from './toggl';
 import { handleJiraIntegration } from './jira';
@@ -8,6 +8,8 @@ export const handleIntegrationsJob = async (job: Job<IntegrationJob>) => {
   const { integrationId } = job.data;
 
   console.log('Processing integration', integrationId);
+
+  const prisma = await getPrismaClient();
 
   const integration = await prisma.integration
     .findUnique({

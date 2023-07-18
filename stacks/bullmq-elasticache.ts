@@ -7,21 +7,21 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 
 export function BullmqElastiCache({ stack, app }: StackContext) {
   const elastiCacheName = `${sstEnv.APP_NAME}-${app.stage}-elasticache-bullmq`;
-  const net = use(Network);
+  const { vpc } = use(Network);
 
   const elastiCacheSubnetGroup = new elasticache.CfnSubnetGroup(stack, 'bullmq-subnet-group', {
     description: 'bullmq subnet group',
-    subnetIds: net.vpc.privateSubnets.map((subnet) => subnet.subnetId),
+    subnetIds: vpc.privateSubnets.map((subnet) => subnet.subnetId),
   });
 
   const elasticCacheSecurityGroup = new ec2.SecurityGroup(stack, 'bullmq-security-group', {
-    vpc: net.vpc,
+    vpc,
     description: 'bullmq security group',
     allowAllOutbound: true,
   });
 
   elasticCacheSecurityGroup.addIngressRule(
-    ec2.Peer.ipv4(net.vpc.vpcCidrBlock),
+    ec2.Peer.ipv4(vpc.vpcCidrBlock),
     ec2.Port.allTraffic(),
     'allow all traffic from vpc'
   );

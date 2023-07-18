@@ -9,9 +9,9 @@ import { Ecs } from './ecs';
 import { Network } from './network';
 import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
 
-export const Backhouse = async ({ stack }: StackContext) => {
+export const Backhouse = ({ stack }: StackContext) => {
   const { cluster } = use(Ecs);
-  const net = use(Network);
+  const { defaultLambdaSecurityGroup, vpc } = use(Network);
 
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
   const { elastiCacheAccessPolicy, bullmqElastiCache } = use(BullmqElastiCache);
@@ -40,7 +40,6 @@ export const Backhouse = async ({ stack }: StackContext) => {
 
   const taskDefinition = new ecs.Ec2TaskDefinition(stack, 'BackhouseTaskDefinition', {
     taskRole,
-    // add logging
   });
 
   const dockerImageAsset = new DockerImageAsset(stack, 'BackhouseDockerImageAsset', {
@@ -52,7 +51,7 @@ export const Backhouse = async ({ stack }: StackContext) => {
     },
   });
 
-  const rawDatabaseUrl = await makeDatabaseUrl();
+  const rawDatabaseUrl = makeDatabaseUrl();
 
   // A tarballed image exists at dist/backhouse.tar.gz
   taskDefinition.addContainer('BackhouseContainer', {
@@ -89,11 +88,7 @@ export const Backhouse = async ({ stack }: StackContext) => {
   });
 
   // allow traffic from inside the vpc
-  service.connections.allowFrom(
-    ec2.Peer.ipv4(net.vpc.vpcCidrBlock),
-    ec2.Port.allTraffic(),
-    'allow all traffic from vpc'
-  );
+  service.connections.allowFrom(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.allTraffic(), 'allow all traffic from vpc');
 
   // allow all outbound traffic
   service.connections.allowTo(ec2.Peer.anyIpv4(), ec2.Port.allTraffic(), 'allow all outbound traffic');
