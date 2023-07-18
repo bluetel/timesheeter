@@ -14,4 +14,6 @@ cd packages/web
 
 pnpm prisma db seed
 
-rm .env
+if [ -f .env ]; then
+  rm .env
+fi

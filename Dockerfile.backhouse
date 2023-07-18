@@ -9,9 +9,9 @@ COPY . .
 
 RUN pnpm install
 
-WORKDIR /app/packages/backhouse
+RUN cd /app/packages/backhouse && pnpm build
 
-RUN pnpm build
+WORKDIR /app/packages/backhouse
 
 # Production Stage
 FROM node:18-alpine

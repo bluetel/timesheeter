@@ -1,9 +1,6 @@
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "@timesheeter/web/server/api/trpc";
+import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
+import { createTRPCRouter, protectedProcedure } from '@timesheeter/web/server/api/trpc';
 import {
   createTimesheetEntrySchema,
   updateTimesheetEntrySchema,
@@ -11,15 +8,11 @@ import {
   type UpdateTimesheetEntryConfig,
   updateTimesheetEntryConfigSchema,
   TIMESHEET_ENTRY_DEFINITIONS,
-} from "@timesheeter/web/lib/workspace/timesheet-entries";
-import {
-  decrypt,
-  encrypt,
-  filterConfig,
-} from "@timesheeter/web/server/lib/secret-helpers";
-import { type TimesheetEntry, type PrismaClient } from "@prisma/client";
-import { type WithConfig } from "@timesheeter/web/server/lib/workspace-types";
-import { API_PAGINATION_LIMIT } from "@timesheeter/web/server/lib";
+} from '@timesheeter/web/lib/workspace/timesheet-entries';
+import { decrypt, encrypt, filterConfig } from '@timesheeter/web/server/lib/secret-helpers';
+import { type TimesheetEntry, type PrismaClient } from '@prisma/client';
+import { type WithConfig } from '@timesheeter/web/server/lib/workspace-types';
+import { API_PAGINATION_LIMIT } from '@timesheeter/web/server/lib';
 
 export const timesheetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -67,11 +60,7 @@ export const timesheetEntriesRouter = createTRPCRouter({
           skip: (input.page - 1) * API_PAGINATION_LIMIT,
           take: API_PAGINATION_LIMIT,
         })
-        .then((timesheetEntries) =>
-          timesheetEntries.map((timesheetEntry) =>
-            parseTimesheetEntry(timesheetEntry)
-          )
-        );
+        .then((timesheetEntries) => timesheetEntries.map((timesheetEntry) => parseTimesheetEntry(timesheetEntry)));
 
       const [timesheetEntries, timesheetEntryCount] = await Promise.all([
         timesheetEntriesPromise,
@@ -81,92 +70,85 @@ export const timesheetEntriesRouter = createTRPCRouter({
       return {
         count: timesheetEntryCount,
         page: input.page,
-        next:
-          timesheetEntryCount > input.page * API_PAGINATION_LIMIT
-            ? input.page + 1
-            : null,
+        next: timesheetEntryCount > input.page * API_PAGINATION_LIMIT ? input.page + 1 : null,
         data: timesheetEntries,
       };
     }),
-  create: protectedProcedure
-    .input(createTimesheetEntrySchema)
-    .mutation(async ({ ctx, input }) => {
-      await authorize({
-        prisma: ctx.prisma,
-        timesheetEntryId: null,
-        workspaceId: input.workspaceId,
-        userId: ctx.session.user.id,
+  create: protectedProcedure.input(createTimesheetEntrySchema).mutation(async ({ ctx, input }) => {
+    await authorize({
+      prisma: ctx.prisma,
+      timesheetEntryId: null,
+      workspaceId: input.workspaceId,
+      userId: ctx.session.user.id,
+    });
+
+    const { config, ...rest } = input;
+
+    if (rest.start > rest.end) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Start date cannot be after end date',
       });
+    }
 
-      const { config, ...rest } = input;
+    const createdTimesheetEntry = await ctx.prisma.timesheetEntry
+      .create({
+        data: {
+          userId: ctx.session.user.id,
+          ...rest,
+          configSerialized: encrypt(JSON.stringify(config)),
+        },
+      })
+      .then(parseTimesheetEntry);
 
-      if (rest.start > rest.end) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Start date cannot be after end date",
-        });
-      }
+    return createdTimesheetEntry;
+  }),
+  update: protectedProcedure.input(updateTimesheetEntrySchema).mutation(async ({ ctx, input }) => {
+    const {
+      config: oldConfig,
+      start: existingStart,
+      end: existingEnd,
+    } = await authorize({
+      prisma: ctx.prisma,
+      timesheetEntryId: input.id,
+      workspaceId: input.workspaceId,
+      userId: ctx.session.user.id,
+    });
 
-      const createdTimesheetEntry = await ctx.prisma.timesheetEntry
-        .create({
-          data: {
-            userId: ctx.session.user.id,
-            ...rest,
-            configSerialized: encrypt(JSON.stringify(config)),
-          },
-        })
-        .then(parseTimesheetEntry);
+    const start = input.start ? input.start : existingStart;
+    const end = input.end ? input.end : existingEnd;
 
-      return createdTimesheetEntry;
-    }),
-  update: protectedProcedure
-    .input(updateTimesheetEntrySchema)
-    .mutation(async ({ ctx, input }) => {
-      const {
-        config: oldConfig,
-        start: existingStart,
-        end: existingEnd,
-      } = await authorize({
-        prisma: ctx.prisma,
-        timesheetEntryId: input.id,
-        workspaceId: input.workspaceId,
-        userId: ctx.session.user.id,
+    if (start > end) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Start date cannot be after end date',
       });
+    }
 
-      const start = input.start ? input.start : existingStart;
-      const end = input.end ? input.end : existingEnd;
+    const { config: updatedConfigValues, ...rest } = input;
 
-      if (start > end) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Start date cannot be after end date",
-        });
-      }
+    // Config is a single field, so we need to merge it manually
+    const updatedConfig = {
+      ...oldConfig,
+      ...updatedConfigValues,
+    } satisfies UpdateTimesheetEntryConfig;
 
-      const { config: updatedConfigValues, ...rest } = input;
+    // Validate the config against the config schema to double check everything
+    // has been merged correctly
+    updateTimesheetEntryConfigSchema.parse(updatedConfig);
 
-      // Config is a single field, so we need to merge it manually
-      const updatedConfig = {
-        ...oldConfig,
-        ...updatedConfigValues,
-      } satisfies UpdateTimesheetEntryConfig;
-
-      // Validate the config against the config schema to double check everything
-      // has been merged correctly
-      updateTimesheetEntryConfigSchema.parse(updatedConfig);
-
-      return ctx.prisma.timesheetEntry
-        .update({
-          where: {
-            id: input.id,
-          },
-          data: {
-            ...rest,
-            configSerialized: encrypt(JSON.stringify(updatedConfig)),
-          },
-        })
-        .then(parseTimesheetEntry);
-    }),
+    return ctx.prisma.timesheetEntry
+      .update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          ...rest,
+          configSerialized: encrypt(JSON.stringify(updatedConfig)),
+        },
+      })
+      .then(parseTimesheetEntry);
+  }),
   delete: protectedProcedure
     .input(
       z.object({
@@ -194,7 +176,7 @@ export const timesheetEntriesRouter = createTRPCRouter({
 
 export type ParsedTimesheetEntry<TimesheetEntryType extends WithConfig> = Omit<
   TimesheetEntryType,
-  "configSerialized"
+  'configSerialized'
 > & {
   config: TimesheetEntryConfig;
 };
@@ -210,11 +192,7 @@ export const parseTimesheetEntry = <TimesheetEntryType extends WithConfig>(
   return {
     ...rest,
     config: safe
-      ? filterConfig<TimesheetEntryConfig>(
-          config,
-          TIMESHEET_ENTRY_DEFINITIONS[config.type].fields,
-          config.type
-        )
+      ? filterConfig<TimesheetEntryConfig>(config, TIMESHEET_ENTRY_DEFINITIONS[config.type].fields, config.type)
       : config,
   };
 };
@@ -226,17 +204,16 @@ type AuthorizeParams<TimesheetEntryId extends string | null> = {
   userId: string;
 };
 
-type AuthorizeResult<TimesheetEntryId extends string | null> =
-  TimesheetEntryId extends null ? null : ParsedTimesheetEntry<TimesheetEntry>;
+type AuthorizeResult<TimesheetEntryId extends string | null> = TimesheetEntryId extends null
+  ? null
+  : ParsedTimesheetEntry<TimesheetEntry>;
 
 const authorize = async <TimesheetEntryId extends string | null>({
   prisma,
   timesheetEntryId,
   workspaceId,
   userId,
-}: AuthorizeParams<TimesheetEntryId>): Promise<
-  AuthorizeResult<TimesheetEntryId>
-> => {
+}: AuthorizeParams<TimesheetEntryId>): Promise<AuthorizeResult<TimesheetEntryId>> => {
   const membership = await prisma.membership.findMany({
     where: {
       userId,
@@ -246,8 +223,8 @@ const authorize = async <TimesheetEntryId extends string | null>({
 
   if (!membership) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "You are not a member of this workspace",
+      code: 'NOT_FOUND',
+      message: 'You are not a member of this workspace',
     });
   }
 
@@ -263,27 +240,24 @@ const authorize = async <TimesheetEntryId extends string | null>({
 
   if (!timesheetEntry) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "TimesheetEntry not found",
+      code: 'NOT_FOUND',
+      message: 'TimesheetEntry not found',
     });
   }
 
   if (timesheetEntry.workspaceId !== workspaceId) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "TimesheetEntry not found",
+      code: 'NOT_FOUND',
+      message: 'TimesheetEntry not found',
     });
   }
 
   if (timesheetEntry.userId !== userId) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "This TimesheetEntry does not belong to you",
+      code: 'NOT_FOUND',
+      message: 'This TimesheetEntry does not belong to you',
     });
   }
 
-  return parseTimesheetEntry(
-    timesheetEntry,
-    false
-  ) as AuthorizeResult<TimesheetEntryId>;
+  return parseTimesheetEntry(timesheetEntry, false) as AuthorizeResult<TimesheetEntryId>;
 };

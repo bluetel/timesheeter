@@ -14,4 +14,6 @@ cd packages/web
 
 pnpm prisma migrate dev
 
-rm .env
+if [ -f .env ]; then
+  rm .env
+fi

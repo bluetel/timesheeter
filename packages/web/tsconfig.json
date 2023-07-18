@@ -13,10 +13,12 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
+
     "jsx": "preserve",
     "incremental": true,
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
+    "rootDir": ".",
     "paths": {
       "@timesheeter/web/*": ["./src/*"],
       "@timesheeter/web": ["./src/index.ts"]
@@ -26,10 +28,11 @@
   "include": [
     "../../.eslintrc.cjs",
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "tsconfig.json",
     "scripts/run-migrations.js" // "**/*.cjs",
     // "**/*.mjs"
   ],
-  "exclude": ["../../node_modules", "**/*.cjs", "**/*.mjs"]
+  "exclude": ["../../node_modules", "**/*.cjs", "**/*.mjs", "src/sst/*"]
 }
