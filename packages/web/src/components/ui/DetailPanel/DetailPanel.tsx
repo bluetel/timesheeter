@@ -3,7 +3,7 @@ import { type IconType } from "react-icons";
 import { Tabs } from "../Tabs";
 import { DetailHeader, type DetailHeaderProps } from "./DetailHeader";
 
-type DetailPanelProps = {
+export type DetailPanelProps = {
   header: DetailHeaderProps;
   content: {
     name: string;

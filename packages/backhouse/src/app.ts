@@ -19,7 +19,9 @@ import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { FastifyAdapter } from '@bull-board/fastify';
 
-console.log('Starting Backhouse Worker');
+const packageVersion = process.env.npm_package_version;
+
+console.log(`Starting Backhouse Worker v${packageVersion}`);
 
 const worker = new Worker<IntegrationJob>('integrations', handleIntegrationsJob, {
   connection: connectionConfig,

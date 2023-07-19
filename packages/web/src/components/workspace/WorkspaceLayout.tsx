@@ -47,7 +47,7 @@ const navigation = [
 ] as NavigationItem[];
 
 export const WorkspaceLayout = ({
-  workspaceInfo: { user, workspace },
+  workspaceInfo: { membership: { user }, workspace },
   secondAside,
   children,
 }: WorkspaceLayoutProps) => {

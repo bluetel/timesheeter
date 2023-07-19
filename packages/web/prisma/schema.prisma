@@ -93,7 +93,6 @@ model Integration {
   id          String    @id @default(cuid())
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   workspaceId String
-  userId      String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

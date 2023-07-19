@@ -4,6 +4,7 @@ import {
   updateProjectSchema,
   getDefaultProjectConfig,
   autoAssignTasksHelpText,
+  autoAssignTaskSchema,
 } from "@timesheeter/web/lib/workspace/projects";
 import { api, type RouterOutputs } from "@timesheeter/web/utils/api";
 import { useEffect, useState } from "react";
@@ -16,10 +17,10 @@ import { useNotifications } from "../../ui/notification/NotificationProvider";
 import { fromZodError } from "zod-validation-error";
 import { ListableForm } from "../../ui/forms/BasicForm/ListableForm";
 import {
-  AdjustmentsVerticalIcon,
   ArrowPathRoundedSquareIcon,
 } from "@heroicons/react/24/outline";
 import { type IconType } from "react-icons/lib";
+import { ConfigIcon } from "@timesheeter/web/lib/icons";
 
 const mutationSchema = z.union([
   createProjectSchema.extend({
@@ -131,10 +132,6 @@ export const EditProjectSideOver = ({
       ) as typeof values;
     }
 
-    // Filter out autoAssignTasks if it's empty
-    values.config.autoAssignTasks =
-      values.config.autoAssignTasks?.filter((task) => task !== "") ?? [];
-
     if (values.taskPrefix === "") {
       values.taskPrefix = null;
     }
@@ -178,7 +175,7 @@ export const EditProjectSideOver = ({
     const tasks = methods.getValues("config.autoAssignTasks") ?? [];
 
     if (tasks.length === 0) {
-      return [""];
+      tasks.push("");
     }
 
     return tasks;
@@ -196,23 +193,27 @@ export const EditProjectSideOver = ({
         multiple: true,
         bodies: [
           {
-            icon: AdjustmentsVerticalIcon as IconType,
-            label: "Details",
+            icon: ConfigIcon,
+            label: "Config",
             body: <BasicForm items={fields} />,
           },
           {
             icon: ArrowPathRoundedSquareIcon as IconType,
             label: "Auto Assign Tasks",
-            body: (
-              <ListableForm
-                values={getAutoAssignTasks()}
-                onChange={(newValues) =>
-                  methods.setValue("config.autoAssignTasks", newValues, {
-                    shouldValidate: true,
-                  })
-                }
-              />
-            ),
+            body: <ListableForm
+              minRows={1}
+              placeholder="E.g.Standup"
+              values={getAutoAssignTasks()}
+              onChange={(newValues) => {
+                // Filter out autoAssignTasks that are invalid i.e. blank ones
+                const filteredValues = newValues.filter((value) => autoAssignTaskSchema.safeParse(value).success);
+
+                methods.setValue("config.autoAssignTasks", filteredValues, {
+                  shouldValidate: true,
+                })
+              }
+              }
+            />,
             subDescription: autoAssignTasksHelpText,
           },
         ],

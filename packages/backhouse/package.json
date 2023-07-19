@@ -1,6 +1,6 @@
 {
     "name": "@timesheeter/backhouse",
-    "version": "1.134.0",
+    "version": "0.1.0",
     "main": "dist/src/index.js",
     "author": "",
     "license": "AGPL-3.0",

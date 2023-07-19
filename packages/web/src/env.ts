@@ -1,17 +1,5 @@
 import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
-import fs from 'fs';
-
-// See what file exists at ../../.env.* and load it, local, staging, or production
-const envPath = fs.existsSync('../../.env.local')
-  ? '../../.env.local'
-  : fs.existsSync('../../.env.staging')
-  ? '../../.env.staging'
-  : '../../.env.production';
-
-import { config as dotenvConfig } from 'dotenv';
-
-dotenvConfig({ path: envPath });
 
 export const env = createEnv({
   /**
@@ -52,7 +40,7 @@ export const env = createEnv({
       })
       .pipe(z.string().url()),
     NODE_ENV: z.enum(['development', 'test', 'production']),
-    NEXTAUTH_SECRET: process.env.NODE_ENV === 'production' ? z.string().min(1) : z.string().min(1),
+    NEXTAUTH_SECRET: z.string(),
     NEXTAUTH_URL: z.preprocess(
       // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
       // Since NextAuth.js automatically uses the VERCEL_URL if present.

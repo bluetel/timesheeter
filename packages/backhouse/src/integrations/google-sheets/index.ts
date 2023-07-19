@@ -2,7 +2,6 @@ import { ParsedIntegration } from '@timesheeter/web';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { applyTransforms, filterExistingSheets, getSheetStart } from './sheets';
 import { getDatabaseEntries, getDatabaseEntriesStartDate } from './database-entries';
-import { monthYearToDate } from './dates';
 import { getTransformedSheetData } from './transformer';
 
 type GoogleSheetsIntegration = ParsedIntegration & {
@@ -13,10 +12,35 @@ type GoogleSheetsIntegration = ParsedIntegration & {
 
 export const handleGoogleSheetsIntegration = async ({
   integration: {
-    config: { skipTillAfterMonth, commitDelayDays, sheetId, serviceAccountEmail, privateKey },
+    config: { commitDelayDays, serviceAccountEmail, privateKey, timesheets },
   },
 }: {
   integration: GoogleSheetsIntegration;
+}) => {
+  for (const timesheet of timesheets) {
+    // Run individually for rate limiting
+    await outputToTimesheet({
+      serviceAccountEmail,
+      privateKey,
+      commitDelayDays,
+      sheetId: timesheet.sheetId,
+      userId: timesheet.userId,
+    });
+  }
+};
+
+const outputToTimesheet = async ({
+  serviceAccountEmail,
+  privateKey,
+  commitDelayDays,
+  sheetId,
+  userId,
+}: {
+  serviceAccountEmail: string;
+  privateKey: string;
+  commitDelayDays: number;
+  sheetId: string;
+  userId: string;
 }) => {
   const doc = await authenticateGoogleSheet({
     sheetId,
@@ -24,9 +48,7 @@ export const handleGoogleSheetsIntegration = async ({
     privateKey: privateKey,
   });
 
-  const skipTillAfterMonthDate = skipTillAfterMonth ? monthYearToDate(skipTillAfterMonth) : null;
-
-  const sheetsToProcess = await filterExistingSheets(doc.sheetsByIndex, skipTillAfterMonthDate);
+  const sheetsToProcess = await filterExistingSheets(doc.sheetsByIndex);
 
   // Last day to file is commitDelayDays ago
   const lastDayToProcess = new Date();
@@ -35,11 +57,6 @@ export const handleGoogleSheetsIntegration = async ({
 
   let firstDayToProcess = new Date(0);
 
-  if (skipTillAfterMonthDate) {
-    firstDayToProcess.setUTCDate(1);
-    // Get the first day of the month after the month of skipTillAfterMonth ie one month later
-    firstDayToProcess.setUTCMonth(skipTillAfterMonthDate.getUTCMonth() + 1);
-  }
   const sheetStart = await getSheetStart(sheetsToProcess);
 
   if (sheetStart && sheetStart.sheetStartDate > firstDayToProcess) {
@@ -49,16 +66,17 @@ export const handleGoogleSheetsIntegration = async ({
   const databaseEntries = await getDatabaseEntries({
     fromStartDate: firstDayToProcess,
     toStartDate: lastDayToProcess,
+    userId,
   });
-
-  // If both are empty, return null
-  if (databaseEntries.holidays.length === 0 && databaseEntries.timesheetEntries.length === 0) {
-    return null;
-  }
 
   const databaseEntriesBasedStartDate = getDatabaseEntriesStartDate(databaseEntries);
 
-  if (databaseEntriesBasedStartDate && databaseEntriesBasedStartDate > firstDayToProcess) {
+  // if no entries in database, return null
+  if (!databaseEntriesBasedStartDate) {
+    return null;
+  }
+
+  if (databaseEntriesBasedStartDate > firstDayToProcess) {
     firstDayToProcess = databaseEntriesBasedStartDate;
   }
 

@@ -119,17 +119,13 @@ const sheetTitleToDate = (title: string) => {
   return monthYearToDate(result[0]);
 };
 
-export const filterExistingSheets = async (sheets: GoogleSpreadsheetWorksheet[], skipTillAferMonthDate: Date | null) =>
+export const filterExistingSheets = async (sheets: GoogleSpreadsheetWorksheet[]) =>
   (
     sheets
       .map((sheet) => {
         const sheetStartDate = sheetTitleToDate(sheet.title);
 
         if (!sheetStartDate) {
-          return null;
-        }
-
-        if (skipTillAferMonthDate && sheetStartDate <= skipTillAferMonthDate) {
           return null;
         }
 

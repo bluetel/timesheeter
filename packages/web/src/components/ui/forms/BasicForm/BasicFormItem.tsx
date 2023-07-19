@@ -5,29 +5,29 @@ import { DatePicker, DateTimePicker, TimePicker } from "../../tw-elements";
 
 type FieldOptions<RequiredType extends boolean> =
   | {
-      variant: "textarea" | "text" | "number";
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      register: UseFormRegisterReturn<any>;
-    }
+    variant: "textarea" | "text" | "number";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    register: UseFormRegisterReturn<any>;
+  }
   | {
-      variant: "select";
+    variant: "select";
 
-      select: Omit<SelectProps<RequiredType>, "nullable">;
-    }
+    select: Omit<SelectProps<RequiredType extends true ? false : true>, "nullable">;
+  }
   | {
-      variant: "checkbox";
-      checked: boolean;
-      onChange: (checked: boolean) => unknown;
-    }
+    variant: "checkbox";
+    checked: boolean;
+    onChange: (checked: boolean) => unknown;
+  }
   | {
-      variant: "datetime" | "date" | "time";
-      value: Date | null;
-      onChange: (date: Date | null) => void;
-      formId: string;
-    };
+    variant: "datetime" | "date" | "time";
+    value: Date | null;
+    onChange: (date: Date | null) => void;
+    formId: string;
+  };
 
 export type BasicFormItemProps<RequiredType extends boolean = boolean> = {
-  required: RequiredType;
+  required: RequiredType extends true ? true : false;
   label: {
     title: string;
     description?: string;
@@ -69,7 +69,7 @@ export const BasicFormItem = <RequiredType extends boolean>({
           />
         )}
         {field.variant === "select" && (
-          <Select {...field.select} nullable={!required as RequiredType} />
+          <Select {...field.select} nullable={!required as RequiredType extends true ? false : true} />
         )}
         {field.variant === "checkbox" && (
           <Toggle checked={field.checked} onChange={field.onChange} />

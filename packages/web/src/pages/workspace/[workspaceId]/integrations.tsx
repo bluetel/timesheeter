@@ -8,7 +8,7 @@ import { WorkspaceLayout } from "@timesheeter/web/components/workspace/Workspace
 import { appRouter } from "@timesheeter/web/server/api/root";
 import { createTRPCContext } from "@timesheeter/web/server/api/trpc";
 import { api } from "@timesheeter/web/utils/api";
-import { WorkspaceInfo, getWorkspaceInfoDiscrete } from "@timesheeter/web/server/lib/workspace-info";
+import { type WorkspaceInfo, getWorkspaceInfoDiscrete } from "@timesheeter/web/server/lib/workspace-info";
 import { useEffect, useMemo, useState } from "react";
 import { EditIntegrationSideOver } from "@timesheeter/web/components/workspace/integrations/EditIntegrationSideOver";
 import { IntegrationPanel } from "@timesheeter/web/components/workspace/integrations/IntegrationPanel";
@@ -146,6 +146,7 @@ const Integrations = ({
             new: true,
           }}
           workspaceId={workspaceInfo.workspace.id}
+          memberships={workspaceInfo.memberships}
         />
         <WorkspaceLayout workspaceInfo={workspaceInfo}>
           <SimpleEmptyState
@@ -170,6 +171,7 @@ const Integrations = ({
         refetchIntegrations={refetchIntegrations}
         data={{ new: true }}
         workspaceId={workspaceInfo.workspace.id}
+        memberships={workspaceInfo.memberships}
       />
       <WorkspaceLayout
         workspaceInfo={workspaceInfo}
@@ -190,6 +192,7 @@ const Integrations = ({
               integration={integration}
               refetchIntegrations={refetchIntegrations}
               onNewIntegrationClick={() => setShowNewIntegrationSideOver(true)}
+              memberships={workspaceInfo.memberships}
             />
           </div>
         ))}

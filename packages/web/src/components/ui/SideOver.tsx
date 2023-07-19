@@ -4,7 +4,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Tabs } from "./Tabs";
 
-type SideOverProps = {
+export type SideOverProps = {
   title: string;
   description: string;
   actionButtonLabel: "Create" | "Update";

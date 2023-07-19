@@ -32,7 +32,6 @@ export const integrationsRouter = createTRPCRouter({
         .findMany({
           where: {
             workspaceId: input.workspaceId,
-            userId: ctx.session.user.id,
           },
         })
         .then((integrations) => integrations.map((integration) => parseIntegration(integration)));
@@ -50,7 +49,6 @@ export const integrationsRouter = createTRPCRouter({
     const createdIntegration = await ctx.prisma.integration
       .create({
         data: {
-          userId: ctx.session.user.id,
           ...rest,
           configSerialized: encrypt(JSON.stringify(config)),
         },
@@ -245,13 +243,6 @@ const authorize = async <IntegrationId extends string | null>({
     throw new TRPCError({
       code: 'NOT_FOUND',
       message: 'Integration not found',
-    });
-  }
-
-  if (integration.userId !== userId) {
-    throw new TRPCError({
-      code: 'NOT_FOUND',
-      message: 'This Integration does not belong to you',
     });
   }
 

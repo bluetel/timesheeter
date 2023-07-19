@@ -105,6 +105,10 @@ export function Database({ stack, app }: StackContext) {
  * Generate a database connection string (DSN).
  */
 export function makeDatabaseUrl() {
+  if (sstEnv.IS_LOCAL) {
+    return process.env.DATABASE_URL as string;
+  }
+
   const prismaConnectionLimit = process.env.PRISMA_CONNECTION_LIMIT ?? 5;
 
   const { database, databaseName } = use(Database);

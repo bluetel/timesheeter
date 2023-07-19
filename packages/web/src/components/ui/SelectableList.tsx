@@ -3,7 +3,7 @@ import { type IconType } from "react-icons";
 export type SelectableListProps = {
   items: {
     label: string;
-    subLabel?: string;
+    subLabel?: string
     icon?: IconType;
     onClick?: () => unknown;
     selected?: boolean;
@@ -21,9 +21,8 @@ export const SelectableList = ({ items, loadMore }: SelectableListProps) => (
     {items.map((item, index) => (
       <li key={index} className="bg-white" onClick={item.onClick}>
         <div
-          className={`relative flex h-20 items-center space-x-3 px-6 py-5 ${
-            item.selected ? "ring-2 ring-inset ring-indigo-500" : ""
-          } cursor-pointer hover:bg-gray-50`}
+          className={`relative flex h-20 items-center space-x-3 px-6 py-5 ${item.selected ? "ring-2 ring-inset ring-indigo-500" : ""
+            } cursor-pointer hover:bg-gray-50`}
         >
           <div className="flex-shrink-0">
             {item.icon && (
@@ -54,11 +53,10 @@ export const SelectableList = ({ items, loadMore }: SelectableListProps) => (
                   <button
                     key={index}
                     type="button"
-                    className={`inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 ${
-                      button.variant === "danger"
-                        ? "text-red-600 hover:text-red-500"
-                        : ""
-                    } z-10`}
+                    className={`inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 ${button.variant === "danger"
+                      ? "text-red-600 hover:text-red-500"
+                      : ""
+                      } z-10`}
                     onClick={(event) => {
                       event.stopPropagation();
                       button.onClick();

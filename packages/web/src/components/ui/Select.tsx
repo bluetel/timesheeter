@@ -8,9 +8,9 @@ export type SelectProps<IsNullableType extends boolean> = {
     value: string;
     label: string;
   }[];
-  active: IsNullableType extends true ? string : string | null;
+  active: IsNullableType extends true ? string | null : string;
   onChange: (
-    value: IsNullableType extends true ? string : string | null
+    value: IsNullableType extends true ? string | null : string
   ) => unknown;
   nullable: IsNullableType;
 };
@@ -25,7 +25,8 @@ export const Select = <IsNullableType extends boolean>({
     const foundLabel = options.find(({ value }) => value === active)?.label;
 
     if (!nullable && !foundLabel) {
-      throw new Error("Could not find active label and nullable is false");
+      console.warn("Could not find active label and nullable is false");
+      return `Unknown value: ${active ?? "null"}`
     }
 
     return foundLabel ?? "None";

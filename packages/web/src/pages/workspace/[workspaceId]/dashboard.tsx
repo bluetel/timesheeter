@@ -41,7 +41,6 @@ export const getServerSideProps = async (
     prisma.integration.count({
       where: {
         workspaceId: workspaceInfo.props.workspace.id,
-        userId: workspaceInfo.props.user.id,
       },
     }),
     prisma.project.count({

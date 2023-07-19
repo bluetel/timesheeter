@@ -5,7 +5,7 @@ import { classNames } from "@timesheeter/web/utils/tailwind";
 
 export type SimpleEmptyStateProps = {
   title: string;
-  helpText: string;
+  helpText?: string;
   icon: IconType;
   button?: {
     label: string;
@@ -30,12 +30,12 @@ export const SimpleEmptyState = ({
     <div className="p-8 text-center">
       {createElement(icon, {
         className: "mx-auto h-12 w-12 text-gray-400",
-        fill: "none",
+        fill: "currentColor",
         viewBox: "0 0 24 24",
         "aria-hidden": "true",
       })}
       <h3 className="mt-2 text-sm font-semibold text-gray-900">{title}</h3>
-      <p className="mt-1 text-sm text-gray-500">{helpText}</p>
+      {helpText && <p className="mt-1 text-sm text-gray-500">{helpText}</p>}
       {button && (
         <div className="mt-6">
           <button

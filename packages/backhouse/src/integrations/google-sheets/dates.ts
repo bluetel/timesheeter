@@ -3,24 +3,24 @@ import axios from 'axios';
 import { z } from 'zod';
 
 const MONTHS = [
-  ['january', 'jan'],
-  ['february', 'feb'],
-  ['march', 'mar'],
-  ['april', 'apr'],
-  ['may'],
-  ['june', 'jun'],
-  ['july', 'jul'],
-  ['august', 'aug'],
-  ['september', 'sep'],
-  ['october', 'oct'],
-  ['november', 'nov'],
-  ['december', 'dec'],
+  'january',
+  'february',
+  'march',
+  'april',
+  'may',
+  'june',
+  'july',
+  'august',
+  'september',
+  'october',
+  'november',
+  'december',
 ] as const;
 
 export const getMonthIndex = (month: string) => {
   const monthLowerCase = month.toLowerCase();
 
-  const monthIndex = MONTHS.findIndex((months) => (months as unknown as string[]).includes(monthLowerCase));
+  const monthIndex = MONTHS.findIndex((m) => m.startsWith(monthLowerCase));
 
   if (monthIndex === -1) {
     throw new Error(`Invalid month: ${month}`);

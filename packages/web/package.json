@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "dev": "sst bind 'next dev --port 6001'",
+    "dev:aws": "sst bind 'next dev --port 6001'",
+    "dev": "next dev --port 6001",
     "test": "vitest run",
     "test:watch": "vitest",
     "build": "next build",

@@ -2,24 +2,26 @@ import { type GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth';
 import { getAuthOptions } from '@timesheeter/web/server/auth';
 import { getPrismaClient } from '@timesheeter/web/server/db';
+import { type MembershipRole } from '@timesheeter/web/lib';
 
-export type WorkspaceInfo = {
+type Membership = {
+  id: string;
+  role: MembershipRole;
   user: {
     id: string;
     name: string | null;
     email: string | null;
     image: string | null;
   };
-  membership: {
-    id: string;
-    role: string;
-    userId: string;
-    workspaceId: string;
-  };
+};
+
+export type WorkspaceInfo = {
+  membership: Membership;
   workspace: {
     id: string;
     name: string;
   };
+  memberships: Membership[];
 };
 
 export type WorkspaceInfoResult =
@@ -62,18 +64,42 @@ export const getWorkspaceInfo = async ({
 
   const userId = session.user.id;
 
-  const membershipQuery = await prisma.membership.findFirst({
+  const workspace = await prisma.workspace.findUnique({
     where: {
-      userId,
-      workspaceId: params.workspaceId,
+      id: params.workspaceId,
     },
     include: {
-      workspace: true,
-      user: true,
+      memberships: {
+        include: {
+          user: true,
+        },
+      },
     },
   });
 
-  if (!membershipQuery) {
+  if (!workspace) {
+    return {
+      redirect: {
+        destination: '/find-workspace',
+        permanent: false,
+      },
+    };
+  }
+
+  const memberships = workspace.memberships.map((membership) => ({
+    id: membership.id,
+    role: membership.role as MembershipRole,
+    user: {
+      id: membership.user.id,
+      name: membership.user.name,
+      email: membership.user.email,
+      image: membership.user.image,
+    },
+  }));
+
+  const userMembership = memberships.find((membership) => membership.user.id === userId);
+
+  if (!userMembership) {
     return {
       redirect: {
         destination: '/find-workspace',
@@ -84,22 +110,12 @@ export const getWorkspaceInfo = async ({
 
   return {
     props: {
-      user: {
-        id: userId,
-        name: membershipQuery.user.name,
-        email: membershipQuery.user.email,
-        image: membershipQuery.user.image,
-      },
-      membership: {
-        id: membershipQuery.id,
-        role: membershipQuery.role,
-        userId: membershipQuery.userId,
-        workspaceId: membershipQuery.workspaceId,
-      },
+      membership: userMembership,
       workspace: {
-        id: membershipQuery.workspace.id,
-        name: membershipQuery.workspace.name,
+        id: workspace.id,
+        name: workspace.name,
       },
+      memberships,
     },
   };
 };

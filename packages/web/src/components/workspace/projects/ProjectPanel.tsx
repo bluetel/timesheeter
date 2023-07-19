@@ -14,12 +14,12 @@ import {
   type BasicDetailListItem,
 } from "@timesheeter/web/components/ui/DetailPanel/BasicDetailList";
 import {
-  AdjustmentsVerticalIcon,
   ArrowPathRoundedSquareIcon,
 } from "@heroicons/react/24/outline";
 import { type IconType } from "react-icons";
 import { SelectableList } from "../../ui/SelectableList";
 import { SimpleEmptyState } from "../../ui/SimpleEmptyState";
+import { ConfigIcon } from "@timesheeter/web/lib/icons";
 
 type ProjectDetailProps = {
   project: ParsedProject;
@@ -76,8 +76,8 @@ export const ProjectPanel = ({
           multiple: true,
           bodies: [
             {
-              icon: AdjustmentsVerticalIcon as IconType,
-              label: "Details",
+              icon: ConfigIcon,
+              label: "Config",
               body: <BasicDetailList items={basicDetails} />,
             },
             {

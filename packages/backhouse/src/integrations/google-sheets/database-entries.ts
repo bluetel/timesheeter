@@ -3,9 +3,11 @@ import { getPrismaClient } from '@timesheeter/web';
 export const getDatabaseEntries = async ({
   fromStartDate,
   toStartDate,
+  userId,
 }: {
   fromStartDate: Date;
   toStartDate: Date;
+  userId: string;
 }) => {
   const prisma = await getPrismaClient();
 
@@ -19,6 +21,7 @@ export const getDatabaseEntries = async ({
       end: {
         gte: fromStartDate,
       },
+      userId,
     },
   });
 
@@ -28,6 +31,7 @@ export const getDatabaseEntries = async ({
         gte: fromStartDate,
         lte: toStartDate,
       },
+      userId,
     },
     include: {
       task: {
