@@ -133,16 +133,17 @@ const useBasicDetails = (
         value: task.taskNumber?.toString() ?? "",
       },
     },
-    {
-      label: {
-        title: "Private Task",
-        description: "Whether this task is private and scoped to the user who set it as private",
-      },
-      field: {
-        variant: "text",
-        value: task.scoped ? "Yes" : "No",
-      },
-    }
+    // Hidden as unsure if this feature will be used
+    // {
+    //   label: {
+    //     title: "Private Task",
+    //     description: "Whether this task is private and scoped to the user who set it as private",
+    //   },
+    //   field: {
+    //     variant: "text",
+    //     value: task.scoped ? "Yes" : "No",
+    //   },
+    // }
   ];
 
   return details;

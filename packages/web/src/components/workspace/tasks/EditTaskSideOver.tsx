@@ -240,23 +240,24 @@ const useTaskFields = (
         error: methods.formState.errors.taskNumber,
       },
     },
-    {
-      required: true,
-      label: {
-        title: "Private Task",
-        description: "Whether this task is private and scoped to the user who set it as private",
-      },
-      field: {
-        variant: "checkbox",
-        checked: methods.getValues("scoped") ?? false,
-        onChange: (checked) => {
-          methods.setValue("scoped", checked, {
-            shouldValidate: true,
-          });
-        },
-        error: methods.formState.errors.scoped,
-      },
-    }
+    // Hidden as unsure if this feature will be used
+    // {
+    //   required: true,
+    //   label: {
+    //     title: "Private Task",
+    //     description: "Whether this task is private and scoped to the user who set it as private",
+    //   },
+    //   field: {
+    //     variant: "checkbox",
+    //     checked: methods.getValues("scoped") ?? false,
+    //     onChange: (checked) => {
+    //       methods.setValue("scoped", checked, {
+    //         shouldValidate: true,
+    //       });
+    //     },
+    //     error: methods.formState.errors.scoped,
+    //   },
+    // }
   ];
 
   return fields;
