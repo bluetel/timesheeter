@@ -171,7 +171,7 @@ export const EditIntegrationSideOver = ({
 
     if (integrationType === 'GoogleSheetsIntegration') {
       const getTimesheetTabs = () => {
-        const timesheets = config.timesheets ?? ([] as { userId: string | null; sheetId: string }[]);
+        const timesheets = [...(config.timesheets ?? ([] as { userId: string | null; sheetId: string }[]))]
 
         if (timesheets.length === 0) {
           timesheets.push({
@@ -214,7 +214,6 @@ export const EditIntegrationSideOver = ({
                       sheetId: text,
                     })).map((value) => {
                       const result = timesheetSchema.safeParse(value);
-                      console.log(result, value);
                       if (!result.success) return null;
 
                       return result.data;
@@ -301,6 +300,8 @@ const useIntegrationFields = (methods: ReturnType<typeof useZodForm<typeof mutat
   integrationConfig.fields.forEach((field) => {
     // TODO: Handle field errors
     // const error = methods.formState.errors.config?.[field.accessor as keyof typeof methods.formState.errors.config];
+
+    if (field.type === 'hidden') return;
 
     fields.push({
       required: field.required,

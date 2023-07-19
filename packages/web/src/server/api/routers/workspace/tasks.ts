@@ -1,9 +1,6 @@
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "@timesheeter/web/server/api/trpc";
+import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
+import { createTRPCRouter, protectedProcedure } from '@timesheeter/web/server/api/trpc';
 import {
   createTaskSchema,
   TASK_DEFINITIONS,
@@ -11,15 +8,11 @@ import {
   type TaskConfig,
   type UpdateTaskConfig,
   updateTaskConfigSchema,
-} from "@timesheeter/web/lib/workspace/tasks";
-import {
-  decrypt,
-  encrypt,
-  filterConfig,
-} from "@timesheeter/web/server/lib/secret-helpers";
-import { type Task, type PrismaClient } from "@prisma/client";
-import { type WithConfig } from "@timesheeter/web/server/lib/workspace-types";
-import { API_PAGINATION_LIMIT } from "@timesheeter/web/server/lib";
+} from '@timesheeter/web/lib/workspace/tasks';
+import { decrypt, encrypt, filterConfig } from '@timesheeter/web/server/lib/secret-helpers';
+import { type Task, type PrismaClient } from '@prisma/client';
+import { type WithConfig } from '@timesheeter/web/server/lib/workspace-types';
+import { API_PAGINATION_LIMIT } from '@timesheeter/web/server/lib';
 
 export const tasksRouter = createTRPCRouter({
   list: protectedProcedure
@@ -40,6 +33,14 @@ export const tasksRouter = createTRPCRouter({
       const taskCountPromise = ctx.prisma.task.count({
         where: {
           workspaceId: input.workspaceId,
+          OR: [
+            {
+              scopedUserId: null,
+            },
+            {
+              scopedUserId: ctx.session.user.id,
+            },
+          ],
         },
       });
 
@@ -47,6 +48,14 @@ export const tasksRouter = createTRPCRouter({
         .findMany({
           where: {
             workspaceId: input.workspaceId,
+            OR: [
+              {
+                scopedUserId: null,
+              },
+              {
+                scopedUserId: ctx.session.user.id,
+              },
+            ],
           },
           include: {
             project: {
@@ -62,16 +71,12 @@ export const tasksRouter = createTRPCRouter({
         })
         .then((tasks) => tasks.map((task) => parseTask(task)));
 
-      const [taskCount, tasks] = await Promise.all([
-        taskCountPromise,
-        tasksPromise,
-      ]);
+      const [taskCount, tasks] = await Promise.all([taskCountPromise, tasksPromise]);
 
       return {
         count: taskCount,
         page: input.page,
-        next:
-          taskCount > input.page * API_PAGINATION_LIMIT ? input.page + 1 : null,
+        next: taskCount > input.page * API_PAGINATION_LIMIT ? input.page + 1 : null,
         data: tasks,
       };
     }),
@@ -99,63 +104,83 @@ export const tasksRouter = createTRPCRouter({
         },
       });
     }),
-  create: protectedProcedure
-    .input(createTaskSchema)
-    .mutation(async ({ ctx, input }) => {
-      await authorize({
-        prisma: ctx.prisma,
-        taskId: null,
-        workspaceId: input.workspaceId,
-        userId: ctx.session.user.id,
+  create: protectedProcedure.input(createTaskSchema).mutation(async ({ ctx, input }) => {
+    await authorize({
+      prisma: ctx.prisma,
+      taskId: null,
+      workspaceId: input.workspaceId,
+      userId: ctx.session.user.id,
+    });
+
+    const { config, scoped, ...rest } = input;
+
+    const createdTask = await ctx.prisma.task
+      .create({
+        data: {
+          ...rest,
+          scopedUserId: scoped ? ctx.session.user.id : null,
+          configSerialized: encrypt(JSON.stringify(config)),
+        },
+      })
+      .then(parseTask);
+
+    return createdTask;
+  }),
+  update: protectedProcedure.input(updateTaskSchema).mutation(async ({ ctx, input }) => {
+    const { config: oldConfig } = await authorize({
+      prisma: ctx.prisma,
+      taskId: input.id,
+      workspaceId: input.workspaceId,
+      userId: ctx.session.user.id,
+    });
+
+    const { config: updatedConfigValues, scoped, ...rest } = input;
+
+    // Config is a single field, so we need to merge it manually
+    const updatedConfig = {
+      ...oldConfig,
+      ...updatedConfigValues,
+    } satisfies UpdateTaskConfig;
+
+    // Validate the config against the config schema to double check everything
+    // has been merged correctly
+    updateTaskConfigSchema.parse(updatedConfig);
+
+    const scopedUserId = scoped ? ctx.session.user.id : null;
+
+    // If scoped and timesheetEntries exist to users other than the current user,
+    // then throw an error
+    if (scopedUserId) {
+      const timesheetEntries = await ctx.prisma.timesheetEntry.findMany({
+        where: {
+          taskId: input.id,
+          userId: {
+            not: scopedUserId,
+          },
+        },
       });
 
-      const { config, ...rest } = input;
+      if (timesheetEntries.length > 0) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'This task has timesheet entries that belong to other users, it cannot be set as private',
+        });
+      }
+    }
 
-      const createdTask = await ctx.prisma.task
-        .create({
-          data: {
-            ...rest,
-            configSerialized: encrypt(JSON.stringify(config)),
-          },
-        })
-        .then(parseTask);
-
-      return createdTask;
-    }),
-  update: protectedProcedure
-    .input(updateTaskSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { config: oldConfig } = await authorize({
-        prisma: ctx.prisma,
-        taskId: input.id,
-        workspaceId: input.workspaceId,
-        userId: ctx.session.user.id,
-      });
-
-      const { config: updatedConfigValues, ...rest } = input;
-
-      // Config is a single field, so we need to merge it manually
-      const updatedConfig = {
-        ...oldConfig,
-        ...updatedConfigValues,
-      } satisfies UpdateTaskConfig;
-
-      // Validate the config against the config schema to double check everything
-      // has been merged correctly
-      updateTaskConfigSchema.parse(updatedConfig);
-
-      await ctx.prisma.task
-        .update({
-          where: {
-            id: input.id,
-          },
-          data: {
-            ...rest,
-            configSerialized: encrypt(JSON.stringify(updatedConfig)),
-          },
-        })
-        .then(parseTask);
-    }),
+    await ctx.prisma.task
+      .update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          ...rest,
+          scopedUserId,
+          configSerialized: encrypt(JSON.stringify(updatedConfig)),
+        },
+      })
+      .then(parseTask);
+  }),
   delete: protectedProcedure
     .input(
       z.object({
@@ -183,30 +208,20 @@ export const tasksRouter = createTRPCRouter({
     }),
 });
 
-export type ParsedTask<TaskType extends WithConfig> = Omit<
-  TaskType,
-  "configSerialized"
-> & {
+export type ParsedTask<TaskType extends WithConfig> = Omit<TaskType, 'configSerialized' | 'scopedUserId'> & {
   config: TaskConfig;
+  scoped: boolean;
 };
 
-export const parseTask = <TaskType extends WithConfig>(
-  task: TaskType,
-  safe = true
-): ParsedTask<TaskType> => {
-  const { configSerialized, ...rest } = task;
+export const parseTask = <TaskType extends WithConfig>(task: TaskType, safe = true): ParsedTask<TaskType> => {
+  const { configSerialized, scopedUserId, ...rest } = task;
 
   const config = JSON.parse(decrypt(configSerialized)) as TaskConfig;
 
   return {
     ...rest,
-    config: safe
-      ? filterConfig<TaskConfig>(
-          config,
-          TASK_DEFINITIONS[config.type].fields,
-          config.type
-        )
-      : config,
+    scoped: !!scopedUserId,
+    config: safe ? filterConfig<TaskConfig>(config, TASK_DEFINITIONS[config.type].fields, config.type) : config,
   };
 };
 
@@ -217,9 +232,7 @@ type AuthorizeParams<TaskId extends string | null> = {
   userId: string;
 };
 
-type AuthorizeResult<TaskId extends string | null> = TaskId extends null
-  ? null
-  : ParsedTask<Task>;
+type AuthorizeResult<TaskId extends string | null> = TaskId extends null ? null : ParsedTask<Task>;
 
 const authorize = async <TaskId extends string | null>({
   prisma,
@@ -236,8 +249,8 @@ const authorize = async <TaskId extends string | null>({
 
   if (!membership) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "You are not a member of this workspace",
+      code: 'NOT_FOUND',
+      message: 'You are not a member of this workspace',
     });
   }
 
@@ -253,15 +266,22 @@ const authorize = async <TaskId extends string | null>({
 
   if (!task) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Task not found",
+      code: 'NOT_FOUND',
+      message: 'Task not found',
     });
   }
 
   if (task.workspaceId !== workspaceId) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Task not found",
+      code: 'NOT_FOUND',
+      message: 'Task not found',
+    });
+  }
+
+  if (task.scopedUserId && task.scopedUserId !== userId) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'That task is private and does not belong to you',
     });
   }
 

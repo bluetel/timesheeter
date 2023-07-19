@@ -1,24 +1,24 @@
-import { RectangleStackIcon } from "@heroicons/react/24/outline";
-import { type IconType } from "react-icons/lib";
-import { z } from "zod";
+import { RectangleStackIcon } from '@heroicons/react/24/outline';
+import { type IconType } from 'react-icons/lib';
+import { z } from 'zod';
 
 export const TASKS_HELP_TEXT =
-  "Tasks group timesheet entries together, they can have assigned numbers e.g. from Jira" as const;
+  'Tasks group timesheet entries together, they can have assigned numbers e.g. from Jira' as const;
 
 export const TaskIcon = RectangleStackIcon as IconType;
 
 export const TASK_DEFINITIONS = {
   DefaultTask: {
-    name: "Task",
+    name: 'Task',
     fields: [],
     configSchema: z.object({
-      type: z.literal("DefaultTask"),
+      type: z.literal('DefaultTask'),
     }),
     updateTaskSchema: z.object({
-      type: z.literal("DefaultTask"),
+      type: z.literal('DefaultTask'),
     }),
     defaultConfig: {
-      type: "DefaultTask",
+      type: 'DefaultTask',
     },
   },
 } as const;
@@ -31,19 +31,18 @@ export const taskConfigSchema = TASK_DEFINITIONS.DefaultTask.configSchema;
 
 export type TaskConfig = z.infer<typeof taskConfigSchema>;
 
-export const updateTaskConfigSchema =
-  TASK_DEFINITIONS.DefaultTask.updateTaskSchema;
+export const updateTaskConfigSchema = TASK_DEFINITIONS.DefaultTask.updateTaskSchema;
 
 export type UpdateTaskConfig = z.infer<typeof updateTaskConfigSchema>;
 
-export const getDefaultTaskConfig = (type: TaskType = "DefaultTask") =>
-  TASK_DEFINITIONS[type].defaultConfig;
+export const getDefaultTaskConfig = (type: TaskType = 'DefaultTask') => TASK_DEFINITIONS[type].defaultConfig;
 
 export const createTaskSchema = z.object({
   workspaceId: z.string().cuid2(),
   taskNumber: z.number().int().positive().nullable(),
   name: z.string().min(1).max(100).nullable(),
   projectId: z.string().cuid2().nullable(),
+  scoped: z.boolean().default(false),
   config: taskConfigSchema,
 });
 
@@ -53,18 +52,19 @@ export const updateTaskSchema = z.object({
   taskNumber: z.number().int().positive().nullable().optional(),
   name: z.string().min(1).max(100).nullable().optional(),
   projectId: z.string().cuid2().nullable().optional(),
+  scoped: z.boolean().default(false).optional(),
   config: updateTaskConfigSchema,
 });
 
 type MatchedTaskResult =
   | {
-      variant: "with-task";
+      variant: 'with-task';
       prefix: string;
       taskNumber: number;
       description: string | null;
     }
   | {
-      variant: "no-task";
+      variant: 'no-task';
       description: string;
     };
 
@@ -87,7 +87,7 @@ export const matchTaskRegex = (rawDescription: string): MatchedTaskResult => {
 
     if (prefix && taskNumber) {
       return {
-        variant: "with-task",
+        variant: 'with-task',
         prefix: prefix.toUpperCase(),
         taskNumber: parseInt(taskNumber, 10),
         description: customDescription ? customDescription.trim() : null,
@@ -96,7 +96,7 @@ export const matchTaskRegex = (rawDescription: string): MatchedTaskResult => {
   }
 
   return {
-    variant: "no-task",
+    variant: 'no-task',
     description: rawDescription,
   };
 };

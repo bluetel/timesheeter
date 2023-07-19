@@ -9,7 +9,7 @@ export const timesheetSchema = z.object({
 
 export type Timesheet = z.infer<typeof timesheetSchema>;
 
-export const timesheetDescription = 'Specific user timesheets to output to';
+export const timesheetDescription = 'Specific user Google Sheets timesheets to output to';
 
 export const GoogleSheetsIntegration = {
   name: 'Google Sheets',

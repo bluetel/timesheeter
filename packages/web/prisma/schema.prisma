@@ -55,6 +55,7 @@ model User {
   memberships      Membership[]
   timesheetEntries TimesheetEntry[]
   holidays         Holiday[]
+  scopedTasks      Task[]
 }
 
 model VerificationToken {
@@ -123,6 +124,9 @@ model Task {
   workspaceId String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  scopedUserId String?
+  scopedUser   User?   @relation(fields: [scopedUserId], references: [id], onDelete: Cascade)
 
   taskNumber Int?
   name       String?

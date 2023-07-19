@@ -44,7 +44,6 @@ export const IntegrationPanel = ({
 
   const detailTabs = useMemo<DetailPanelProps["tabs"]>(() => {
     const integrationType = integration.config.type
-    console.log("integrationType", integration)
 
     if (integrationType === "GoogleSheetsIntegration") {
       return {
@@ -69,7 +68,7 @@ export const IntegrationPanel = ({
                   return ({
                     icon: SiGooglesheets,
                     label: taskName,
-                    subLabel: sheetId,
+                    subLabel: `Sheet ID - ${sheetId}`,
                     actionButtons: [
                       {
                         label: "Open",

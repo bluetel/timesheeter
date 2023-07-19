@@ -51,11 +51,20 @@ export const getServerSideProps = async (
     prisma.task.count({
       where: {
         workspaceId: workspaceInfo.props.workspace.id,
+        OR: [
+          {
+            scopedUserId: null,
+          },
+          {
+            scopedUserId: workspaceInfo.props.membership.user.id,
+          },
+        ],
       },
     }),
     prisma.timesheetEntry.count({
       where: {
         workspaceId: workspaceInfo.props.workspace.id,
+        userId: workspaceInfo.props.membership.user.id,
       },
     }),
     prisma.holiday.count({

@@ -30,7 +30,6 @@ export const SimpleEmptyState = ({
     <div className="p-8 text-center">
       {createElement(icon, {
         className: "mx-auto h-12 w-12 text-gray-400",
-        fill: "currentColor",
         viewBox: "0 0 24 24",
         "aria-hidden": "true",
       })}
