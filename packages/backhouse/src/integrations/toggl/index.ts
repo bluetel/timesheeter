@@ -32,7 +32,9 @@ export const handleTogglIntegration = async ({ integration }: { integration: Tog
 
   // Handle this synchronously, so duplicate tasks don't get created
 
-  for (const entry of reportData) {
+  throw new Error('This has to be rewritten to get the userId from somewhere else');
+
+  /* for (const entry of reportData) {
     if (!entry.description) {
       continue;
     }
@@ -80,7 +82,7 @@ export const handleTogglIntegration = async ({ integration }: { integration: Tog
         configSerialized: encrypt(JSON.stringify(getDefaultTimesheetEntryConfig())),
       },
     });
-  }
+  }*/
 };
 
 const getReportData = async ({ integration }: { integration: TogglIntegration }) => {
