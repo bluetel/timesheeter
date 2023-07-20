@@ -51,7 +51,8 @@ export const TogglIntegration = {
     scanPeriod: z
       .any()
       .transform((val) => (val === '' ? null : parseInt(String(val), 10)))
-      .pipe(z.number().int().positive()),
+      .pipe(z.number().int().positive())
+      .nullable(),
   }),
   updateIntegrationSchema: z.object({
     type: z.literal('TogglIntegration'),
@@ -59,7 +60,8 @@ export const TogglIntegration = {
     togglWorkspaceId: z
       .any()
       .transform((val) => (val === '' ? null : parseInt(String(val), 10)))
-      .pipe(z.number().int().positive().nullable())
+      .pipe(z.number().int().positive())
+      .nullable()
       .optional(),
     chronExpression: z.string().regex(chronRegex).optional(),
     scanPeriod: z

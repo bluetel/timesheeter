@@ -55,18 +55,26 @@ export const EditTaskSideOver = ({
 }: EditTaskSideOverProps) => {
   const { addNotification } = useNotifications();
 
-  const getDefaultValues = () =>
-    data.new
-      ? {
+  const getDefaultValues = () => {
+    if (data.new) {
+      return {
         new: true as const,
         workspaceId,
         name: "New task",
         config: getDefaultTaskConfig(),
       }
-      : {
-        new: false as const,
-        ...data.task,
-      };
+    }
+
+    const { project, ticketForTask, ...rest } = data.task
+
+    return {
+      new: false as const,
+      ...rest,
+      projectId: project?.id ?? null,
+      taskPrefixId: ticketForTask?.taskPrefix?.id ?? null,
+      taskNumber: ticketForTask?.number.toString(),
+    };
+  };
 
   const methods = useZodForm({
     schema: mutationSchema,
@@ -113,12 +121,6 @@ export const EditTaskSideOver = ({
       values.projectId = null;
     }
 
-    if (values.taskNumber) {
-      values.taskNumber = Number(values.taskNumber);
-    } else {
-      values.taskNumber = null;
-    }
-
     // If just updating, filter out the values that are not changed
     if (!data.new) {
       const { task } = data;
@@ -135,25 +137,28 @@ export const EditTaskSideOver = ({
           type: values.config.type ?? task.config.type,
         },
       } as typeof values;
-
       // Filter out undefined values
       values = Object.fromEntries(
         Object.entries(values).filter(([, value]) => value !== undefined)
       ) as typeof values;
+
+      if (values.taskNumber === data.task.ticketForTask?.number.toString()) {
+        delete values.taskNumber;
+      }
     }
 
     // Validate form
-    const result = mutationSchema.safeParse(values);
+    const result = mutationSchema.safeParse(values)
 
     if (!result.success) {
       addNotification({
         variant: "error",
         primaryText: `Failed to ${data.new ? "create" : "update"} task`,
-        secondaryText: fromZodError(result.error).toString(),
+        secondaryText: fromZodError(result.error).message,
       });
       return;
     }
-
+    console.log(values)
     values.new
       ? createTask(values, {
         onError: (error) => {
@@ -211,10 +216,17 @@ const useTaskFields = (
           value: id,
           label: name ?? "Unnamed project",
         })),
-        onChange: (value) =>
-          methods.setValue("projectId", value, {
-            shouldValidate: true,
-          }),
+        onChange: async (value) => {
+          methods.setValue("taskPrefixId", null);
+
+          methods.setValue("taskNumber", null);
+
+          methods.setValue("projectId", value)
+
+          await methods.trigger("taskPrefixId")
+          await methods.trigger("taskNumber")
+          await methods.trigger("projectId")
+        },
         active: methods.getValues("projectId") ?? null,
       },
     },
@@ -237,12 +249,37 @@ const useTaskFields = (
     {
       required: false,
       label: {
+        title: "Task Prefix",
+        description: `The prefix for the task, e.g. "AC"`,
+      },
+      field: {
+        variant: "select",
+        select: {
+          options: projects.find(
+            ({ id }) => id === methods.getValues("projectId")
+          )?.taskPrefixes.map(({ id, prefix }) => ({
+            value: id,
+            label: prefix
+          })) ?? [],
+          active: methods.getValues("taskPrefixId") ?? null,
+          onChange: (value) => {
+            methods.setValue("taskPrefixId", value, {
+              shouldValidate: true,
+            });
+          }
+        }
+      },
+    },
+    {
+      required: false,
+      label: {
         title: "Task number",
         description: "The task number, excluding the workspace prefix",
       },
       field: {
-        variant: "number",
+        variant: methods.getValues("projectId") ? "number" : "hidden",
         register: methods.register("taskNumber"),
+        // @ts-expect-error - variant type based on projectId
         error: methods.formState.errors.taskNumber,
       },
     },

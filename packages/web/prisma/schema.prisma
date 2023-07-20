@@ -78,6 +78,7 @@ model Workspace {
   timesheetEntries TimesheetEntry[]
   holidays         Holiday[]
   TaskPrefix       TaskPrefix[]
+  TicketForTask    TicketForTask[]
 }
 
 model Membership {
@@ -131,7 +132,7 @@ model TaskPrefix {
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  tasks Task[]
+  ticketsForTasks TicketForTask[]
 
   @@unique([prefix, workspaceId])
 }
@@ -146,10 +147,7 @@ model Task {
   scopedUserId String?
   scopedUser   User?   @relation(fields: [scopedUserId], references: [id], onDelete: Cascade)
 
-  taskPrefixId String?
-  taskPrefix   TaskPrefix? @relation(fields: [taskPrefixId], references: [id], onDelete: SetNull)
-
-  taskNumber Int?
+  ticketForTask TicketForTask?
 
   name String?
 
@@ -159,9 +157,24 @@ model Task {
   configSerialized String
 
   timesheetEntries TimesheetEntry[]
+}
 
-  // taskPrefixId and taskNumber are unique together
-  @@unique([taskPrefixId, taskNumber])
+model TicketForTask {
+  id          String    @id @default(cuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  taskPrefixId String
+  taskPrefix   TaskPrefix @relation(fields: [taskPrefixId], references: [id], onDelete: Cascade)
+
+  taskId String @unique
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  number Int
+
+  @@unique([taskPrefixId, number])
 }
 
 model TimesheetEntry {

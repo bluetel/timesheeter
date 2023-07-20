@@ -126,8 +126,8 @@ const Tasks = ({
         id: task.id,
         label: task.name ?? "Unnamed task",
         subLabel:
-          task.taskPrefix && task.taskNumber
-            ? `${task.taskPrefix.prefix}-${task.taskNumber}`
+          task.ticketForTask
+            ? `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}`
             : undefined,
         icon: TaskIcon,
         onClick: () =>

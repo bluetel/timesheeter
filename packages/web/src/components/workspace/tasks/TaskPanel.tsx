@@ -29,8 +29,8 @@ export const TaskPanel = ({
   const basicDetails = useBasicDetails(task);
 
   const subLabel =
-    task.taskPrefix && task.taskNumber
-      ? `${task.taskPrefix.prefix}-${task.taskNumber}`
+    task.ticketForTask
+      ? `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}`
       : undefined;
 
   return (
@@ -125,12 +125,22 @@ const useBasicDetails = (
     },
     {
       label: {
+        title: "Task prefix",
+        description: "The prefix for the task, e.g. 'AC'",
+      },
+      field: {
+        variant: "text",
+        value: task.ticketForTask?.taskPrefix.prefix ?? "",
+      }
+    },
+    {
+      label: {
         title: "Task number",
         description: "The task number, excluding the workspace prefix",
       },
       field: {
         variant: "text",
-        value: task.taskNumber?.toString() ?? "",
+        value: task.ticketForTask?.number.toString() ?? "",
       },
     },
     // Hidden as unsure if this feature will be used

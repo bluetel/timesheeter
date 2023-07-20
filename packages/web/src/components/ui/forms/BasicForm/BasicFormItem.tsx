@@ -24,7 +24,10 @@ type FieldOptions<RequiredType extends boolean> =
     value: Date | null;
     onChange: (date: Date | null) => void;
     formId: string;
-  };
+  }
+  | {
+    variant: "hidden"
+  }
 
 export type BasicFormItemProps<RequiredType extends boolean = boolean> = {
   required: RequiredType extends true ? true : false;
@@ -42,6 +45,10 @@ export const BasicFormItem = <RequiredType extends boolean>({
   label,
   field,
 }: BasicFormItemProps<RequiredType>) => {
+  if (field.variant === "hidden") {
+    return <></>;
+  }
+
   return (
     <div className="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
       <div>

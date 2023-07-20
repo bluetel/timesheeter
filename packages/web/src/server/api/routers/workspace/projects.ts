@@ -64,6 +64,12 @@ export const projectsRouter = createTRPCRouter({
         select: {
           id: true,
           name: true,
+          taskPrefixes: {
+            select: {
+              id: true,
+              prefix: true,
+            },
+          },
         },
       });
     }),
