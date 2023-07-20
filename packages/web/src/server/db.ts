@@ -1,5 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient as UnderlyingPrismaClient } from '@prisma/client';
 import { env } from '@timesheeter/web/env';
+
+export type PrismaClient = UnderlyingPrismaClient;
 
 let prismaClient: PrismaClient | undefined;
 
@@ -10,7 +12,7 @@ export const getPrismaClient = async (): Promise<PrismaClient> => {
 
   const prisma =
     globalForPrisma.prisma ||
-    new PrismaClient({
+    new UnderlyingPrismaClient({
       log: env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
       datasources: {
         db: {

@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { SiToggl } from 'react-icons/si';
 import { chronRegex } from '@timesheeter/web/lib/regex';
 
+const defaultScanPeriod = 30;
+
 export const TogglIntegration = {
   name: 'Toggl',
   description: 'Connects to Toggl to pull in time entries',
@@ -50,25 +52,23 @@ export const TogglIntegration = {
     chronExpression: z.string().regex(chronRegex),
     scanPeriod: z
       .any()
-      .transform((val) => (val === '' ? null : parseInt(String(val), 10)))
-      .pipe(z.number().int().positive())
-      .nullable(),
+      .transform((val) => (val === '' ? defaultScanPeriod : parseInt(String(val), 10)))
+      .pipe(z.number().int().positive()),
   }),
   updateIntegrationSchema: z.object({
     type: z.literal('TogglIntegration'),
     apiKey: z.string().min(1).optional(),
     togglWorkspaceId: z
       .any()
-      .transform((val) => (val === '' ? null : parseInt(String(val), 10)))
-      .pipe(z.number().int().positive())
-      .nullable()
-      .optional(),
+      .transform((value) => (value === undefined ? undefined : !!value ? parseInt(String(value), 10) : null))
+      .pipe(z.number().int().positive().nullable().optional()),
     chronExpression: z.string().regex(chronRegex).optional(),
     scanPeriod: z
       .any()
-      .transform((val) => (val === '' ? null : parseInt(String(val), 10)))
-      .pipe(z.number().int().positive())
-      .optional(),
+      .transform((value) =>
+        value === undefined ? undefined : !!value ? parseInt(String(value), 10) : defaultScanPeriod
+      )
+      .pipe(z.number().int().positive().optional()),
   }),
   defaultConfig: {
     type: 'TogglIntegration',

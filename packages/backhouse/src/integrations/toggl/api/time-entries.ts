@@ -2,22 +2,29 @@ import { isoStringRegex } from '@timesheeter/web';
 import { API_BASE_URL, type RateLimitedAxiosClient } from './client';
 import { z } from 'zod';
 
-const togglTimeEntrySchema = z.object({
-  /** Updated at */
-  at: z.string().regex(isoStringRegex),
-  billable: z.boolean(),
-  description: z.string().nullable(),
-  id: z.number().int().positive(),
-  project_id: z.number().int().positive().nullable(),
-  server_deleted_at: z.string().nullable(),
-  start: z.string().regex(isoStringRegex),
-  /** stop time in UTC, can be null if it's still running or created with "duration" and "duronly" fields */
-  stop: z.string().regex(isoStringRegex).nullable(),
-  tag_ids: z.array(z.number().int().positive()),
-  tags: z.array(z.string()),
-  task_id: z.number().int().positive().nullable(),
-  workspace_id: z.number().int().positive(),
-});
+const togglTimeEntrySchema = z
+  .object({
+    /** Updated at */
+    at: z.string().regex(isoStringRegex),
+    billable: z.boolean(),
+    description: z.string().nullable(),
+    id: z.number().int().positive(),
+    project_id: z.number().int().positive().nullable(),
+    server_deleted_at: z.string().regex(isoStringRegex).nullable(),
+    start: z.string().regex(isoStringRegex),
+    /** stop time in UTC, can be null if it's still running or created with "duration" and "duronly" fields */
+    stop: z.string().regex(isoStringRegex).nullable(),
+    tag_ids: z.array(z.number().int().positive()),
+    tags: z.array(z.string()),
+    task_id: z.number().int().positive().nullable(),
+    workspace_id: z.number().int().positive(),
+  })
+  .transform((data) => ({
+    ...data,
+    at: data.server_deleted_at ? new Date(data.server_deleted_at) : new Date(data.at),
+    server_deleted_at: data.server_deleted_at ? new Date(data.server_deleted_at) : null,
+    deleted: !!data.server_deleted_at,
+  }));
 
 export type TogglTimeEntry = z.infer<typeof togglTimeEntrySchema>;
 

@@ -37,12 +37,20 @@ export const getDatabaseEntries = async ({
       task: {
         select: {
           id: true,
-          taskNumber: true,
+          ticketForTask: {
+            select: {
+              number: true,
+              taskPrefix: {
+                select: {
+                  prefix: true,
+                },
+              },
+            },
+          },
           name: true,
           project: {
             select: {
               name: true,
-              taskPrefix: true,
             },
           },
         },

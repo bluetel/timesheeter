@@ -1,5 +1,6 @@
 import { getPrismaClient, ParsedIntegration } from '@timesheeter/web';
 import { ThrottledJiraClient } from './throttled-client';
+import { z } from 'zod';
 
 type JiraIntegration = ParsedIntegration & {
   config: {
@@ -25,18 +26,29 @@ export const handleJiraIntegration = async ({ integration }: { integration: Jira
       workspaceId: integration.workspaceId,
       name: null,
     },
-    include: {
-      project: true,
+    select: {
+      id: true,
+      ticketForTask: {
+        select: {
+          number: true,
+          jiraTicketId: true,
+          taskPrefix: {
+            select: {
+              prefix: true,
+            },
+          },
+        },
+      },
     },
   });
 
   return Promise.all(
     tasks.map(async (task) => {
-      if (!task.taskNumber) {
+      if (!task.ticketForTask || task.ticketForTask.jiraTicketId) {
         return;
       }
 
-      const issueNumber = `${task.project?.taskPrefix}-${task.taskNumber}`;
+      const issueNumber = `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}`;
 
       const jiraTicket = await jiraClient.findIssue(issueNumber).catch(() => null);
 
@@ -44,19 +56,28 @@ export const handleJiraIntegration = async ({ integration }: { integration: Jira
         return;
       }
 
-      // Update task name if it has changed in Jira
-      if (task.name === jiraTicket.fields.summary) {
-        return;
-      }
+      const parsedTicket = jiraIssueSchema.parse(jiraTicket);
 
       return prisma.task.update({
         where: {
           id: task.id,
         },
         data: {
-          name: jiraTicket.fields.summary,
+          name: parsedTicket.fields.summary,
+          ticketForTask: {
+            update: {
+              jiraTicketId: parsedTicket.id,
+            },
+          },
         },
       });
     })
   );
 };
+
+const jiraIssueSchema = z.object({
+  id: z.string(),
+  fields: z.object({
+    summary: z.string(),
+  }),
+});

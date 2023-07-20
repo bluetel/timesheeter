@@ -45,6 +45,7 @@ export const createTaskSchema = z.object({
     .any()
     .transform((value) => (value === undefined ? undefined : !!value ? parseInt(String(value), 10) : null))
     .pipe(z.number().int().positive().nullable()),
+  taskPrefixId: z.string().cuid2().nullable(),
   scoped: z.boolean().default(false),
   config: taskConfigSchema,
 });

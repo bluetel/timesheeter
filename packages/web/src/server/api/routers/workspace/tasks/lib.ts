@@ -28,18 +28,20 @@ type AuthorizeParams<TaskId extends string | null> = {
   userId: string;
 };
 
-type ParsedTicketForTask = Task & {
-  ticketForTask: {
-    number: number;
-    id: string;
-    taskPrefix: {
-      id: string;
-      prefix: string;
-    };
-  } | null;
-};
-
-type AuthorizeResult<TaskId extends string | null> = TaskId extends null ? null : ParsedTask<ParsedTicketForTask>;
+type AuthorizeResult<TaskId extends string | null> = TaskId extends null
+  ? null
+  : ParsedTask<
+      Task & {
+        ticketForTask: {
+          number: number;
+          id: string;
+          taskPrefix: {
+            id: string;
+            prefix: string;
+          };
+        } | null;
+      }
+    >;
 
 export const authorize = async <TaskId extends string | null>({
   prisma,

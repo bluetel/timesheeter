@@ -20,9 +20,15 @@ import { type IconType } from "react-icons";
 import { SelectableList } from "../../ui/SelectableList";
 import { SimpleEmptyState } from "../../ui/SimpleEmptyState";
 import { ConfigIcon } from "@timesheeter/web/lib/icons";
+import { type Project } from "@prisma/client";
 
 type ProjectDetailProps = {
-  project: ParsedProject;
+  project: ParsedProject<Project & {
+    taskPrefixes: {
+      id: string;
+      prefix: string;
+    }[];
+  }>;
   refetchProjects: () => unknown;
   onNewProjectClick: () => void;
 };

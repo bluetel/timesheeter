@@ -26,6 +26,14 @@ export const PROJECT_DEFINITIONS = {
         protectCount: 0,
         description: autoAssignTasksHelpText,
       },
+      {
+        accessor: 'taskPrefixes',
+        name: 'Task prefixes',
+        type: 'string_list',
+        required: false,
+        protectCount: 0,
+        description: taskPrefixesHelpText,
+      },
     ],
     configSchema: z.object({
       type: z.literal('DefaultProject'),
@@ -63,7 +71,6 @@ export const getDefaultProjectConfig = (type: ProjectType = 'DefaultProject') =>
 export const createProjectSchema = z.object({
   workspaceId: z.string().cuid2(),
   name: z.string().min(1).max(100),
-  taskPrefixes: z.array(z.string().regex(taskPrefixRegex)).default([]),
   config: projectConfigSchema,
 });
 
@@ -71,6 +78,5 @@ export const updateProjectSchema = z.object({
   id: z.string().cuid2(),
   workspaceId: z.string().cuid2(),
   name: z.string().min(1).max(100).optional(),
-  taskPrefixes: z.array(z.string().regex(taskPrefixRegex)).default([]).optional(),
   config: updateProjectConfigSchema,
 });

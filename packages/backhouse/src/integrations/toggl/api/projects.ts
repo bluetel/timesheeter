@@ -2,14 +2,23 @@ import { isoStringRegex } from '@timesheeter/web';
 import { API_BASE_URL, type RateLimitedAxiosClient } from './client';
 import { z } from 'zod';
 
-const togglProjectSchema = z.object({
-  id: z.number().int().positive(),
-  workspace_id: z.number().int().positive(),
-  name: z.string(),
-  created_at: z.string().regex(isoStringRegex),
-  /** Updated at */
-  at: z.string().regex(isoStringRegex),
-});
+const togglProjectSchema = z
+  .object({
+    id: z.number().int().positive(),
+    workspace_id: z.number().int().positive(),
+    name: z.string(),
+    created_at: z.string().regex(isoStringRegex),
+    /** Updated at */
+    at: z.string().regex(isoStringRegex),
+    server_deleted_at: z.string().regex(isoStringRegex).nullable(),
+  })
+  .transform((data) => ({
+    ...data,
+    at: data.server_deleted_at ? new Date(data.server_deleted_at) : new Date(data.at),
+    created_at: new Date(data.created_at),
+    server_deleted_at: data.server_deleted_at ? new Date(data.server_deleted_at) : null,
+    deleted: !!data.server_deleted_at,
+  }));
 
 export type TogglProject = z.infer<typeof togglProjectSchema>;
 
@@ -29,7 +38,7 @@ export const projectsGet = async ({
   return togglProjectArraySchema.parse(response.data);
 };
 
-const togglProjectMutationSchema = z.object({
+export const togglProjectMutationSchema = z.object({
   active: z.boolean().default(true),
   is_private: z.boolean().default(false),
   name: z.string(),

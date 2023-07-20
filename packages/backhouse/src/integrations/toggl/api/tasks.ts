@@ -2,21 +2,28 @@ import { isoStringRegex } from '@timesheeter/web';
 import { API_BASE_URL, type RateLimitedAxiosClient } from './client';
 import { z } from 'zod';
 
-const togglTaskSchema = z.object({
-  active: z.boolean(),
-  /** Updated at */
-  at: z.string().regex(isoStringRegex),
-  estimated_seconds: z.number().int().positive().nullable(),
-  id: z.number().int().positive(),
-  name: z.string(),
-  project_id: z.number().int().positive(),
-  recurring: z.boolean(),
-  server_deleted_at: z.string().nullable(),
-  /** This is in milliseconds, not seconds */
-  tracked_seconds: z.number().int().positive(),
-  user_id: z.number().int().positive().nullable(),
-  workspace_id: z.number().int().positive(),
-});
+const togglTaskSchema = z
+  .object({
+    active: z.boolean(),
+    /** Updated at */
+    at: z.string().regex(isoStringRegex),
+    estimated_seconds: z.number().int().positive().nullable(),
+    id: z.number().int().positive(),
+    name: z.string(),
+    project_id: z.number().int().positive(),
+    recurring: z.boolean(),
+    server_deleted_at: z.string().regex(isoStringRegex).nullable(),
+    /** This is in milliseconds, not seconds */
+    tracked_seconds: z.number().int().positive(),
+    user_id: z.number().int().positive().nullable(),
+    workspace_id: z.number().int().positive(),
+  })
+  .transform((data) => ({
+    ...data,
+    at: data.server_deleted_at ? new Date(data.server_deleted_at) : new Date(data.at),
+    server_deleted_at: data.server_deleted_at ? new Date(data.server_deleted_at) : null,
+    deleted: !!data.server_deleted_at,
+  }));
 
 export type TogglTask = z.infer<typeof togglTaskSchema>;
 

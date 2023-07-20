@@ -11,6 +11,7 @@ import {
 } from '@timesheeter/web/lib/workspace/projects';
 import { decrypt, encrypt, filterConfig } from '@timesheeter/web/server/lib/secret-helpers';
 import { type Project, type PrismaClient } from '@prisma/client';
+import { type WithConfig } from '@timesheeter/web/server/lib/workspace-types';
 
 export const projectsRouter = createTRPCRouter({
   list: protectedProcedure
@@ -81,7 +82,7 @@ export const projectsRouter = createTRPCRouter({
       userId: ctx.session.user.id,
     });
 
-    const { config, taskPrefixes, ...rest } = input;
+    const { config, ...rest } = input;
 
     const createdProject = await ctx.prisma.project
       .create({
@@ -89,7 +90,7 @@ export const projectsRouter = createTRPCRouter({
           ...rest,
           configSerialized: encrypt(JSON.stringify(config)),
           taskPrefixes: {
-            create: taskPrefixes.map((taskPrefix) => ({
+            create: config.taskPrefixes.map((taskPrefix) => ({
               prefix: taskPrefix,
               workspaceId: input.workspaceId,
             })),
@@ -116,25 +117,21 @@ export const projectsRouter = createTRPCRouter({
       userId: ctx.session.user.id,
     });
 
-    const { config: updatedConfigValues, taskPrefixes, ...rest } = input;
-
-    const taskPrefixesToDelete =
-      taskPrefixes !== undefined
-        ? oldTaskPrefixes.filter((oldTaskPrefix) => !taskPrefixes.includes(oldTaskPrefix.prefix))
-        : [];
-
-    const taskPrefixesToCreate =
-      taskPrefixes !== undefined
-        ? taskPrefixes.filter(
-            (taskPrefix) => !oldTaskPrefixes.map((oldTaskPrefix) => oldTaskPrefix.prefix).includes(taskPrefix)
-          )
-        : [];
+    const { config: updatedConfigValues, ...rest } = input;
 
     // Config is a single field, so we need to merge it manually
     const updatedConfig = {
       ...oldConfig,
       ...updatedConfigValues,
     } satisfies UpdateProjectConfig;
+
+    const taskPrefixesToDelete = oldTaskPrefixes.filter(
+      (oldTaskPrefix) => !updatedConfig.taskPrefixes.includes(oldTaskPrefix.prefix)
+    );
+
+    const taskPrefixesToCreate = updatedConfig.taskPrefixes.filter(
+      (updatedTaskPrefix) => !oldTaskPrefixes.map((oldTaskPrefix) => oldTaskPrefix.prefix).includes(updatedTaskPrefix)
+    );
 
     // Validate the config against the config schema to double check everything
     // has been merged correctly
@@ -204,23 +201,14 @@ export const projectsRouter = createTRPCRouter({
     }),
 });
 
-export type ParsedProject = Omit<Project, 'configSerialized'> & {
+export type ParsedProject<ProjectType extends WithConfig = Project> = Omit<ProjectType, 'configSerialized'> & {
   config: ProjectConfig;
-  taskPrefixes: {
-    id: string;
-    prefix: string;
-  }[];
 };
 
-export const parseProject = (
-  project: Project & {
-    taskPrefixes: {
-      id: string;
-      prefix: string;
-    }[];
-  },
+export const parseProject = <ProjectType extends WithConfig>(
+  project: ProjectType,
   safe = true
-): ParsedProject => {
+): ParsedProject<ProjectType> => {
   const { configSerialized, ...rest } = project;
 
   const config = JSON.parse(decrypt(configSerialized)) as ProjectConfig;
@@ -238,7 +226,16 @@ type AuthorizeParams<ProjectId extends string | null> = {
   userId: string;
 };
 
-type AuthorizeResult<ProjectId extends string | null> = ProjectId extends null ? null : ParsedProject;
+type AuthorizeResult<ProjectId extends string | null> = ProjectId extends null
+  ? null
+  : ParsedProject<
+      Project & {
+        taskPrefixes: {
+          id: string;
+          prefix: string;
+        }[];
+      }
+    >;
 
 const authorize = async <ProjectId extends string | null>({
   prisma,

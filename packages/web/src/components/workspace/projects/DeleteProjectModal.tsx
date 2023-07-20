@@ -5,7 +5,7 @@ import { DeleteConfirmationModal } from "@timesheeter/web/components/ui/DeleteCo
 type DeleteProjectModalProps = {
   show: boolean;
   onClose: () => void;
-  project: ParsedProject;
+  project: ParsedProject
   refetchProjects: () => void;
 };
 

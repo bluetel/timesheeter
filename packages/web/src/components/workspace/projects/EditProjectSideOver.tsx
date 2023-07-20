@@ -176,7 +176,7 @@ export const EditProjectSideOver = ({
   const fields = useProjectFields(methods);
 
   const getTaskPrefixes = () => {
-    const taskPrefixes = [...methods.getValues("taskPrefixes") ?? []];
+    const taskPrefixes = [...methods.getValues("config.taskPrefixes") ?? []];
 
     if (taskPrefixes.length === 0) {
       taskPrefixes.push("");
@@ -221,7 +221,7 @@ export const EditProjectSideOver = ({
               onChange={(newValues) => {
                 const filteredValues = newValues.filter((value) => value !== "");
 
-                methods.setValue("taskPrefixes", filteredValues, {
+                methods.setValue("config.taskPrefixes", filteredValues, {
                   shouldValidate: true,
                 })
               }}
