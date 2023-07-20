@@ -1,6 +1,8 @@
 # Timesheeter
 
-Fully serverless open source timesheeting app designed to be deployed to AWS.
+Serverless open source timesheeting app designed to be deployed to AWS.
+
+Supports 2 way bi-directional sync with Toggl, ticketing information from Jira, and outputting to Google Sheets.
 
 ## Quickstart
 

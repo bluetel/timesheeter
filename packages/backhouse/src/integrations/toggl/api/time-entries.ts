@@ -25,18 +25,18 @@ const togglTimeEntryArraySchema = togglTimeEntrySchema.array();
 
 export const timeEntriesGet = async ({
   axiosClient,
-  query,
+  path,
 }: {
   axiosClient: RateLimitedAxiosClient;
-  query: {
-    start_date: string;
-    end_date: string;
+  path: {
+    start_date: Date;
+    end_date: Date;
   };
 }) => {
   const response = await axiosClient.get(`${API_BASE_URL}/api/v9/me/time_entries`, {
     params: {
-      start_date: query.start_date,
-      end_date: query.end_date,
+      start_date: path.start_date.toISOString(),
+      end_date: path.end_date.toISOString(),
       user_agent: 'timesheeter',
     },
   });

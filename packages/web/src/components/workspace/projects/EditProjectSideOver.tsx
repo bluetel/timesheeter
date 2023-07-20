@@ -5,6 +5,7 @@ import {
   getDefaultProjectConfig,
   autoAssignTasksHelpText,
   autoAssignTaskSchema,
+  taskPrefixesHelpText,
 } from "@timesheeter/web/lib/workspace/projects";
 import { api, type RouterOutputs } from "@timesheeter/web/utils/api";
 import { useEffect, useState } from "react";
@@ -21,6 +22,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { type IconType } from "react-icons/lib";
 import { ConfigIcon } from "@timesheeter/web/lib/icons";
+import { SiJira } from "react-icons/si";
 
 const mutationSchema = z.union([
   createProjectSchema.extend({
@@ -55,18 +57,24 @@ export const EditProjectSideOver = ({
 }: EditProjectSideOverProps) => {
   const { addNotification } = useNotifications();
 
-  const getDefaultValues = () =>
-    data.new
-      ? {
+  const getDefaultValues = () => {
+    if (data.new) {
+      return {
         new: true as const,
         workspaceId,
         name: "New project",
         config: getDefaultProjectConfig(),
       }
-      : {
-        new: false as const,
-        ...data.project,
-      };
+    }
+
+    const { taskPrefixes, ...project } = data.project;
+
+    return {
+      new: false as const,
+      ...project,
+      taskPrefixes: taskPrefixes.map(({ prefix }) => prefix),
+    };
+  }
 
   const methods = useZodForm({
     schema: mutationSchema,
@@ -132,10 +140,6 @@ export const EditProjectSideOver = ({
       ) as typeof values;
     }
 
-    if (values.taskPrefix === "") {
-      values.taskPrefix = null;
-    }
-
     // Validate form
     const result = mutationSchema.safeParse(values);
 
@@ -171,8 +175,18 @@ export const EditProjectSideOver = ({
 
   const fields = useProjectFields(methods);
 
+  const getTaskPrefixes = () => {
+    const taskPrefixes = [...methods.getValues("taskPrefixes") ?? []];
+
+    if (taskPrefixes.length === 0) {
+      taskPrefixes.push("");
+    }
+
+    return taskPrefixes;
+  };
+
   const getAutoAssignTasks = () => {
-    const tasks = methods.getValues("config.autoAssignTasks") ?? [];
+    const tasks = [...methods.getValues("config.autoAssignTasks") ?? []]
 
     if (tasks.length === 0) {
       tasks.push("");
@@ -198,11 +212,28 @@ export const EditProjectSideOver = ({
             body: <BasicForm items={fields} />,
           },
           {
+            icon: SiJira,
+            label: "Task Prefixes",
+            body: <ListableForm
+              minRows={1}
+              placeholder="E.g. AC"
+              values={getTaskPrefixes()}
+              onChange={(newValues) => {
+                const filteredValues = newValues.filter((value) => value !== "");
+
+                methods.setValue("taskPrefixes", filteredValues, {
+                  shouldValidate: true,
+                })
+              }}
+            />,
+            subDescription: taskPrefixesHelpText
+          },
+          {
             icon: ArrowPathRoundedSquareIcon as IconType,
             label: "Auto Assign Tasks",
             body: <ListableForm
               minRows={1}
-              placeholder="E.g.Standup"
+              placeholder="E.g. Standup"
               values={getAutoAssignTasks()}
               onChange={(newValues) => {
                 // Filter out autoAssignTasks that are invalid i.e. blank ones
@@ -236,18 +267,6 @@ const useProjectFields = (
         variant: "text",
         register: methods.register("name"),
         error: methods.formState.errors.name,
-      },
-    },
-    {
-      required: false,
-      label: {
-        title: "Task Prefix",
-        description: `Prefix for tasks created by this project, e.g. "AC" for "AC-1234"`,
-      },
-      field: {
-        variant: "text",
-        register: methods.register("taskPrefix"),
-        error: methods.formState.errors.taskPrefix,
       },
     },
   ];

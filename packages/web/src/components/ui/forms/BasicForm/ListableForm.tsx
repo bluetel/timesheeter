@@ -48,7 +48,7 @@ export const ListableForm = ({ values, onChange, placeholder, minRows = 0 }: Lis
       <button
         type="button"
         className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        onClick={() => setLocalValues([...values, ""])}
+        onClick={() => setLocalValues([...localValues, ""])}
       >
         Add another
       </button>

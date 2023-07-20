@@ -77,6 +77,7 @@ model Workspace {
   tasks            Task[]
   timesheetEntries TimesheetEntry[]
   holidays         Holiday[]
+  TaskPrefix       TaskPrefix[]
 }
 
 model Membership {
@@ -110,12 +111,29 @@ model Project {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  name       String
-  taskPrefix String?
+  name String
 
   configSerialized String
 
+  tasks        Task[]
+  taskPrefixes TaskPrefix[]
+}
+
+model TaskPrefix {
+  id          String    @id @default(cuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  prefix String
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   tasks Task[]
+
+  @@unique([prefix, workspaceId])
 }
 
 model Task {
@@ -128,8 +146,12 @@ model Task {
   scopedUserId String?
   scopedUser   User?   @relation(fields: [scopedUserId], references: [id], onDelete: Cascade)
 
+  taskPrefixId String?
+  taskPrefix   TaskPrefix? @relation(fields: [taskPrefixId], references: [id], onDelete: SetNull)
+
   taskNumber Int?
-  name       String?
+
+  name String?
 
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String?
@@ -137,6 +159,9 @@ model Task {
   configSerialized String
 
   timesheetEntries TimesheetEntry[]
+
+  // taskPrefixId and taskNumber are unique together
+  @@unique([taskPrefixId, taskNumber])
 }
 
 model TimesheetEntry {

@@ -114,7 +114,7 @@ const Projects = ({
     () =>
       projects?.map((project) => ({
         label: project.name,
-        subLabel: project.taskPrefix ? `${project.taskPrefix}-XXXX` : undefined,
+        subLabel: project.taskPrefixes ? project.taskPrefixes.map((i) => i.prefix).join(", ") : undefined,
         icon: ProjectIcon,
         onClick: () =>
           setSelectedProject({

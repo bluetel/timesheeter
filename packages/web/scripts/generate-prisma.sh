@@ -14,6 +14,9 @@ cd packages/web
 
 pnpm prisma generate
 
+# Try and push to database, but ignore errors
+pnpm prisma db push --preview-feature --accept-data-loss || true
+
 if [ -f .env ]; then
   rm .env
 fi

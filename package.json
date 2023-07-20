@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "type": "module",
+  "license": "MPL-2.0",
   "scripts": {
     "dev": "pnpm db:migrate:dev && pnpm dev:sst",
     "dev:sst": "sst dev",

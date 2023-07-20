@@ -33,9 +33,9 @@ export const TimesheetEntryPanel = ({
   const getSubDescription = () => {
     if (
       timesheetEntry.task.taskNumber &&
-      timesheetEntry.task.project?.taskPrefix
+      timesheetEntry.task.taskPrefix
     ) {
-      return `${timesheetEntry.task.project.taskPrefix}-${timesheetEntry.task.taskNumber}`;
+      return `${timesheetEntry.task.taskPrefix.prefix}-${timesheetEntry.task.taskNumber}`;
     }
 
     if (timesheetEntry.task.name) {

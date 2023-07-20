@@ -49,9 +49,10 @@ export const timesheetEntriesRouter = createTRPCRouter({
                 id: true,
                 taskNumber: true,
                 name: true,
-                project: {
+                taskPrefix: {
                   select: {
-                    taskPrefix: true,
+                    id: true,
+                    prefix: true,
                   },
                 },
               },

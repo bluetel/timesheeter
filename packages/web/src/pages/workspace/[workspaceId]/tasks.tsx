@@ -8,7 +8,7 @@ import { WorkspaceLayout } from "@timesheeter/web/components/workspace/Workspace
 import { appRouter } from "@timesheeter/web/server/api/root";
 import { createTRPCContext } from "@timesheeter/web/server/api/trpc";
 import { type RouterOutputs, api } from "@timesheeter/web/utils/api";
-import { WorkspaceInfo, getWorkspaceInfoDiscrete } from "@timesheeter/web/server/lib/workspace-info";
+import { type WorkspaceInfo, getWorkspaceInfoDiscrete } from "@timesheeter/web/server/lib/workspace-info";
 import { useEffect, useMemo, useState } from "react";
 import { EditTaskSideOver } from "@timesheeter/web/components/workspace/tasks/EditTaskSideOver";
 import { TaskPanel } from "@timesheeter/web/components/workspace/tasks/TaskPanel";
@@ -126,8 +126,8 @@ const Tasks = ({
         id: task.id,
         label: task.name ?? "Unnamed task",
         subLabel:
-          task.project?.taskPrefix && task.taskNumber
-            ? `${task.project.taskPrefix}-${task.taskNumber}`
+          task.taskPrefix && task.taskNumber
+            ? `${task.taskPrefix.prefix}-${task.taskNumber}`
             : undefined,
         icon: TaskIcon,
         onClick: () =>

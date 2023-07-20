@@ -15,12 +15,18 @@ import { useNotifications } from "../../ui/notification/NotificationProvider";
 import { fromZodError } from "zod-validation-error";
 
 const mutationSchema = z.union([
-  createTaskSchema.extend({
-    new: z.literal(true),
-  }),
-  updateTaskSchema.extend({
-    new: z.literal(false),
-  }),
+  z.intersection(
+    createTaskSchema,
+    z.object({
+      new: z.literal(true),
+    })
+  ),
+  z.intersection(
+    updateTaskSchema,
+    z.object({
+      new: z.literal(false),
+    })
+  ),
 ]);
 
 type EditTaskSideOverProps = {

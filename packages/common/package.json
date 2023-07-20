@@ -4,6 +4,7 @@
   "description": "Code shared between the client and server",
   "main": "./dist/src/index.js",
   "type": "module",
+  "license": "MPL-2.0",
   "scripts": {
     "build": "tsc",
     "start": "tsc -w",

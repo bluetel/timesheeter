@@ -1,6 +1,6 @@
 import { RectangleStackIcon } from '@heroicons/react/24/outline';
 import { type IconType } from 'react-icons/lib';
-import { z } from 'zod';
+import { ZodError, ZodIssueCode, z } from 'zod';
 
 export const TASKS_HELP_TEXT =
   'Tasks group timesheet entries together, they can have assigned numbers e.g. from Jira' as const;
@@ -37,24 +37,62 @@ export type UpdateTaskConfig = z.infer<typeof updateTaskConfigSchema>;
 
 export const getDefaultTaskConfig = (type: TaskType = 'DefaultTask') => TASK_DEFINITIONS[type].defaultConfig;
 
-export const createTaskSchema = z.object({
-  workspaceId: z.string().cuid2(),
-  taskNumber: z.number().int().positive().nullable(),
-  name: z.string().min(1).max(100).nullable(),
-  projectId: z.string().cuid2().nullable(),
-  scoped: z.boolean().default(false),
-  config: taskConfigSchema,
-});
+export const createTaskSchema = z
+  .object({
+    workspaceId: z.string().cuid2(),
+    name: z.string().min(1).max(100).nullable(),
+    projectId: z.string().cuid2().nullable(),
+    taskNumber: z.number().int().positive().nullable(),
+    taskPrefixId: z.string().cuid2().nullable(),
+    scoped: z.boolean().default(false),
+    config: taskConfigSchema,
+  })
+  .transform((data) => {
+    // Ensure that if taskNumber is null, taskPrefixId is also null
+    if (
+      (data.taskNumber === null && data.taskPrefixId !== null) ||
+      (data.taskNumber !== null && data.taskPrefixId === null)
+    ) {
+      throw new ZodError([
+        {
+          message: 'taskNumber and taskPrefixId must both be null or both be set',
+          path: ['taskNumber', 'taskPrefixId'],
+          code: ZodIssueCode.custom,
+        },
+      ]);
+    }
 
-export const updateTaskSchema = z.object({
-  id: z.string().cuid2(),
-  workspaceId: z.string().cuid2(),
-  taskNumber: z.number().int().positive().nullable().optional(),
-  name: z.string().min(1).max(100).nullable().optional(),
-  projectId: z.string().cuid2().nullable().optional(),
-  scoped: z.boolean().default(false).optional(),
-  config: updateTaskConfigSchema,
-});
+    return data;
+  });
+
+export const updateTaskSchema = z
+  .object({
+    id: z.string().cuid2(),
+    workspaceId: z.string().cuid2(),
+    name: z.string().min(1).max(100).nullable().optional(),
+    projectId: z.string().cuid2().nullable().optional(),
+    taskNumber: z.number().int().positive().nullable().optional(),
+    taskPrefixId: z.string().cuid2().nullable().optional(),
+    scoped: z.boolean().default(false).optional(),
+    config: updateTaskConfigSchema,
+  })
+  .transform((data) => {
+    // Ensure that if taskNumber is null, taskPrefixId is also null
+    if (
+      (data.taskNumber === null && data.taskPrefixId !== null) ||
+      (data.taskNumber !== null && data.taskPrefixId === null)
+    ) {
+      throw new ZodError([
+        {
+          message: 'taskNumber and taskPrefixId must both be null or both be set',
+          path: ['taskNumber', 'taskPrefixId'],
+          code: ZodIssueCode.custom,
+        },
+      ]);
+    }
+
+    return data;
+  });
 
 type MatchedTaskResult =
   | {

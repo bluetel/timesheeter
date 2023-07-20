@@ -29,8 +29,8 @@ export const TaskPanel = ({
   const basicDetails = useBasicDetails(task);
 
   const subLabel =
-    task.project?.taskPrefix && task.taskNumber
-      ? `${task.project.taskPrefix}-${task.taskNumber}`
+    task.taskPrefix && task.taskNumber
+      ? `${task.taskPrefix.prefix}-${task.taskNumber}`
       : undefined;
 
   return (

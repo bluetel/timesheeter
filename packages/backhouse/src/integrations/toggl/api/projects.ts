@@ -17,19 +17,14 @@ const togglProjectArraySchema = togglProjectSchema.array();
 
 export const projectsGet = async ({
   axiosClient,
-  query,
+  path,
 }: {
   axiosClient: RateLimitedAxiosClient;
-  query: {
-    workspaceId: number;
+  path: {
+    workspace_id: number;
   };
 }) => {
-  const response = await axiosClient.get(`${API_BASE_URL}/api/v9/workspaces/${query.workspaceId}/projects`, {
-    params: {
-      workspace_id: query.workspaceId,
-      user_agent: 'timesheeter',
-    },
-  });
+  const response = await axiosClient.get(`${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/projects`);
 
   return togglProjectArraySchema.parse(response.data);
 };
@@ -49,11 +44,11 @@ export const projectsPost = async ({
 }: {
   axiosClient: RateLimitedAxiosClient;
   path: {
-    workspaceId: number;
+    workspace_id: number;
   };
   body: TogglProjectMutation;
 }) => {
-  const response = await axiosClient.post(`${API_BASE_URL}/api/v9/workspaces/${path.workspaceId}/projects`, body);
+  const response = await axiosClient.post(`${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/projects`, body);
 
   return togglProjectSchema.parse(response.data);
 };

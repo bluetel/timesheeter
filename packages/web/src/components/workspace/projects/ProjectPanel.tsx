@@ -138,12 +138,12 @@ const useBasicDetails = (
     },
     {
       label: {
-        title: "Task Prefix",
-        description: `Prefix for tasks created by this project, e.g. "AC" for "AC-1234"`,
+        title: "Task Prefixes",
+        description: `Prefix that can be added to tasks created by this project, e.g. "AC" for "AC-1234"`,
       },
       field: {
         variant: "text",
-        value: project.taskPrefix ?? "",
+        value: project.taskPrefixes.map(({ prefix }) => prefix).join(", "),
       },
     },
   ];
