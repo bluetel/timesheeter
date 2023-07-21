@@ -120,12 +120,17 @@ const createProjectPairs = async ({ context }: { context: TogglIntegrationContex
   return projectPairs;
 };
 
-const timesheeterProjectSelectQuery = {
+export const timesheeterProjectSelectQuery = {
   id: true,
   updatedAt: true,
   name: true,
   togglProjectId: true,
   configSerialized: true,
+  taskPrefixes: {
+    select: {
+      prefix: true,
+    },
+  },
 };
 
 const getProjectData = async ({

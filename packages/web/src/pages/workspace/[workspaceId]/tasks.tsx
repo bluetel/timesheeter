@@ -13,7 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import { EditTaskSideOver } from "@timesheeter/web/components/workspace/tasks/EditTaskSideOver";
 import { TaskPanel } from "@timesheeter/web/components/workspace/tasks/TaskPanel";
 import { TASKS_HELP_TEXT } from "@timesheeter/web/lib/workspace/tasks";
-import { TaskIcon } from "@timesheeter/web/lib";
+import { ProjectIcon, TaskIcon } from "@timesheeter/web/lib";
 import { SimpleEmptyState } from "@timesheeter/web/components/ui/SimpleEmptyState";
 import { SelectableList } from "@timesheeter/web/components/ui/SelectableList";
 import { useRouter } from "next/router";
@@ -164,6 +164,27 @@ const Tasks = ({
       setSelectedTask(null);
     }
   }, [tasks, selectedTask]);
+
+  const { push } = useRouter();
+
+  if (!projects?.[0]) {
+    return (
+      <WorkspaceLayout workspaceInfo={workspaceInfo}>
+        <SimpleEmptyState
+          title="Projects are required for tasks"
+          icon={ProjectIcon}
+          helpText="Create a project first then come back here"
+          button={{
+            label: "Create project",
+            onClick: () =>
+              push(
+                `/workspace/${workspaceInfo.workspace.id}/projects?create=true`
+              ),
+          }}
+        />
+      </WorkspaceLayout>
+    );
+  }
 
   if (!tasks || taskItems.length === 0) {
     return (

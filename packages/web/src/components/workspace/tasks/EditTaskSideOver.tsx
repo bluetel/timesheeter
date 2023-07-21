@@ -57,10 +57,15 @@ export const EditTaskSideOver = ({
 
   const getDefaultValues = () => {
     if (data.new) {
+      if (!projects[0]) {
+        throw new Error("No projects available");
+      }
+
       return {
         new: true as const,
         workspaceId,
         name: "New task",
+        projectId: projects[0].id,
         config: getDefaultTaskConfig(),
       }
     }
@@ -70,7 +75,7 @@ export const EditTaskSideOver = ({
     return {
       new: false as const,
       ...rest,
-      projectId: project?.id ?? null,
+      projectId: project.id,
       taskPrefixId: ticketForTask?.taskPrefix?.id ?? null,
       taskNumber: ticketForTask?.number.toString(),
     };
@@ -118,7 +123,7 @@ export const EditTaskSideOver = ({
     let values = methods.getValues();
 
     if (!values.projectId) {
-      values.projectId = null;
+      values.projectId = undefined;
     }
 
     // If just updating, filter out the values that are not changed
@@ -202,8 +207,12 @@ const useTaskFields = (
   methods: ReturnType<typeof useZodForm<typeof mutationSchema>>,
   projects: RouterOutputs["workspace"]["projects"]["listMinimal"]
 ) => {
-  const projectIdFormItem: BasicFormItemProps<false> = {
-    required: false,
+  if (!projects[0]) {
+    throw new Error("No projects available");
+  }
+
+  const projectIdFormItem: BasicFormItemProps<true> = {
+    required: true,
     label: {
       title: "Project",
       description: "The project that this task belongs to",
@@ -227,7 +236,7 @@ const useTaskFields = (
           await methods.trigger("taskNumber")
           await methods.trigger("projectId")
         },
-        active: methods.getValues("projectId") ?? null,
+        active: methods.getValues("projectId") ?? projects[0].id,
       },
     },
   };

@@ -6,6 +6,8 @@ import { FolderIcon } from '@heroicons/react/24/outline';
 export const PROJECTS_HELP_TEXT =
   'Projects group related tasks together, projects are auto created when you create a task with a prefix';
 
+export const UNCATEGORIZED_TASKS_PROJECT_NAME = 'Uncategorized tasks';
+
 export const ProjectIcon = FolderIcon as IconType;
 
 export const taskPrefixesHelpText = `Jira prefixes that will be auto-assigned to this project and contain tracked task numbers (e.g. "AC" in "AC-1234")`;

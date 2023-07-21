@@ -1,6 +1,12 @@
-import { parseProject } from '@timesheeter/web';
-import { toggl } from '../api';
+import {
+  ParsedProject,
+  UNCATEGORIZED_TASKS_PROJECT_NAME,
+  getDefaultProjectConfig,
+  parseProject,
+} from '@timesheeter/web';
+import { TogglProject, toggl } from '../api';
 import { TogglIntegrationContext } from '../lib';
+import { TimesheeterProject, timesheeterProjectSelectQuery } from '../sync';
 
 export const getPreSyncData = async ({
   context,
@@ -37,15 +43,7 @@ export const getPreSyncData = async ({
       where: {
         workspaceId: context.workspaceId,
       },
-      select: {
-        id: true,
-        configSerialized: true,
-        taskPrefixes: {
-          select: {
-            prefix: true,
-          },
-        },
-      },
+      select: timesheeterProjectSelectQuery,
     })
     .then((projects) => projects.map((project) => parseProject(project, false)));
 
@@ -60,5 +58,30 @@ export const getPreSyncData = async ({
     togglProjects,
     togglTasks,
     timesheeterProjects,
+    uncategorizedTasksProject: await getUncategorizedTasksProject({ togglProjects, context }),
   };
+};
+
+const getUncategorizedTasksProject = async ({
+  togglProjects,
+  context,
+}: {
+  togglProjects: TogglProject[];
+  context: TogglIntegrationContext;
+}): Promise<TogglProject> => {
+  const unassignedTasksProject = togglProjects.find((project) => project.name === UNCATEGORIZED_TASKS_PROJECT_NAME);
+
+  if (unassignedTasksProject) {
+    return unassignedTasksProject;
+  }
+
+  return toggl.projects.post({
+    axiosClient: context.axiosClient,
+    path: { workspace_id: context.togglWorkspaceId },
+    body: {
+      name: UNCATEGORIZED_TASKS_PROJECT_NAME,
+      active: true,
+      is_private: false,
+    },
+  });
 };

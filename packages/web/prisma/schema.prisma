@@ -153,8 +153,8 @@ model Task {
 
   name String
 
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId String?
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
 
   configSerialized String
 
