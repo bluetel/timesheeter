@@ -38,7 +38,7 @@ export const projectsGet = async ({
   return togglProjectArraySchema.parse(response.data);
 };
 
-export const togglProjectMutationSchema = z.object({
+const togglProjectMutationSchema = z.object({
   active: z.boolean().default(true),
   is_private: z.boolean().default(false),
   name: z.string(),

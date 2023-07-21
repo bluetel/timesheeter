@@ -62,7 +62,7 @@ export const TaskPanel = ({
           },
         }}
         content={{
-          name: task.name ?? "Unnamed task",
+          name: task.name,
           description: subLabel,
           icon: TaskIcon,
           endButtons: {
@@ -120,7 +120,7 @@ const useBasicDetails = (
       },
       field: {
         variant: "text",
-        value: task.name ?? "",
+        value: task.name,
       },
     },
     {

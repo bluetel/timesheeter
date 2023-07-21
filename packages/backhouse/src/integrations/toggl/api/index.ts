@@ -3,6 +3,7 @@ import { tasksGet, tasksPost, tasksPut } from './tasks';
 import { tagsGet, tagsPost, tagsPut } from './tags';
 import { projectsGet, projectsPost, projectsPut } from './projects';
 import { meGet } from './me';
+import { usersGet } from './users';
 
 export const toggl = {
   timeEntries: {
@@ -28,6 +29,15 @@ export const toggl = {
   me: {
     get: meGet,
   },
+  users: {
+    get: usersGet,
+  },
 };
 
 export * from './client';
+export * from './projects';
+export * from './tags';
+export * from './tasks';
+export * from './time-entries';
+export * from './me';
+export * from './users';

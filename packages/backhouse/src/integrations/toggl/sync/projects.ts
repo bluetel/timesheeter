@@ -1,14 +1,25 @@
-import { ParsedProject, encrypt, getDefaultProjectConfig, parseProject } from '@timesheeter/web';
-import { TogglProject, togglProjectMutationSchema } from '../api/projects';
+import { encrypt, getDefaultProjectConfig, parseProject } from '@timesheeter/web';
+import { toggl, TogglProject } from '../api';
 import { TogglIntegrationContext } from '../lib';
-import { toggl } from '../api';
 
 type ProjectPair = {
   togglProject: TogglProject | null;
   timesheeterProject: TimesheeterProject | null;
 };
 
-export const syncProjects = async ({ context }: { context: TogglIntegrationContext }): Promise<ProjectPair[]> => {
+/** Once we have synced projects each pair always has a toggl project, though it
+ * may be marked as deleted
+ */
+export type EvaluatedProjectPair = {
+  togglProject: TogglProject;
+  timesheeterProject: TimesheeterProject | null;
+};
+
+export const syncProjects = async ({
+  context,
+}: {
+  context: TogglIntegrationContext;
+}): Promise<EvaluatedProjectPair[]> => {
   const projectPairs = await createProjectPairs({ context });
 
   // As we update the timesheeter projects in the loop, we need to store the updated projects
@@ -20,6 +31,15 @@ export const syncProjects = async ({ context }: { context: TogglIntegrationConte
 
     // If both projects exist, update the timesheeter project with the toggl project data
     if (togglProject && !togglProject.deleted && timesheeterProject) {
+      // If both unchanged, skip
+      if (
+        togglProject.name === timesheeterProject.name &&
+        BigInt(togglProject.id) === timesheeterProject.togglProjectId
+      ) {
+        updatedProjectPairs.push(projectPair);
+        continue;
+      }
+
       // Check to see which project has been updated more recently, then copy the data from the newer project to the older one
 
       if (togglProject.at > timesheeterProject.updatedAt) {
@@ -29,25 +49,14 @@ export const syncProjects = async ({ context }: { context: TogglIntegrationConte
         continue;
       }
 
-      if (timesheeterProject.updatedAt > togglProject.at) {
-        // Update the toggl project with the timesheeter project data
-        updatedProjectPairs.push(await updateTogglProject({ context, timesheeterProject, togglProject }));
-        continue;
-      }
-
-      // In rare case that both have the same timestamp push current project pair
-      updatedProjectPairs.push(projectPair);
+      // Update the toggl project with the timesheeter project data
+      updatedProjectPairs.push(await updateTogglProject({ context, timesheeterProject, togglProject }));
+      continue;
     }
 
     // If only the toggl project exists and not deleted, create a new timesheeter project
     if (togglProject && !togglProject.deleted && !timesheeterProject) {
       updatedProjectPairs.push(await createTimesheeterProject({ context, togglProject }));
-      continue;
-    }
-
-    // If only the toggl project exists and is deleted, delete the timesheeter project
-    if (togglProject && togglProject.deleted && timesheeterProject) {
-      updatedProjectPairs.push(await deleteTimesheeterProject({ context, togglProject }));
       continue;
     }
 
@@ -57,15 +66,30 @@ export const syncProjects = async ({ context }: { context: TogglIntegrationConte
       continue;
     }
 
+    // If only the toggl project exists and is deleted, delete the timesheeter project
+    if (togglProject && togglProject.deleted && timesheeterProject) {
+      updatedProjectPairs.push(await deleteTimesheeterProject({ context, togglProject }));
+      continue;
+    }
+
     console.warn('Unreachable code reached in syncProjects');
     updatedProjectPairs.push(projectPair);
   }
 
-  return updatedProjectPairs;
+  // Ensure that all pairs have a toggl project
+  return updatedProjectPairs
+    .map((projectPair) => {
+      if (projectPair.togglProject) {
+        return projectPair as EvaluatedProjectPair;
+      }
+
+      return null;
+    })
+    .filter((projectPair): projectPair is EvaluatedProjectPair => !!projectPair);
 };
 
 const createProjectPairs = async ({ context }: { context: TogglIntegrationContext }): Promise<ProjectPair[]> => {
-  const { togglProjects, timesheeterProjects } = await getProjectData(context);
+  const { togglProjects, timesheeterProjects } = await getProjectData({ context });
 
   const projectPairs: ProjectPair[] = [];
 
@@ -104,8 +128,12 @@ const timesheeterProjectSelectQuery = {
   configSerialized: true,
 };
 
-const getProjectData = async ({ prisma, workspaceId, togglWorkspaceId, axiosClient }: TogglIntegrationContext) => {
-  const projectsPromise = toggl.projects.get({ axiosClient, path: { workspace_id: togglWorkspaceId } });
+const getProjectData = async ({
+  context: { prisma, workspaceId, togglWorkspaceId, axiosClient },
+}: {
+  context: TogglIntegrationContext;
+}) => {
+  const togglProjectsPromise = toggl.projects.get({ axiosClient, path: { workspace_id: togglWorkspaceId } });
 
   const timesheeterProjectsPromise = prisma.project
     .findMany({
@@ -116,7 +144,7 @@ const getProjectData = async ({ prisma, workspaceId, togglWorkspaceId, axiosClie
     })
     .then((projects) => projects.map((project) => parseProject(project, false)));
 
-  const [togglProjects, timesheeterProjects] = await Promise.all([projectsPromise, timesheeterProjectsPromise]);
+  const [togglProjects, timesheeterProjects] = await Promise.all([togglProjectsPromise, timesheeterProjectsPromise]);
 
   return {
     togglProjects,
@@ -124,10 +152,10 @@ const getProjectData = async ({ prisma, workspaceId, togglWorkspaceId, axiosClie
   };
 };
 
-type TimesheeterProject = Awaited<ReturnType<typeof getProjectData>>['timesheeterProjects'][0];
+export type TimesheeterProject = Awaited<ReturnType<typeof getProjectData>>['timesheeterProjects'][0];
 
 const updateTimesheeterProject = async ({
-  context,
+  context: { prisma },
   togglProject,
   timesheeterProject,
 }: {
@@ -135,17 +163,18 @@ const updateTimesheeterProject = async ({
   togglProject: TogglProject;
   timesheeterProject: TimesheeterProject;
 }): Promise<ProjectPair> => {
-  const updatedTimesheeterProject = await context.prisma.project
+  const updatedTimesheeterProject = await prisma.project
     .update({
       where: {
         id: timesheeterProject.id,
       },
       data: {
         name: togglProject.name,
+        togglProjectId: togglProject.id,
       },
       select: timesheeterProjectSelectQuery,
     })
-    .then(parseProject);
+    .then((project) => parseProject(project, false));
 
   return {
     togglProject,
@@ -154,7 +183,7 @@ const updateTimesheeterProject = async ({
 };
 
 const updateTogglProject = async ({
-  context,
+  context: { axiosClient, togglWorkspaceId },
   togglProject,
   timesheeterProject,
 }: {
@@ -163,11 +192,13 @@ const updateTogglProject = async ({
   timesheeterProject: TimesheeterProject;
 }): Promise<ProjectPair> => {
   const updatedTogglProject = await toggl.projects.put({
-    axiosClient: context.axiosClient,
-    path: { workspaceId: context.togglWorkspaceId, projectId: togglProject.id },
-    body: togglProjectMutationSchema.parse({
+    axiosClient,
+    path: { workspaceId: togglWorkspaceId, projectId: togglProject.id },
+    body: {
       name: timesheeterProject.name,
-    }),
+      active: true,
+      is_private: false,
+    },
   });
 
   return {
@@ -183,39 +214,42 @@ const createTimesheeterProject = async ({
   context: TogglIntegrationContext;
   togglProject: TogglProject;
 }): Promise<ProjectPair> => {
-  const project = await prisma.project
+  const timesheeterProject = await prisma.project
     .create({
       data: {
         name: togglProject.name,
         workspaceId,
         configSerialized: encrypt(JSON.stringify(getDefaultProjectConfig())),
+        togglProjectId: togglProject.id,
       },
       select: timesheeterProjectSelectQuery,
     })
-    .then(parseProject);
+    .then((project) => parseProject(project, false));
 
   return {
     togglProject,
-    timesheeterProject: project,
+    timesheeterProject,
   };
 };
 
 const createTogglProject = async ({
-  context,
+  context: { axiosClient, prisma, togglWorkspaceId },
   timesheeterProject,
 }: {
   context: TogglIntegrationContext;
   timesheeterProject: TimesheeterProject;
 }): Promise<ProjectPair> => {
   const togglProject = await toggl.projects.post({
-    axiosClient: context.axiosClient,
-    path: { workspace_id: context.togglWorkspaceId },
-    body: togglProjectMutationSchema.parse({
+    axiosClient,
+    path: { workspace_id: togglWorkspaceId },
+    body: {
       name: timesheeterProject.name,
-    }),
+      active: true,
+      is_private: false,
+    },
   });
 
-  const updatedTimesheeterProject = await context.prisma.project
+  const updatedTimesheeterProject = await prisma.project
     .update({
       where: {
         id: timesheeterProject.id,
@@ -225,7 +259,7 @@ const createTogglProject = async ({
       },
       select: timesheeterProjectSelectQuery,
     })
-    .then(parseProject);
+    .then((project) => parseProject(project, false));
 
   return {
     togglProject,
@@ -234,15 +268,15 @@ const createTogglProject = async ({
 };
 
 const deleteTimesheeterProject = async ({
-  context,
+  context: { prisma, workspaceId },
   togglProject,
 }: {
   context: TogglIntegrationContext;
   togglProject: TogglProject;
 }): Promise<ProjectPair> => {
-  await context.prisma.project.deleteMany({
+  await prisma.project.deleteMany({
     where: {
-      workspaceId: context.workspaceId,
+      workspaceId: workspaceId,
       togglProjectId: togglProject.id,
     },
   });

@@ -1,9 +1,9 @@
 import { createTogglIntegrationContext, TogglIntegration } from './lib';
-import { syncProjects } from './sync';
+import { syncProjects, syncTasks, syncTimesheetEntries } from './sync';
 
 export const handleTogglIntegration = async ({
   integration: {
-    config: { apiKey, togglWorkspaceId: unverifiedWorkspaceId, scanPeriod },
+    config: { apiKey, togglWorkspaceId: unverifiedTogglWorkspaceId, scanPeriod },
     workspaceId,
   },
 }: {
@@ -11,7 +11,7 @@ export const handleTogglIntegration = async ({
 }) => {
   const context = await createTogglIntegrationContext({
     apiKey,
-    unverifiedWorkspaceId,
+    unverifiedTogglWorkspaceId,
     workspaceId,
   });
 
@@ -20,5 +20,15 @@ export const handleTogglIntegration = async ({
   const startDate = new Date(endDate);
   startDate.setUTCDate(startDate.getUTCDate() - scanPeriod);
 
-  const projectPairs = await syncProjects({ context });
+  const syncedProjectPairs = await syncProjects({ context });
+
+  const syncedTaskPairs = await syncTasks({ context, syncedProjectPairs });
+
+  const syncedTimesheetEntries = await syncTimesheetEntries({
+    context,
+    startDate,
+    endDate,
+    syncedProjectPairs,
+    syncedTaskPairs,
+  });
 };

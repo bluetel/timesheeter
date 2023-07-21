@@ -20,11 +20,13 @@ export const handleJiraIntegration = async ({ integration }: { integration: Jira
     strictSSL: true,
   });
 
-  // only get tasks with no name
+  // only get tasks with no jira ticket id
   const tasks = await prisma.task.findMany({
     where: {
       workspaceId: integration.workspaceId,
-      name: null,
+      ticketForTask: {
+        jiraTicketId: null,
+      },
     },
     select: {
       id: true,

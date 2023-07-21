@@ -124,7 +124,7 @@ const Tasks = ({
     () =>
       tasks.map((task) => ({
         id: task.id,
-        label: task.name ?? "Unnamed task",
+        label: task.name,
         subLabel:
           task.ticketForTask
             ? `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}`

@@ -151,7 +151,7 @@ const groupEntriesToTasks = (
       acc.push({
         taskId: task.id,
         projectName: task.project?.name ?? '',
-        jiraTask: taskNumber && task.name ? `${taskNumber} - ${task.name}` : taskNumber ?? task.name ?? '',
+        jiraTask: taskNumber ? `${taskNumber} - ${task.name}` : taskNumber ?? task.name,
         time: timesheetEntry.end.getTime() - timesheetEntry.start.getTime(),
         overtime,
         details: timesheetEntry.description ?? '',

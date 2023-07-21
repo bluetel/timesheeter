@@ -137,11 +137,7 @@ const TimesheetEntries = ({
             return `${timesheetEntry.task.ticketForTask.taskPrefix.prefix}-${timesheetEntry.task.ticketForTask.number}`;
           }
 
-          if (timesheetEntry.task.name) {
-            return timesheetEntry.task.name;
-          }
-
-          return undefined;
+          return timesheetEntry.task.name;
         };
 
         const subDescription = getSubDescription();
