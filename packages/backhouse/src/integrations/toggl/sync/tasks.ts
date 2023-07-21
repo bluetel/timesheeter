@@ -35,7 +35,11 @@ export const syncTasks = async ({
     // If both tasks exist, update the timesheeter task with the toggl task data
     if (togglTask && !togglTask.deleted && timesheeterTask) {
       // If both unchanged, skip
-      if (togglTask.name === timesheeterTask.name && BigInt(togglTask.id) === timesheeterTask.togglTaskId) {
+      if (
+        togglTask.name === timesheeterTask.name &&
+        BigInt(togglTask.id) === timesheeterTask.togglTaskId &&
+        togglTask.project_id.toString() === timesheeterTask.project?.id.toString()
+      ) {
         updatedTaskPairs.push(taskPair);
         continue;
       }
@@ -174,6 +178,12 @@ const timesheeterTaskSelectQuery = {
   projectId: true,
   togglTaskId: true,
   configSerialized: true,
+  project: {
+    select: {
+      id: true,
+      togglProjectId: true,
+    },
+  },
   ticketForTask: {
     select: {
       id: true,

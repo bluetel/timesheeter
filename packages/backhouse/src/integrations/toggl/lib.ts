@@ -13,6 +13,8 @@ export type TogglIntegrationContext = {
   togglWorkspaceId: number;
   workspaceId: string;
   togglUsers: TogglUser[];
+  togglIdToEmail: Record<number, string>;
+  timesheeterUserIdToEmail: Record<string, string>;
 };
 
 export const createTogglIntegrationContext = async ({
@@ -35,12 +37,35 @@ export const createTogglIntegrationContext = async ({
 
   const togglUsers = await toggl.users.get({ axiosClient, path: { workspace_id: verifiedTogglWorkspaceId } });
 
+  const workspaceUsers = await prisma.user.findMany({
+    where: {
+      workspaceId,
+    },
+    select: {
+      id: true,
+      email: true,
+    },
+  });
+
   return {
     axiosClient,
     prisma,
     togglWorkspaceId: verifiedTogglWorkspaceId,
     workspaceId,
     togglUsers,
+    togglIdToEmail: togglUsers.reduce((acc, user) => {
+      acc[user.id] = user.email;
+      return acc;
+    }, {} as Record<number, string>),
+    timesheeterUserIdToEmail: workspaceUsers.reduce((acc, user) => {
+      if (!user.email) {
+        console.warn(`Toggl integration: User ${user.id} has no email`);
+        return acc;
+      }
+
+      acc[user.id] = user.email;
+      return acc;
+    }, {} as Record<string, string>),
   };
 };
 

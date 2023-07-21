@@ -1,13 +1,7 @@
-import {
-  encrypt,
-  getDefaultProjectConfig,
-  getDefaultTaskConfig,
-  parseProject,
-  parseTimesheetEntry,
-} from '@timesheeter/web';
-import { toggl, TogglProject, TogglTimeEntry } from '../api';
+import { encrypt, getDefaultTaskConfig, parseTimesheetEntry } from '@timesheeter/web';
+import { toggl, TogglTimeEntry } from '../api';
 import { TogglIntegrationContext } from '../lib';
-import { EvaluatedProjectPair, TimesheeterProject } from './projects';
+import { EvaluatedProjectPair } from './projects';
 import { EvaluatedTaskPair } from './tasks';
 
 type FilteredTogglTimeEntry = Omit<TogglTimeEntry, 'stop'> & {
@@ -56,7 +50,10 @@ export const syncTimesheetEntries = async ({
         togglTimeEntry.start === timesheeterTimesheetEntry.start.toISOString() &&
         togglTimeEntry.stop === timesheeterTimesheetEntry.end.toISOString() &&
         togglTimeEntry.description === timesheeterTimesheetEntry.description &&
-        BigInt(togglTimeEntry.id) === timesheeterTimesheetEntry.togglTimeEntryId
+        BigInt(togglTimeEntry.id) === timesheeterTimesheetEntry.togglTimeEntryId &&
+        context.togglIdToEmail[togglTimeEntry.user_id] ===
+          context.timesheeterUserIdToEmail[timesheeterTimesheetEntry.userId] &&
+        togglTimeEntry.task_id === timesheeterTimesheetEntry.task.togglTaskId
       ) {
         updatedTimesheetEntryPairs.push(timesheetEntryPair);
         continue;
@@ -67,30 +64,175 @@ export const syncTimesheetEntries = async ({
       if (togglTimeEntry.at > timesheeterTimesheetEntry.updatedAt) {
         // Update the timesheeter project with the toggl project data
 
-        updatedTimesheetEntryPairs.push(await updateTimesheeterProject({ context, timesheeterProject, togglProject }));
+        const targetUserEmail = context.togglIdToEmail[togglTimeEntry.user_id];
+
+        if (!targetUserEmail) {
+          throw new Error(
+            `Toggl user id does not have an email in the context, this should not happen, user id: ${togglTimeEntry.user_id}`
+          );
+        }
+
+        const timesheeterUserId = Object.entries(context.timesheeterUserIdToEmail).find(
+          ([_, email]) => email === targetUserEmail
+        )?.[0];
+
+        if (!timesheeterUserId) {
+          console.warn(
+            `The user with email ${targetUserEmail} is not in the timesheeter workspace, please add them to the workspace`
+          );
+          // Nothing we can do here as we cannot assign in timesheeter without a user id
+          updatedTimesheetEntryPairs.push(timesheetEntryPair);
+          continue;
+        }
+
+        const timesheeterTaskId = syncedTaskPairs.find(
+          (syncedTaskPair) => syncedTaskPair.togglTask.id === togglTimeEntry.task_id
+        )?.timesheeterTask?.id;
+
+        if (!timesheeterTaskId) {
+          throw new Error(
+            `Toggl task id does not have a timesheeter task id, this should have been set in the sync tasks step, task id: ${togglTimeEntry.task_id}`
+          );
+        }
+
+        updatedTimesheetEntryPairs.push(
+          await updateTimesheeterTimesheetEntry({
+            context,
+            timesheeterTimesheetEntry,
+            togglTimeEntry,
+            updatedTimesheeterTaskId: timesheeterTaskId,
+            updatedTimesheeterUserId: timesheeterUserId,
+          })
+        );
         continue;
       }
 
-      // Update the toggl project with the timesheeter project data
-      updatedTimesheetEntryPairs.push(await updateTogglProject({ context, timesheeterProject, togglProject }));
+      const targetUserEmail = context.timesheeterUserIdToEmail[timesheeterTimesheetEntry.userId];
+
+      if (!targetUserEmail) {
+        throw new Error(
+          `Timesheeter user id does not have an email in the context, this should not happen, user id: ${timesheeterTimesheetEntry.userId}`
+        );
+      }
+
+      const togglUserId = Object.entries(context.togglIdToEmail).find(([_, email]) => email === targetUserEmail)?.[0];
+
+      if (!togglUserId) {
+        console.warn(
+          `The user with email ${targetUserEmail} is not in the toggl workspace, please add them to the workspace`
+        );
+        // Nothing we can do here as we cannot assign in toggl without a user id
+        updatedTimesheetEntryPairs.push(timesheetEntryPair);
+        continue;
+      }
+
+      if (!timesheeterTimesheetEntry.task.togglTaskId) {
+        throw new Error(
+          `Timesheeter task does not have a toggl task id, this should have been set in the sync tasks step, task id: ${timesheeterTimesheetEntry.task.id}`
+        );
+      }
+
+      // Update the toggl time entry with the timesheeter timesheet entry data
+      updatedTimesheetEntryPairs.push(
+        await updateTogglTimeEntry({
+          context,
+          timesheeterTimesheetEntry,
+          togglTimeEntry,
+          updatedTogglTaskId: Number(timesheeterTimesheetEntry.task.togglTaskId),
+          updatedTogglUserId: Number(togglUserId),
+        })
+      );
       continue;
     }
 
-    // If only the toggl project exists and not deleted, create a new timesheeter project
+    // If only the toggl time entry exists and not deleted, create a new timesheeter timesheet entry
     if (togglTimeEntry && !togglTimeEntry.deleted && !timesheeterTimesheetEntry) {
-      updatedTimesheetEntryPairs.push(await createTimesheeterProject({ context, togglProject }));
+      const targetUserEmail = context.togglIdToEmail[togglTimeEntry.user_id];
+
+      if (!targetUserEmail) {
+        throw new Error(
+          `Toggl user id does not have an email in the context, this should not happen, user id: ${togglTimeEntry.user_id}`
+        );
+      }
+
+      const timesheeterUserId = Object.entries(context.timesheeterUserIdToEmail).find(
+        ([_, email]) => email === targetUserEmail
+      )?.[0];
+
+      if (!timesheeterUserId) {
+        console.warn(
+          `The user with email ${targetUserEmail} is not in the timesheeter workspace, please add them to the workspace`
+        );
+        // Nothing we can do here as we cannot assign in toggl without a user id
+        updatedTimesheetEntryPairs.push(timesheetEntryPair);
+        continue;
+      }
+
+      if (!togglTimeEntry.task_id) {
+        console.warn(
+          `The toggl time entry with id ${togglTimeEntry.id} does not have a task id, this may occasionaly happen if an entry was created after pre-sync but before sync`
+        );
+        updatedTimesheetEntryPairs.push(timesheetEntryPair);
+        continue;
+      }
+
+      const timesheeterTaskId = syncedTaskPairs.find(
+        (syncedTaskPair) => syncedTaskPair.togglTask.id === togglTimeEntry.task_id
+      )?.timesheeterTask?.id;
+
+      if (!timesheeterTaskId) {
+        throw new Error(
+          `Toggl task id does not have a timesheeter task id, this should have been set in the sync tasks step, task id: ${togglTimeEntry.task_id}`
+        );
+      }
+
+      updatedTimesheetEntryPairs.push(
+        await createTimesheeterTimesheetEntry({ context, togglTimeEntry, timesheeterUserId, timesheeterTaskId })
+      );
       continue;
     }
 
-    // If only the timesheeter project exists, create a new toggl project
+    // If only the timesheeter timesheet entry exists, create a new toggl time entry
     if (!togglTimeEntry && timesheeterTimesheetEntry) {
-      updatedTimesheetEntryPairs.push(await createTogglProject({ context, timesheeterProject }));
+      const targetUserEmail = context.timesheeterUserIdToEmail[timesheeterTimesheetEntry.userId];
+
+      if (!targetUserEmail) {
+        throw new Error(
+          `Timesheeter user id does not have an email in the context, this should not happen, user id: ${timesheeterTimesheetEntry.userId}`
+        );
+      }
+
+      const togglUserId = Object.entries(context.togglIdToEmail).find(([_, email]) => email === targetUserEmail)?.[0];
+
+      if (!togglUserId) {
+        console.warn(
+          `The user with email ${targetUserEmail} is not in the toggl workspace, please add them to the workspace`
+        );
+        // Nothing we can do here as we cannot assign in toggl without a user id
+        updatedTimesheetEntryPairs.push(timesheetEntryPair);
+        continue;
+      }
+
+      if (!timesheeterTimesheetEntry.task.togglTaskId) {
+        throw new Error(
+          `Timesheeter task does not have a toggl task id, this should have been set in the sync tasks step, task id: ${timesheeterTimesheetEntry.task.id}`
+        );
+      }
+
+      updatedTimesheetEntryPairs.push(
+        await createTogglTimeEntry({
+          context,
+          timesheeterTimesheetEntry,
+          togglUserId: Number(togglUserId),
+          togglTaskId: Number(timesheeterTimesheetEntry.task.togglTaskId),
+        })
+      );
       continue;
     }
 
     // If only the toggl project exists and is deleted, delete the timesheeter project
     if (togglTimeEntry && togglTimeEntry.deleted && timesheeterTimesheetEntry) {
-      updatedTimesheetEntryPairs.push(await deleteTimesheeterTimesheetEntry({ context, togglProject }));
+      updatedTimesheetEntryPairs.push(await deleteTimesheeterTimesheetEntry({ context, togglTimeEntry }));
       continue;
     }
 
@@ -164,11 +306,13 @@ const timesheeterTimesheetEntrySelectQuery = {
   description: true,
   configSerialized: true,
   togglTimeEntryId: true,
+  userId: true,
   task: {
     select: {
       id: true,
       name: true,
       projectId: true,
+      togglTaskId: true,
       ticketForTask: {
         select: {
           id: true,
@@ -198,7 +342,7 @@ const getTimesheetEntryData = async ({
     .get({ axiosClient, path: { start_date: startDate, end_date: endDate } })
     .then((timeEntries) =>
       timeEntries.filter((timeEntry) => timeEntry.workspace_id === togglWorkspaceId && timeEntry.stop)
-    );
+    ) as Promise<FilteredTogglTimeEntry[]>;
 
   const timesheeterTimesheetEntriesPromise = prisma.timesheetEntry
     .findMany({

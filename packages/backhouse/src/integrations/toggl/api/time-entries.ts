@@ -18,6 +18,7 @@ const togglTimeEntrySchema = z
     tags: z.array(z.string()),
     task_id: z.number().int().positive().nullable(),
     workspace_id: z.number().int().positive(),
+    user_id: z.number().int().positive(),
   })
   .transform((data) => ({
     ...data,
