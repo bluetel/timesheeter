@@ -18,6 +18,7 @@ export type EvaluatedProjectPair = {
 export const timesheeterProjectSelectQuery = {
   id: true,
   updatedAt: true,
+  deleted: true,
   name: true,
   togglProjectId: true,
   configSerialized: true,

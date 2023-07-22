@@ -19,6 +19,7 @@ export const listMinimalTasksProcedure = protectedProcedure
     return ctx.prisma.task.findMany({
       where: {
         workspaceId: input.workspaceId,
+        deleted: false,
       },
       select: {
         id: true,

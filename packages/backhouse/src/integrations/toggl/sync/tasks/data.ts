@@ -20,6 +20,7 @@ export const timesheeterTaskSelectQuery = {
   id: true,
   updatedAt: true,
   name: true,
+  deleted: true,
   projectId: true,
   togglTaskId: true,
   configSerialized: true,

@@ -12,6 +12,7 @@ import {
 import { decrypt, encrypt, filterConfig } from '@timesheeter/web/server/lib/secret-helpers';
 import { type Project, type PrismaClient } from '@prisma/client';
 import { type WithConfig } from '@timesheeter/web/server/lib/workspace-types';
+import { deleteProject } from '@timesheeter/web/server/deletion';
 
 export const projectsRouter = createTRPCRouter({
   list: protectedProcedure
@@ -32,6 +33,7 @@ export const projectsRouter = createTRPCRouter({
         .findMany({
           where: {
             workspaceId: input.workspaceId,
+            deleted: false,
           },
           include: {
             taskPrefixes: {
@@ -61,6 +63,7 @@ export const projectsRouter = createTRPCRouter({
       return ctx.prisma.project.findMany({
         where: {
           workspaceId: input.workspaceId,
+          deleted: false,
         },
         select: {
           id: true,
@@ -83,6 +86,25 @@ export const projectsRouter = createTRPCRouter({
     });
 
     const { config, ...rest } = input;
+
+    // Ensure workspace doesnlt already have a task prefix matching the ones in the config and
+    // is not deleted
+    const existingTaskPrefixes = await ctx.prisma.taskPrefix.findMany({
+      where: {
+        workspaceId: input.workspaceId,
+        prefix: {
+          in: config.taskPrefixes,
+        },
+        deleted: false,
+      },
+    });
+
+    if (existingTaskPrefixes[0]) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: `Task prefix ${existingTaskPrefixes[0].prefix} already exists`,
+      });
+    }
 
     const createdProject = await ctx.prisma.project
       .create({
@@ -137,6 +159,25 @@ export const projectsRouter = createTRPCRouter({
     // has been merged correctly
     updateProjectConfigSchema.parse(updatedConfig);
 
+    // Ensure workspace doesnlt already have a task prefix matching the ones in the config and
+    // is not deleted
+    const existingTaskPrefixes = await ctx.prisma.taskPrefix.findMany({
+      where: {
+        workspaceId: input.workspaceId,
+        prefix: {
+          in: taskPrefixesToCreate,
+        },
+        deleted: false,
+      },
+    });
+
+    if (existingTaskPrefixes[0]) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: `Task prefix ${existingTaskPrefixes[0].prefix} already exists`,
+      });
+    }
+
     await ctx.prisma.project
       .update({
         where: {
@@ -181,23 +222,7 @@ export const projectsRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       });
 
-      const deletedProject = await ctx.prisma.project
-        .delete({
-          where: {
-            id: input.id,
-          },
-          include: {
-            taskPrefixes: {
-              select: {
-                id: true,
-                prefix: true,
-              },
-            },
-          },
-        })
-        .then(parseProject);
-
-      return deletedProject;
+      await deleteProject({ prisma: ctx.prisma, projectId: input.id });
     }),
 });
 

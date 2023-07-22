@@ -98,3 +98,18 @@ export const tasksPut = async ({
 
   return togglTaskSchema.parse(response.data);
 };
+
+export const tasksDelete = async ({
+  axiosClient,
+  path,
+}: {
+  axiosClient: RateLimitedAxiosClient;
+  path: {
+    workspace_id: number;
+    project_id: number;
+    task_id: number;
+  };
+}) =>
+  axiosClient.delete(
+    `${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/projects/${path.project_id}/tasks/${path.task_id}`
+  );

@@ -1,7 +1,7 @@
-import { timeEntriesGet, timeEntriesPost, timeEntriesPut } from './time-entries';
-import { tasksGet, tasksPost, tasksPut } from './tasks';
+import { timeEntriesDelete, timeEntriesGet, timeEntriesPost, timeEntriesPut } from './time-entries';
+import { tasksDelete, tasksGet, tasksPost, tasksPut } from './tasks';
 import { tagsGet, tagsPost, tagsPut } from './tags';
-import { projectsGet, projectsPost, projectsPut } from './projects';
+import { projectsDelete, projectsGet, projectsPost, projectsPut } from './projects';
 import { meGet } from './me';
 import { usersGet } from './users';
 
@@ -10,11 +10,13 @@ export const toggl = {
     get: timeEntriesGet,
     post: timeEntriesPost,
     put: timeEntriesPut,
+    delete: timeEntriesDelete,
   },
   tasks: {
     get: tasksGet,
     post: tasksPost,
     put: tasksPut,
+    delete: tasksDelete,
   },
   tags: {
     get: tagsGet,
@@ -25,6 +27,7 @@ export const toggl = {
     get: projectsGet,
     post: projectsPost,
     put: projectsPut,
+    delete: projectsDelete,
   },
   me: {
     get: meGet,

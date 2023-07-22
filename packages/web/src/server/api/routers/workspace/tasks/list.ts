@@ -21,6 +21,7 @@ export const listTasksProcedure = protectedProcedure
     const taskCountPromise = ctx.prisma.task.count({
       where: {
         workspaceId: input.workspaceId,
+        deleted: false,
         OR: [
           {
             scopedUserId: null,
@@ -36,6 +37,7 @@ export const listTasksProcedure = protectedProcedure
       .findMany({
         where: {
           workspaceId: input.workspaceId,
+          deleted: false,
           OR: [
             {
               scopedUserId: null,

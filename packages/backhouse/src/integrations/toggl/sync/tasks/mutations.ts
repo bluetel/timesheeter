@@ -1,4 +1,4 @@
-import { encrypt, getDefaultTaskConfig, parseTask } from '@timesheeter/web';
+import { deleteTask, encrypt, getDefaultTaskConfig, parseTask } from '@timesheeter/web';
 import { TogglTask, toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
 import { TaskPair, TimesheeterTask, timesheeterTaskSelectQuery } from './data';
@@ -143,15 +143,46 @@ export const deleteTimesheeterTask = async ({
   context: TogglIntegrationContext;
   togglTask: TogglTask;
 }): Promise<TaskPair> => {
-  await prisma.project.deleteMany({
+  const timesheeterTask = await prisma.task.findFirst({
     where: {
-      workspaceId: workspaceId,
-      togglProjectId: togglTask.id,
+      togglTaskId: togglTask.id,
+      workspaceId,
+    },
+    select: {
+      id: true,
     },
   });
+
+  if (timesheeterTask) {
+    await deleteTask({ prisma, taskId: timesheeterTask.id });
+  }
 
   return {
     togglTask,
     timesheeterTask: null,
+  };
+};
+
+export const deleteTogglTask = async ({
+  context: { axiosClient, togglWorkspaceId },
+  togglTask,
+  timesheeterTask,
+}: {
+  context: TogglIntegrationContext;
+  togglTask: TogglTask;
+  timesheeterTask: TimesheeterTask;
+}): Promise<TaskPair> => {
+  await toggl.tasks.delete({
+    axiosClient,
+    path: {
+      workspace_id: togglWorkspaceId,
+      project_id: togglTask.project_id,
+      task_id: togglTask.id,
+    },
+  });
+
+  return {
+    togglTask: null,
+    timesheeterTask,
   };
 };

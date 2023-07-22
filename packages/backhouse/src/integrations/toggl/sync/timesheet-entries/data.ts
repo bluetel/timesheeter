@@ -27,6 +27,7 @@ export const timesheeterTimesheetEntrySelectQuery = {
   id: true,
   updatedAt: true,
   start: true,
+  deleted: true,
   end: true,
   description: true,
   configSerialized: true,

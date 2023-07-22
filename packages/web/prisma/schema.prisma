@@ -120,6 +120,8 @@ model Project {
   taskPrefixes TaskPrefix[]
 
   togglProjectId BigInt?
+
+  deleted Boolean @default(false)
 }
 
 model TaskPrefix {
@@ -135,6 +137,8 @@ model TaskPrefix {
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   ticketsForTasks TicketForTask[]
+
+  deleted Boolean @default(false)
 
   @@unique([prefix, workspaceId])
 }
@@ -161,6 +165,8 @@ model Task {
   timesheetEntries TimesheetEntry[]
 
   togglTaskId BigInt?
+
+  deleted Boolean @default(false)
 }
 
 model TicketForTask {
@@ -179,6 +185,8 @@ model TicketForTask {
   number Int
 
   jiraTicketId String?
+
+  deleted Boolean @default(false)
 
   @@unique([taskPrefixId, number])
 }
@@ -204,6 +212,8 @@ model TimesheetEntry {
   configSerialized String
 
   togglTimeEntryId BigInt?
+
+  deleted Boolean @default(false)
 }
 
 model Holiday {

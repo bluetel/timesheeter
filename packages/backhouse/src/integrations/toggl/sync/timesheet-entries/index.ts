@@ -1,7 +1,7 @@
 import { TogglIntegrationContext } from '../../lib';
 import { EvaluatedTaskPair } from '../tasks';
 import { EvaluatedTimesheetEntryPair, TimesheetEntryPair, createTimesheetEntryPairs } from './data';
-import { deleteTimesheeterTimesheetEntry } from './mutations';
+import { deleteTimesheeterTimesheetEntry, deleteTogglTimeEntry } from './mutations';
 import { handleTwoWayUpdates, handleCreateTimesheeterEntry, handleCreateTogglEntry } from './pair-handlers';
 
 export const syncTimesheetEntries = async ({
@@ -24,12 +24,32 @@ export const syncTimesheetEntries = async ({
   for (const timesheetEntryPair of timesheetEntryPairs) {
     const { togglTimeEntry, timesheeterTimesheetEntry } = timesheetEntryPair;
 
-    // If both imesheet entries exist, determine which one is newer and update the older one with the newer one
-    if (togglTimeEntry && !togglTimeEntry.deleted && timesheeterTimesheetEntry) {
-      updatedTimesheetEntryPairs.push(
-        await handleTwoWayUpdates({ context, togglTimeEntry, timesheeterTimesheetEntry, syncedTaskPairs })
-      );
-      continue;
+    if (togglTimeEntry && timesheeterTimesheetEntry) {
+      // If both are marked as deleted, skip
+      if (togglTimeEntry.deleted && timesheeterTimesheetEntry.deleted) {
+        updatedTimesheetEntryPairs.push(timesheetEntryPair);
+        continue;
+      }
+
+      // If both imesheet entries exist and not deleted, determine which one is newer and update the older one with the newer one
+      if (!togglTimeEntry.deleted && !timesheeterTimesheetEntry.deleted) {
+        updatedTimesheetEntryPairs.push(
+          await handleTwoWayUpdates({ context, togglTimeEntry, timesheeterTimesheetEntry, syncedTaskPairs })
+        );
+        continue;
+      }
+
+      // If the toggl project is deleted, delete the timesheeter project
+      if (togglTimeEntry.deleted && !timesheeterTimesheetEntry.deleted) {
+        updatedTimesheetEntryPairs.push(await deleteTimesheeterTimesheetEntry({ context, togglTimeEntry }));
+        continue;
+      }
+
+      // If the timesheeter project is deleted, delete the toggl project
+      if (!togglTimeEntry.deleted && timesheeterTimesheetEntry.deleted) {
+        updatedTimesheetEntryPairs.push(await deleteTogglTimeEntry({ context, togglTimeEntry }));
+        continue;
+      }
     }
 
     // If only the toggl time entry exists and not deleted, create a new timesheeter timesheet entry
@@ -39,27 +59,19 @@ export const syncTimesheetEntries = async ({
     }
 
     // If only the timesheeter timesheet entry exists, create a new toggl time entry
-    if (!togglTimeEntry && timesheeterTimesheetEntry) {
+    if (!togglTimeEntry && timesheeterTimesheetEntry && !timesheeterTimesheetEntry.deleted) {
       updatedTimesheetEntryPairs.push(await handleCreateTogglEntry({ context, timesheeterTimesheetEntry }));
       continue;
     }
-
-    // If only the toggl project exists and is deleted, delete the timesheeter project
-    if (togglTimeEntry && togglTimeEntry.deleted && timesheeterTimesheetEntry) {
-      updatedTimesheetEntryPairs.push(await deleteTimesheeterTimesheetEntry({ context, togglTimeEntry }));
-      continue;
-    }
-
-    // Deleting of toggl time entries is handled via the api
 
     console.warn('Unreachable code reached in syncTimesheetEntries');
     updatedTimesheetEntryPairs.push(timesheetEntryPair);
   }
 
-  // Ensure that all pairs have a toggl time entry
+  // Ensure that all pairs have a toggl time entry and a timesheeter timesheet entry
   return updatedTimesheetEntryPairs
     .map((timesheetEntryPair) => {
-      if (timesheetEntryPair.togglTimeEntry) {
+      if (timesheetEntryPair.togglTimeEntry && timesheetEntryPair.timesheeterTimesheetEntry) {
         return timesheetEntryPair as EvaluatedTimesheetEntryPair;
       }
 

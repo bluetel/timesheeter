@@ -102,3 +102,14 @@ export const timeEntriesPut = async ({
 
   return togglTimeEntrySchema.parse(response.data);
 };
+
+export const timeEntriesDelete = async ({
+  axiosClient,
+  path,
+}: {
+  axiosClient: RateLimitedAxiosClient;
+  path: {
+    workspace_id: number;
+    time_entry_id: number;
+  };
+}) => axiosClient.delete(`${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/time_entries/${path.time_entry_id}`);

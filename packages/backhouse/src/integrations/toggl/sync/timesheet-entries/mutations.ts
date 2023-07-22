@@ -1,4 +1,10 @@
-import { encrypt, getDefaultTaskConfig, matchTaskRegex, parseTimesheetEntry } from '@timesheeter/web';
+import {
+  deleteTimesheetEntry,
+  encrypt,
+  getDefaultTaskConfig,
+  matchTaskRegex,
+  parseTimesheetEntry,
+} from '@timesheeter/web';
 import { toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
 import {
@@ -205,11 +211,39 @@ export const deleteTimesheeterTimesheetEntry = async ({
   context: TogglIntegrationContext;
   togglTimeEntry: FilteredTogglTimeEntry;
 }): Promise<TimesheetEntryPair> => {
-  await prisma.timesheetEntry.deleteMany({
+  const timesheeterTimesheetEntry = await prisma.timesheetEntry.findFirst({
     where: {
-      workspaceId: workspaceId,
+      workspaceId,
       togglTimeEntryId: togglTimeEntry.id,
     },
+    select: {
+      id: true,
+    },
+  });
+
+  if (timesheeterTimesheetEntry) {
+    await deleteTimesheetEntry({
+      prisma,
+      timesheetEntryId: timesheeterTimesheetEntry.id,
+    });
+  }
+
+  return {
+    togglTimeEntry,
+    timesheeterTimesheetEntry: null,
+  };
+};
+
+export const deleteTogglTimeEntry = async ({
+  context: { axiosClient, togglWorkspaceId },
+  togglTimeEntry,
+}: {
+  context: TogglIntegrationContext;
+  togglTimeEntry: FilteredTogglTimeEntry;
+}): Promise<TimesheetEntryPair> => {
+  await toggl.timeEntries.delete({
+    axiosClient,
+    path: { workspace_id: togglWorkspaceId, time_entry_id: togglTimeEntry.id },
   });
 
   return {

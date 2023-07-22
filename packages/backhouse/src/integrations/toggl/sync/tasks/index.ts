@@ -1,4 +1,4 @@
-import { TogglTask } from '../../api';
+import { TogglTask, toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
 import { EvaluatedProjectPair } from '../projects';
 import { EvaluatedTaskPair, TaskPair, TimesheeterTask, createTaskPairs } from './data';
@@ -6,6 +6,7 @@ import {
   createTimesheeterTask,
   createTogglTask,
   deleteTimesheeterTask,
+  deleteTogglTask,
   updateTimesheeterTask,
   updateTogglTask,
 } from './mutations';
@@ -26,47 +27,67 @@ export const syncTasks = async ({
   for (const taskPair of taskPairs) {
     const { togglTask, timesheeterTask } = taskPair;
 
-    // If both tasks exist, update the timesheeter task with the toggl task data
-    if (togglTask && !togglTask.deleted && timesheeterTask) {
-      // If both unchanged, skip
-      if (tasksAreTheSame(togglTask, timesheeterTask)) {
+    if (togglTask && timesheeterTask) {
+      // If both are marked as deleted, skip
+      if (togglTask.deleted && timesheeterTask.deleted) {
         updatedTaskPairs.push(taskPair);
         continue;
       }
 
-      // Check to see which task has been updated more recently, then copy the data from the newer task to the older one
+      // If both tasks exist, update the timesheeter task with the toggl task data
+      if (!togglTask.deleted && !timesheeterTask.deleted) {
+        // If both unchanged, skip
+        if (tasksAreTheSame(togglTask, timesheeterTask)) {
+          updatedTaskPairs.push(taskPair);
+          continue;
+        }
 
-      if (togglTask.at > timesheeterTask.updatedAt) {
-        // Update the timesheeter task with the toggl task data
-        const updatedTimesheeterProjectId = syncedProjectPairs.find(
-          (projectPair) => projectPair.togglProject.id === togglTask.project_id
-        )?.timesheeterProject?.id;
+        // Check to see which task has been updated more recently, then copy the data from the newer task to the older one
 
-        if (!updatedTimesheeterProjectId) {
+        if (togglTask.at > timesheeterTask.updatedAt) {
+          // Update the timesheeter task with the toggl task data
+          const updatedTimesheeterProjectId = syncedProjectPairs.find(
+            (projectPair) => projectPair.togglProject.id === togglTask.project_id
+          )?.timesheeterProject?.id;
+
+          if (!updatedTimesheeterProjectId) {
+            throw new Error(
+              `updateTimesheeterTask error - could not find timesheeter project for toggl project ${togglTask.project_id}`
+            );
+          }
+
+          updatedTaskPairs.push(
+            await updateTimesheeterTask({ context, timesheeterTask, togglTask, updatedTimesheeterProjectId })
+          );
+          continue;
+        }
+
+        const updatedTogglProjectId = syncedProjectPairs.find(
+          (projectPair) => projectPair.timesheeterProject?.id === timesheeterTask.projectId
+        )?.togglProject.id;
+
+        if (!updatedTogglProjectId) {
           throw new Error(
-            `updateTimesheeterTask error - could not find timesheeter project for toggl project ${togglTask.project_id}`
+            `updateTogglTask error - could not find toggl project for timesheeter project ${timesheeterTask.projectId}`
           );
         }
 
-        updatedTaskPairs.push(
-          await updateTimesheeterTask({ context, timesheeterTask, togglTask, updatedTimesheeterProjectId })
-        );
+        // Update the toggl task with the timesheeter task data
+        updatedTaskPairs.push(await updateTogglTask({ context, timesheeterTask, togglTask, updatedTogglProjectId }));
         continue;
       }
 
-      const updatedTogglProjectId = syncedProjectPairs.find(
-        (projectPair) => projectPair.timesheeterProject?.id === timesheeterTask.projectId
-      )?.togglProject.id;
-
-      if (!updatedTogglProjectId) {
-        throw new Error(
-          `updateTogglTask error - could not find toggl project for timesheeter project ${timesheeterTask.projectId}`
-        );
+      // If the toggl task is deleted, delete the timesheeter task
+      if (togglTask.deleted && !timesheeterTask.deleted) {
+        updatedTaskPairs.push(await deleteTimesheeterTask({ context, togglTask }));
+        continue;
       }
 
-      // Update the toggl task with the timesheeter task data
-      updatedTaskPairs.push(await updateTogglTask({ context, timesheeterTask, togglTask, updatedTogglProjectId }));
-      continue;
+      // If the timesheeter task is deleted, delete the toggl task
+      if (!togglTask.deleted && timesheeterTask.deleted) {
+        updatedTaskPairs.push(await deleteTogglTask({ context, togglTask, timesheeterTask }));
+        continue;
+      }
     }
 
     // If only the toggl task exists and not deleted, create a new timesheeter task
@@ -86,7 +107,7 @@ export const syncTasks = async ({
     }
 
     // If only the timesheeter task exists, create a new toggl task
-    if (!togglTask && timesheeterTask) {
+    if (!togglTask && timesheeterTask && !timesheeterTask.deleted) {
       const togglProjectId = syncedProjectPairs.find(
         (projectPair) => projectPair.timesheeterProject?.id === timesheeterTask.projectId
       )?.togglProject.id;
@@ -101,22 +122,14 @@ export const syncTasks = async ({
       continue;
     }
 
-    // If only the toggl task exists and is deleted, delete the timesheeter task
-    if (togglTask && togglTask.deleted && timesheeterTask) {
-      updatedTaskPairs.push(await deleteTimesheeterTask({ context, togglTask }));
-      continue;
-    }
-
-    // Deleting of toggl tasks is handled via the api
-
     console.warn('Unreachable code reached in syncTasks');
     updatedTaskPairs.push(taskPair);
   }
 
-  // Ensure that all pairs have a toggl task
+  // Ensure that all pairs have a toggl task and a timesheeter task
   return updatedTaskPairs
     .map((taskPair) => {
-      if (taskPair.togglTask) {
+      if (taskPair.togglTask && taskPair.timesheeterTask) {
         return taskPair as EvaluatedTaskPair;
       }
 

@@ -5,6 +5,7 @@ import {
   createTimesheeterProject,
   createTogglProject,
   deleteTimesheeterProject,
+  deleteTogglProject,
   updateTimesheeterProject,
   updateTogglProject,
 } from './mutations';
@@ -23,26 +24,46 @@ export const syncProjects = async ({
   for (const projectPair of projectPairs) {
     const { togglProject, timesheeterProject } = projectPair;
 
-    // If both projects exist, update the timesheeter project with the toggl project data
-    if (togglProject && !togglProject.deleted && timesheeterProject) {
-      // If both unchanged, skip
-      if (projectsAreTheSame(togglProject, timesheeterProject)) {
+    if (togglProject && timesheeterProject) {
+      // If both are marked as deleted, skip
+      if (togglProject.deleted && timesheeterProject.deleted) {
         updatedProjectPairs.push(projectPair);
         continue;
       }
 
-      // Check to see which project has been updated more recently, then copy the data from the newer project to the older one
+      // If both projects exist, update the timesheeter project with the toggl project data
+      if (!togglProject.deleted && !timesheeterProject.deleted) {
+        // If both unchanged, skip
+        if (projectsAreTheSame(togglProject, timesheeterProject)) {
+          updatedProjectPairs.push(projectPair);
+          continue;
+        }
 
-      if (togglProject.at > timesheeterProject.updatedAt) {
-        // Update the timesheeter project with the toggl project data
+        // Check to see which project has been updated more recently, then copy the data from the newer project to the older one
 
-        updatedProjectPairs.push(await updateTimesheeterProject({ context, timesheeterProject, togglProject }));
+        if (togglProject.at > timesheeterProject.updatedAt) {
+          // Update the timesheeter project with the toggl project data
+
+          updatedProjectPairs.push(await updateTimesheeterProject({ context, timesheeterProject, togglProject }));
+          continue;
+        }
+
+        // Update the toggl project with the timesheeter project data
+        updatedProjectPairs.push(await updateTogglProject({ context, timesheeterProject, togglProject }));
         continue;
       }
 
-      // Update the toggl project with the timesheeter project data
-      updatedProjectPairs.push(await updateTogglProject({ context, timesheeterProject, togglProject }));
-      continue;
+      // If the toggl project is deleted, delete the timesheeter project
+      if (togglProject.deleted && !timesheeterProject.deleted) {
+        updatedProjectPairs.push(await deleteTimesheeterProject({ context, togglProject }));
+        continue;
+      }
+
+      // If the timesheeter project is deleted, delete the toggl project
+      if (!togglProject.deleted && timesheeterProject.deleted) {
+        updatedProjectPairs.push(await deleteTogglProject({ context, togglProject, timesheeterProject }));
+        continue;
+      }
     }
 
     // If only the toggl project exists and not deleted, create a new timesheeter project
@@ -52,27 +73,19 @@ export const syncProjects = async ({
     }
 
     // If only the timesheeter project exists, create a new toggl project
-    if (!togglProject && timesheeterProject) {
+    if (!togglProject && timesheeterProject && !timesheeterProject.deleted) {
       updatedProjectPairs.push(await createTogglProject({ context, timesheeterProject }));
-      continue;
-    }
-
-    // If only the toggl project exists and is deleted, delete the timesheeter project
-    if (togglProject && togglProject.deleted && timesheeterProject) {
-      updatedProjectPairs.push(await deleteTimesheeterProject({ context, togglProject }));
       continue;
     }
 
     console.warn('Unreachable code reached in syncProjects');
     updatedProjectPairs.push(projectPair);
-
-    // Deleting of toggl projects is handled via the api
   }
 
-  // Ensure that all pairs have a toggl project
+  // Ensure that all pairs have a toggl project and a timesheeter project
   return updatedProjectPairs
     .map((projectPair) => {
-      if (projectPair.togglProject) {
+      if (projectPair.togglProject && projectPair.timesheeterProject) {
         return projectPair as EvaluatedProjectPair;
       }
 

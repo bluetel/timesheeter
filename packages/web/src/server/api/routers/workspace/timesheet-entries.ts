@@ -13,6 +13,7 @@ import { decrypt, encrypt, filterConfig } from '@timesheeter/web/server/lib/secr
 import { type TimesheetEntry, type PrismaClient } from '@prisma/client';
 import { type WithConfig } from '@timesheeter/web/server/lib/workspace-types';
 import { API_PAGINATION_LIMIT } from '@timesheeter/web/server/lib';
+import { deleteTimesheetEntry } from '@timesheeter/web/server/deletion';
 
 export const timesheetEntriesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -34,6 +35,7 @@ export const timesheetEntriesRouter = createTRPCRouter({
         where: {
           workspaceId: input.workspaceId,
           userId: ctx.session.user.id,
+          deleted: false,
         },
       });
 
@@ -42,6 +44,7 @@ export const timesheetEntriesRouter = createTRPCRouter({
           where: {
             workspaceId: input.workspaceId,
             userId: ctx.session.user.id,
+            deleted: false,
           },
           include: {
             task: {
@@ -170,13 +173,10 @@ export const timesheetEntriesRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       });
 
-      return ctx.prisma.timesheetEntry
-        .delete({
-          where: {
-            id: input.id,
-          },
-        })
-        .then(parseTimesheetEntry);
+      await deleteTimesheetEntry({
+        prisma: ctx.prisma,
+        timesheetEntryId: input.id,
+      });
     }),
 });
 

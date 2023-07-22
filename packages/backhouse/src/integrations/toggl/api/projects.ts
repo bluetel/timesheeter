@@ -69,15 +69,26 @@ export const projectsPut = async ({
 }: {
   axiosClient: RateLimitedAxiosClient;
   path: {
-    workspaceId: number;
-    projectId: number;
+    workspace_id: number;
+    project_id: number;
   };
   body: TogglProjectMutation;
 }) => {
   const response = await axiosClient.put(
-    `${API_BASE_URL}/api/v9/workspaces/${path.workspaceId}/projects/${path.projectId}`,
+    `${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/projects/${path.project_id}`,
     body
   );
 
   return togglProjectSchema.parse(response.data);
 };
+
+export const projectsDelete = async ({
+  axiosClient,
+  path,
+}: {
+  axiosClient: RateLimitedAxiosClient;
+  path: {
+    workspace_id: number;
+    project_id: number;
+  };
+}) => axiosClient.delete(`${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/projects/${path.project_id}`);

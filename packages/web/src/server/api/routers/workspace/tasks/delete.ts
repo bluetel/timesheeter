@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { protectedProcedure } from '@timesheeter/web/server/api/trpc';
-import { authorize, parseTask } from './lib';
+import { authorize } from './lib';
+import { deleteTask } from '@timesheeter/web/server/deletion';
 
 export const deleteTaskProcedure = protectedProcedure
   .input(
@@ -17,13 +18,8 @@ export const deleteTaskProcedure = protectedProcedure
       userId: ctx.session.user.id,
     });
 
-    const deletedTask = await ctx.prisma.task
-      .delete({
-        where: {
-          id: input.id,
-        },
-      })
-      .then(parseTask);
-
-    return deletedTask;
+    await deleteTask({
+      prisma: ctx.prisma,
+      taskId: input.id,
+    });
   });
