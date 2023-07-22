@@ -1,6 +1,7 @@
 import { RectangleStackIcon } from '@heroicons/react/24/outline';
 import { type IconType } from 'react-icons/lib';
 import { z } from 'zod';
+import { taskRegex } from '../regex';
 
 export const TASKS_HELP_TEXT =
   'Tasks group timesheet entries together, they can have assigned numbers e.g. from Jira' as const;
@@ -84,8 +85,6 @@ type MatchedTaskResult =
 // Task number (eg 1234) or null if there is no task number
 
 // description (eg Test description) or null if there is no description
-
-const taskRegex = /^([A-Za-z]{1,8})-([0-9]+)(?:\s-\s(.+))?$/;
 
 export const matchTaskRegex = (rawDescription: string): MatchedTaskResult => {
   const match = rawDescription.match(taskRegex);

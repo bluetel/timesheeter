@@ -1,0 +1,219 @@
+import { encrypt, getDefaultTaskConfig, matchTaskRegex, parseTimesheetEntry } from '@timesheeter/web';
+import { toggl } from '../../api';
+import { TogglIntegrationContext } from '../../lib';
+import {
+  FilteredTogglTimeEntry,
+  TimesheetEntryPair,
+  TimesheeterTimesheetEntry,
+  timesheeterTimesheetEntrySelectQuery,
+} from './data';
+
+export const updateTimesheeterTimesheetEntry = async ({
+  context: { prisma },
+  togglTimeEntry,
+  timesheeterTimesheetEntry,
+  updatedTimesheeterTaskId,
+  updatedTimesheeterUserId,
+}: {
+  context: TogglIntegrationContext;
+  togglTimeEntry: FilteredTogglTimeEntry;
+  timesheeterTimesheetEntry: TimesheeterTimesheetEntry;
+  updatedTimesheeterTaskId: string;
+  updatedTimesheeterUserId: string;
+}): Promise<TimesheetEntryPair> => {
+  // Filter out task numbers from the description
+  const { description } = togglTimeEntry.description
+    ? matchTaskRegex(togglTimeEntry.description)
+    : {
+        description: null,
+      };
+
+  const updatedTimesheeterTimesheetEntry = await prisma.timesheetEntry
+    .update({
+      where: {
+        id: timesheeterTimesheetEntry.id,
+      },
+      data: {
+        start: new Date(togglTimeEntry.start),
+        end: new Date(togglTimeEntry.stop),
+        description,
+        taskId: updatedTimesheeterTaskId,
+        togglTimeEntryId: togglTimeEntry.id,
+        userId: updatedTimesheeterUserId,
+      },
+      select: timesheeterTimesheetEntrySelectQuery,
+    })
+    .then((timesheetEntry) => parseTimesheetEntry(timesheetEntry, false));
+
+  return {
+    togglTimeEntry,
+    timesheeterTimesheetEntry: updatedTimesheeterTimesheetEntry,
+  };
+};
+
+export const updateTogglTimeEntry = async ({
+  context: { axiosClient, togglWorkspaceId, prisma },
+  togglTimeEntry,
+  timesheeterTimesheetEntry,
+  updatedTogglTaskId,
+  updatedTogglUserId,
+}: {
+  context: TogglIntegrationContext;
+  togglTimeEntry: FilteredTogglTimeEntry;
+  timesheeterTimesheetEntry: TimesheeterTimesheetEntry;
+  updatedTogglTaskId: number;
+  updatedTogglUserId: number;
+}): Promise<TimesheetEntryPair> => {
+  const updatedTogglTimeEntry = await toggl.timeEntries.put({
+    axiosClient,
+    path: { workspace_id: togglWorkspaceId, time_entry_id: togglTimeEntry.id },
+    body: {
+      task_id: updatedTogglTaskId,
+      billable: true,
+      description: timesheeterTimesheetEntry.description ?? undefined,
+      start: timesheeterTimesheetEntry.start.toISOString(),
+      stop: timesheeterTimesheetEntry.end.toISOString(),
+      workspace_id: togglWorkspaceId,
+      created_with: 'timesheeter',
+      tag_action: 'add',
+      user_id: updatedTogglUserId,
+    },
+  });
+
+  if (!updatedTogglTimeEntry.stop) {
+    throw new Error('Toggl time entry stop is null, we just created it, it should not be null');
+  }
+
+  const updatedTimesheeterTimesheetEntry = await prisma.timesheetEntry
+    .update({
+      where: {
+        id: timesheeterTimesheetEntry.id,
+      },
+      data: {
+        togglTimeEntryId: updatedTogglTimeEntry.id,
+      },
+      select: timesheeterTimesheetEntrySelectQuery,
+    })
+    .then((timesheetEntry) => parseTimesheetEntry(timesheetEntry, false));
+
+  return {
+    togglTimeEntry: {
+      ...updatedTogglTimeEntry,
+      stop: updatedTogglTimeEntry.stop,
+    },
+    timesheeterTimesheetEntry: updatedTimesheeterTimesheetEntry,
+  };
+};
+
+export const createTimesheeterTimesheetEntry = async ({
+  context: { prisma, workspaceId },
+  togglTimeEntry,
+  timesheeterTaskId,
+  timesheeterUserId,
+}: {
+  context: TogglIntegrationContext;
+  togglTimeEntry: FilteredTogglTimeEntry;
+  timesheeterTaskId: string;
+  timesheeterUserId: string;
+}): Promise<TimesheetEntryPair> => {
+  // Filter out task numbers from the description
+  const { description } = togglTimeEntry.description
+    ? matchTaskRegex(togglTimeEntry.description)
+    : {
+        description: null,
+      };
+
+  const timesheeterTimesheetEntry = await prisma.timesheetEntry
+    .create({
+      data: {
+        start: new Date(togglTimeEntry.start),
+        end: new Date(togglTimeEntry.stop),
+        configSerialized: encrypt(JSON.stringify(getDefaultTaskConfig())),
+        description,
+        workspaceId,
+        taskId: timesheeterTaskId,
+        togglTimeEntryId: togglTimeEntry.id,
+        userId: timesheeterUserId,
+      },
+      select: timesheeterTimesheetEntrySelectQuery,
+    })
+
+    .then((timesheetEntry) => parseTimesheetEntry(timesheetEntry, false));
+
+  return {
+    togglTimeEntry,
+    timesheeterTimesheetEntry,
+  };
+};
+
+export const createTogglTimeEntry = async ({
+  context: { axiosClient, prisma, togglWorkspaceId },
+  timesheeterTimesheetEntry,
+  togglTaskId,
+  togglUserId,
+}: {
+  context: TogglIntegrationContext;
+  timesheeterTimesheetEntry: TimesheeterTimesheetEntry;
+  togglTaskId: number;
+  togglUserId: number;
+}): Promise<TimesheetEntryPair> => {
+  const togglTimeEntry = await toggl.timeEntries.post({
+    axiosClient,
+    path: { workspace_id: togglWorkspaceId },
+    body: {
+      task_id: togglTaskId,
+      billable: true,
+      description: timesheeterTimesheetEntry.description ?? undefined,
+      start: timesheeterTimesheetEntry.start.toISOString(),
+      stop: timesheeterTimesheetEntry.end.toISOString(),
+      workspace_id: togglWorkspaceId,
+      created_with: 'timesheeter',
+      tag_action: 'add',
+      user_id: togglUserId,
+    },
+  });
+
+  const updatedTimsheeterTimesheetEnty = await prisma.timesheetEntry
+    .update({
+      where: {
+        id: timesheeterTimesheetEntry.id,
+      },
+      data: {
+        togglTimeEntryId: togglTimeEntry.id,
+      },
+      select: timesheeterTimesheetEntrySelectQuery,
+    })
+    .then((timesheetEntry) => parseTimesheetEntry(timesheetEntry, false));
+
+  if (!togglTimeEntry.stop) {
+    throw new Error('Toggl time entry stop is null, we just created it, it should not be null');
+  }
+
+  return {
+    togglTimeEntry: {
+      ...togglTimeEntry,
+      stop: togglTimeEntry.stop,
+    },
+    timesheeterTimesheetEntry: updatedTimsheeterTimesheetEnty,
+  };
+};
+
+export const deleteTimesheeterTimesheetEntry = async ({
+  context: { prisma, workspaceId },
+  togglTimeEntry,
+}: {
+  context: TogglIntegrationContext;
+  togglTimeEntry: FilteredTogglTimeEntry;
+}): Promise<TimesheetEntryPair> => {
+  await prisma.timesheetEntry.deleteMany({
+    where: {
+      workspaceId: workspaceId,
+      togglTimeEntryId: togglTimeEntry.id,
+    },
+  });
+
+  return {
+    togglTimeEntry,
+    timesheeterTimesheetEntry: null,
+  };
+};

@@ -39,7 +39,6 @@ export const handleTogglIntegration = async ({
     context,
     startDate,
     endDate,
-    syncedProjectPairs,
     syncedTaskPairs,
   });
 };
