@@ -69,6 +69,9 @@ export const listTasksProcedure = protectedProcedure
         },
         skip: (input.page - 1) * API_PAGINATION_LIMIT,
         take: API_PAGINATION_LIMIT,
+        orderBy: {
+          createdAt: 'desc',
+        },
       })
       .then((tasks) => tasks.map((task) => parseTask(task)));
 

@@ -77,8 +77,8 @@ model Workspace {
   tasks            Task[]
   timesheetEntries TimesheetEntry[]
   holidays         Holiday[]
-  TaskPrefix       TaskPrefix[]
-  TicketForTask    TicketForTask[]
+  taskPrefixes     TaskPrefix[]
+  ticketForTasks   TicketForTask[]
 }
 
 model Membership {
@@ -122,6 +122,8 @@ model Project {
   togglProjectId BigInt?
 
   deleted Boolean @default(false)
+
+  @@unique([togglProjectId, workspaceId])
 }
 
 model TaskPrefix {
@@ -167,6 +169,8 @@ model Task {
   togglTaskId BigInt?
 
   deleted Boolean @default(false)
+
+  @@unique([togglTaskId, workspaceId])
 }
 
 model TicketForTask {
@@ -189,6 +193,7 @@ model TicketForTask {
   deleted Boolean @default(false)
 
   @@unique([taskPrefixId, number])
+  @@unique([jiraTicketId, workspaceId])
 }
 
 model TimesheetEntry {
@@ -214,6 +219,8 @@ model TimesheetEntry {
   togglTimeEntryId BigInt?
 
   deleted Boolean @default(false)
+
+  @@unique([togglTimeEntryId, workspaceId])
 }
 
 model Holiday {

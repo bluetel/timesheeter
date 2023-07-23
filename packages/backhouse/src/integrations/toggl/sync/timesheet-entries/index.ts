@@ -6,14 +6,14 @@ import { handleTwoWayUpdates, handleCreateTimesheeterEntry, handleCreateTogglEnt
 
 export const syncTimesheetEntries = async ({
   context,
+  syncedTaskPairs,
   startDate,
   endDate,
-  syncedTaskPairs,
 }: {
   context: TogglIntegrationContext;
+  syncedTaskPairs: EvaluatedTaskPair[];
   startDate: Date;
   endDate: Date;
-  syncedTaskPairs: EvaluatedTaskPair[];
 }): Promise<EvaluatedTimesheetEntryPair[]> => {
   const timesheetEntryPairs = await createTimesheetEntryPairs({ context, startDate, endDate });
 

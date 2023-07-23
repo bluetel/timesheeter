@@ -24,6 +24,9 @@ export const holidaysRouter = createTRPCRouter({
           workspaceId: input.workspaceId,
           userId: ctx.session.user.id,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
     }),
   create: protectedProcedure.input(createHolidaySchema).mutation(async ({ ctx, input }) => {

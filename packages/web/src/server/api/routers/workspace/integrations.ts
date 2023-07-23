@@ -33,6 +33,9 @@ export const integrationsRouter = createTRPCRouter({
           where: {
             workspaceId: input.workspaceId,
           },
+          orderBy: {
+            createdAt: 'desc',
+          },
         })
         .then((integrations) => integrations.map((integration) => parseIntegration(integration)));
     }),

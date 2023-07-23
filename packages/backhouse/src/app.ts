@@ -52,3 +52,38 @@ bullBoardApp.register(serverAdapter.registerPlugin());
 bullBoardApp.listen({ port: env.BULL_BOARD_PORT, host: '0.0.0.0' });
 
 console.log(`BullBoard running on http://0.0.0.0:${env.BULL_BOARD_PORT}`);
+
+// In dev its useful to run the integration job manually like this, make sure the
+// bullmq worker is commented out above
+
+/*
+const runDev = async () => {
+  const prisma = await getPrismaClient();
+  const integrations = await prisma.integration
+    .findMany()
+    .then((integrations) => integrations.map((integration) => parseIntegration(integration, false)));
+
+  // Const toggl
+  const togglIntegration = integrations.find((integration) => integration.config.type === 'TogglIntegration');
+
+  if (!togglIntegration || togglIntegration.config.type !== 'TogglIntegration') {
+    console.error('Toggl integration not found');
+    return;
+  }
+
+  console.log('Toggl integration found', togglIntegration.id);
+
+  // await prisma.project.deleteMany({});
+
+  await handleTogglIntegration({
+    integration: {
+      ...togglIntegration,
+      config: togglIntegration.config,
+    },
+  });
+
+  console.log('Done');
+};
+
+runDev();
+*/

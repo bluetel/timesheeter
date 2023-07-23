@@ -20,6 +20,7 @@ import { SiGooglesheets } from 'react-icons/si';
 import { SelectAndTextForm } from '../../ui/SelectAndTextForm';
 import { type WorkspaceInfo } from '@timesheeter/web/server';
 import { type Timesheet, timesheetSchema, timesheetDescription } from '@timesheeter/web/lib/workspace/integrations/google-sheets';
+import { customJSONStringify } from '@timesheeter/web/lib';
 
 const mutationSchema = z.union([
   createIntegrationSchema.extend({
@@ -78,7 +79,7 @@ export const EditIntegrationSideOver = ({
 
   // Prevents resetting wrongly if just different reference
   useEffect(() => {
-    if (JSON.stringify(oldData) === JSON.stringify(data)) {
+    if (customJSONStringify(oldData) === customJSONStringify(data)) {
       return;
     }
 

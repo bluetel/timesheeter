@@ -47,14 +47,21 @@ const timesheetEntriesAreTheSame = (
     ? matchTaskRegex(togglTimeEntry.description)
     : { description: null };
 
+  if (!timesheeterTimesheetEntry.task.togglTaskId) {
+    throw new Error(
+      `Timesheeter task does not have a toggl task id, this should have been set in the sync tasks step, task id: ${timesheeterTimesheetEntry.task.id}`
+    );
+  }
+
+  // Date formatting can be inconsistent from Toggl, so we need to reformat it
   return (
-    togglTimeEntry.start === timesheeterTimesheetEntry.start.toISOString() &&
-    togglTimeEntry.stop === timesheeterTimesheetEntry.end.toISOString() &&
+    new Date(togglTimeEntry.start).toISOString() === timesheeterTimesheetEntry.start.toISOString() &&
+    new Date(togglTimeEntry.stop).toISOString() === timesheeterTimesheetEntry.end.toISOString() &&
     togglDescription === timesheeterTimesheetEntry.description &&
     BigInt(togglTimeEntry.id) === timesheeterTimesheetEntry.togglTimeEntryId &&
     context.togglIdToEmail[togglTimeEntry.user_id] ===
       context.timesheeterUserIdToEmail[timesheeterTimesheetEntry.userId] &&
-    togglTimeEntry.task_id === timesheeterTimesheetEntry.task.togglTaskId
+    togglTimeEntry.task_id === Number(timesheeterTimesheetEntry.task.togglTaskId)
   );
 };
 

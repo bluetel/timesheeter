@@ -1,7 +1,7 @@
 import { encrypt, getDefaultProjectConfig, matchTaskRegex, parseProject } from '@timesheeter/web';
 import { TogglIntegrationContext } from '../lib';
 import { TimesheeterProject, timesheeterProjectSelectQuery } from '../sync';
-import { TogglProject, TogglTimeEntry, toggl } from '../api';
+import { TogglProject, TogglTask, TogglTimeEntry, toggl } from '../api';
 
 export const matchTimeEntryToProject = async ({
   context,
@@ -9,13 +9,32 @@ export const matchTimeEntryToProject = async ({
   togglProjects,
   timesheeterProjects,
   uncategorizedTasksProject,
+  togglTasks,
 }: {
   context: TogglIntegrationContext;
   timeEntry: TogglTimeEntry;
   togglProjects: TogglProject[];
   timesheeterProjects: TimesheeterProject[];
   uncategorizedTasksProject: TogglProject;
+  togglTasks: TogglTask[];
 }) => {
+  // The parent task may already be in a project, if so set the timesheeterProject to that project
+
+  const parentTask = togglTasks.find((task) => task.id === timeEntry.task_id);
+
+  if (parentTask) {
+    const parentTaskProject = togglProjects.find((project) => project.id === parentTask?.id);
+
+    if (parentTaskProject) {
+      return {
+        matchedProject: parentTaskProject,
+        updatedTogglProjects: togglProjects,
+        updatedTimesheeterProjects: timesheeterProjects,
+        taskName: parentTask.name,
+      };
+    }
+  }
+
   const description = timeEntry.description;
 
   if (!description) {
@@ -55,6 +74,7 @@ export const matchTimeEntryToProject = async ({
       matchResult,
       togglProjects,
       timesheeterProjects,
+      togglTasks,
     });
   }
 
@@ -114,6 +134,7 @@ const handleTaskPrefixMatch = async ({
   matchResult,
   togglProjects,
   timesheeterProjects,
+  togglTasks,
 }: {
   context: TogglIntegrationContext;
   matchResult: ReturnType<typeof matchTaskRegex> & {
@@ -121,19 +142,56 @@ const handleTaskPrefixMatch = async ({
   };
   togglProjects: TogglProject[];
   timesheeterProjects: TimesheeterProject[];
+  togglTasks: TogglTask[];
 }) => {
   let updatedTogglProjects = togglProjects;
   let updatedTimesheeterProjects = timesheeterProjects;
+
+  // See if any existing tasks match the task prefix
+  const searchExpression = `${matchResult.prefix}-`;
+
+  const existingTogglTask = togglTasks.find((task) => task.name.startsWith(searchExpression));
+
+  if (existingTogglTask) {
+    const togglProject = togglProjects.find((project) => project.id === existingTogglTask.project_id);
+
+    if (!togglProject) {
+      throw new Error('Toggl project not found, this should exist as a task has it as a parent');
+    }
+
+    return {
+      matchedProject: togglProject,
+      updatedTogglProjects,
+      updatedTimesheeterProjects,
+      taskName: `${matchResult.prefix}-${matchResult.taskNumber}`,
+    };
+  }
+
+  const togglProject = await toggl.projects.post({
+    axiosClient: context.axiosClient,
+    path: { workspace_id: context.togglWorkspaceId },
+    body: {
+      name: `Auto created by Timesheeter - ${matchResult.prefix}`,
+      active: true,
+      is_private: false,
+    },
+  });
+
+  updatedTogglProjects = [...togglProjects, togglProject];
 
   let timesheeterProject = timesheeterProjects.find(({ taskPrefixes }) =>
     taskPrefixes.some(({ prefix }) => prefix === matchResult.prefix)
   );
 
   if (!timesheeterProject) {
+    const timesheeterConfig = { ...getDefaultProjectConfig() };
+
+    timesheeterConfig.taskPrefixes = [matchResult.prefix];
+
     const newTimesheeterProject = await context.prisma.project
       .create({
         data: {
-          name: `Auto created by Timesheeter - ${matchResult.prefix}`,
+          name: togglProject.name,
           workspaceId: context.workspaceId,
           taskPrefixes: {
             create: [
@@ -143,7 +201,7 @@ const handleTaskPrefixMatch = async ({
               },
             ],
           },
-          configSerialized: encrypt(JSON.stringify(getDefaultProjectConfig())),
+          configSerialized: encrypt(JSON.stringify(timesheeterConfig)),
         },
         select: timesheeterProjectSelectQuery,
       })
@@ -153,24 +211,6 @@ const handleTaskPrefixMatch = async ({
 
     timesheeterProject = newTimesheeterProject;
   }
-
-  let togglProject = timesheeterProject.togglProjectId
-    ? togglProjects.find((project) => project.id === Number(timesheeterProject?.togglProjectId))
-    : undefined;
-
-  if (!togglProject) {
-    togglProject = await toggl.projects.post({
-      axiosClient: context.axiosClient,
-      path: { workspace_id: context.togglWorkspaceId },
-      body: {
-        name: timesheeterProject.name,
-        active: true,
-        is_private: false,
-      },
-    });
-  }
-
-  updatedTogglProjects = [...togglProjects, togglProject];
 
   return {
     matchedProject: togglProject,

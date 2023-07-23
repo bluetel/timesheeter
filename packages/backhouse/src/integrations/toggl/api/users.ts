@@ -4,7 +4,7 @@ import { z } from 'zod';
 const togglUserSchema = z.object({
   id: z.number().int().positive(),
   email: z.string().email(),
-  name: z.string(),
+  fullname: z.string(),
 });
 
 export type TogglUser = z.infer<typeof togglUserSchema>;

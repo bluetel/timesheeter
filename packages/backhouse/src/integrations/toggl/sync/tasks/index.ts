@@ -1,3 +1,4 @@
+import { matchTaskRegex } from '@timesheeter/web';
 import { TogglTask, toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
 import { EvaluatedProjectPair } from '../projects';
@@ -141,9 +142,24 @@ export const syncTasks = async ({
 export * from './data';
 
 const tasksAreTheSame = (togglTask: TogglTask, timesheeterTask: TimesheeterTask): boolean => {
-  return (
-    togglTask.name === timesheeterTask.name &&
+  const baseCondition =
     BigInt(togglTask.id) === timesheeterTask.togglTaskId &&
-    togglTask.project_id.toString() === timesheeterTask.project?.id.toString()
-  );
+    togglTask.project_id.toString() === timesheeterTask.project?.togglProjectId?.toString();
+
+  if (!baseCondition) {
+    return false;
+  }
+
+  const togglMatchResult = matchTaskRegex(togglTask.name);
+
+  if (togglMatchResult.variant === 'no-task') {
+    // As there is no task number, we can just compare the names
+    return togglMatchResult.description === timesheeterTask.name;
+  }
+
+  // As there is a task number, we need to compare the toggl task name with the timesheeter ticketForTask
+  const togglPrefixedTaskNumber = `${togglMatchResult.prefix}-${togglMatchResult.taskNumber}`;
+  const timesheeterPrefixedTaskNumber = `${timesheeterTask.ticketForTask?.taskPrefix.prefix}-${timesheeterTask.ticketForTask?.number}`;
+
+  return togglPrefixedTaskNumber === timesheeterPrefixedTaskNumber;
 };

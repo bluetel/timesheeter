@@ -39,6 +39,11 @@ export const timesheeterTimesheetEntrySelectQuery = {
       name: true,
       projectId: true,
       togglTaskId: true,
+      project: {
+        select: {
+          togglProjectId: true,
+        },
+      },
       ticketForTask: {
         select: {
           id: true,
@@ -111,7 +116,7 @@ const getTimesheetEntryData = async ({
   endDate: Date;
 }) => {
   const togglTimeEntriesPromise = toggl.timeEntries
-    .get({ axiosClient, path: { start_date: startDate, end_date: endDate } })
+    .get({ axiosClient, params: { start_date: startDate, end_date: endDate } })
     .then((timeEntries) =>
       timeEntries.filter((timeEntry) => timeEntry.workspace_id === togglWorkspaceId && timeEntry.stop)
     ) as Promise<FilteredTogglTimeEntry[]>;
@@ -120,6 +125,9 @@ const getTimesheetEntryData = async ({
     .findMany({
       where: {
         workspaceId,
+        start: {
+          gte: startDate,
+        },
       },
       select: timesheeterTimesheetEntrySelectQuery,
     })

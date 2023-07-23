@@ -19,7 +19,7 @@ import { matchTimeEntryToTask } from './tasks';
  *
  * 4. If we can't find a project with that prefix (or auto assign expression), then create a new project
  *
- * - The new project should have a name like "Auto created from Toggl - {prefix}/{auto assign expression}"
+ * - The new project should have a name like "Auto created by Timesheeter - {prefix}/{auto assign expression}"
  *
  * - The new project should have the task prefix or auto assign expression set in the project config
  *
@@ -61,6 +61,7 @@ export const preSync = async ({
         togglProjects,
         timesheeterProjects,
         uncategorizedTasksProject,
+        togglTasks,
       });
 
     togglProjects = updatedTogglProjects;

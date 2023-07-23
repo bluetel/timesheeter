@@ -23,6 +23,7 @@ import {
 import { type IconType } from "react-icons/lib";
 import { ConfigIcon } from "@timesheeter/web/lib/icons";
 import { SiJira } from "react-icons/si";
+import { customJSONStringify } from "@timesheeter/web/lib";
 
 const mutationSchema = z.union([
   createProjectSchema.extend({
@@ -85,7 +86,7 @@ export const EditProjectSideOver = ({
 
   // Prevents resetting wrongly if just different reference
   useEffect(() => {
-    if (JSON.stringify(oldData) === JSON.stringify(data)) {
+    if (customJSONStringify(oldData) === customJSONStringify(data)) {
       return;
     }
 

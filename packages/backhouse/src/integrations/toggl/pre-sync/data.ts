@@ -1,12 +1,7 @@
-import {
-  ParsedProject,
-  UNCATEGORIZED_TASKS_PROJECT_NAME,
-  getDefaultProjectConfig,
-  parseProject,
-} from '@timesheeter/web';
+import { UNCATEGORIZED_TASKS_PROJECT_NAME, parseProject } from '@timesheeter/web';
 import { TogglProject, toggl } from '../api';
 import { TogglIntegrationContext } from '../lib';
-import { TimesheeterProject, timesheeterProjectSelectQuery } from '../sync';
+import { timesheeterProjectSelectQuery } from '../sync';
 
 export const getPreSyncData = async ({
   context,
@@ -20,9 +15,14 @@ export const getPreSyncData = async ({
   const togglTimeEntriesPromise = toggl.timeEntries
     .get({
       axiosClient: context.axiosClient,
-      path: { start_date: startDate, end_date: endDate },
+      params: {
+        start_date: startDate,
+        end_date: endDate,
+      },
     })
-    .then((timeEntries) => timeEntries.filter((timeEntry) => timeEntry.workspace_id === context.togglWorkspaceId));
+    .then((timeEntries) =>
+      timeEntries.filter((timeEntry) => timeEntry.workspace_id === context.togglWorkspaceId && timeEntry.stop)
+    );
 
   const togglProjects = await toggl.projects.get({
     axiosClient: context.axiosClient,

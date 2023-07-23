@@ -7,17 +7,13 @@ const togglProjectSchema = z
     id: z.number().int().positive(),
     workspace_id: z.number().int().positive(),
     name: z.string(),
-    created_at: z.string().regex(isoStringRegex),
-    /** Updated at */
-    at: z.string().regex(isoStringRegex),
+    at: z.string(),
     server_deleted_at: z.string().regex(isoStringRegex).nullable(),
   })
   .transform((data) => ({
     ...data,
-    at: data.server_deleted_at ? new Date(data.server_deleted_at) : new Date(data.at),
-    created_at: new Date(data.created_at),
-    server_deleted_at: data.server_deleted_at ? new Date(data.server_deleted_at) : null,
-    deleted: !!data.server_deleted_at,
+    deleted: data.name.toLowerCase().trim() === 'delete',
+    at: new Date(data.at),
   }));
 
 export type TogglProject = z.infer<typeof togglProjectSchema>;

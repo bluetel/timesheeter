@@ -37,15 +37,21 @@ export const createTogglIntegrationContext = async ({
 
   const togglUsers = await toggl.users.get({ axiosClient, path: { workspace_id: verifiedTogglWorkspaceId } });
 
-  const workspaceUsers = await prisma.user.findMany({
-    where: {
-      workspaceId,
-    },
-    select: {
-      id: true,
-      email: true,
-    },
-  });
+  const workspaceUsers = await prisma.membership
+    .findMany({
+      where: {
+        workspaceId,
+      },
+      select: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
+    })
+    .then((memberships) => memberships.map((membership) => membership.user));
 
   return {
     axiosClient,

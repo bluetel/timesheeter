@@ -13,6 +13,7 @@ import { BasicForm } from "@timesheeter/web/components/ui/forms/BasicForm/BasicF
 import { type BasicFormItemProps } from "@timesheeter/web/components/ui/forms/BasicForm/BasicFormItem";
 import { useNotifications } from "../../ui/notification/NotificationProvider";
 import { fromZodError } from "zod-validation-error";
+import { customJSONStringify } from "@timesheeter/web/lib";
 
 const mutationSchema = z.union([
   z.intersection(
@@ -65,6 +66,7 @@ export const EditTaskSideOver = ({
         new: true as const,
         workspaceId,
         name: "New task",
+        taskPrefixId: null,
         projectId: projects[0].id,
         config: getDefaultTaskConfig(),
       }
@@ -90,7 +92,7 @@ export const EditTaskSideOver = ({
 
   // Prevents resetting wrongly if just different reference
   useEffect(() => {
-    if (JSON.stringify(oldData) === JSON.stringify(data)) {
+    if (customJSONStringify(oldData) === customJSONStringify(data)) {
       return;
     }
 

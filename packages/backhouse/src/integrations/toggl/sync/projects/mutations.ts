@@ -63,13 +63,34 @@ export const createTimesheeterProject = async ({
   context: TogglIntegrationContext;
   togglProject: TogglProject;
 }): Promise<ProjectPair> => {
+  // If project name starts with "Auto created by Timesheeter - " it means it was created by
+  // us and we need to create a task prefix for it
+
+  const taskPrefixes: string[] = [];
+
+  if (togglProject.name.startsWith('Auto created by Timesheeter - ')) {
+    const prefix = togglProject.name.replace('Auto created by Timesheeter - ', '');
+
+    taskPrefixes.push(prefix);
+  }
+
+  const timesheeterConfig = { ...getDefaultProjectConfig() };
+
+  timesheeterConfig.taskPrefixes = taskPrefixes;
+
   const timesheeterProject = await prisma.project
     .create({
       data: {
         name: togglProject.name,
         workspaceId,
-        configSerialized: encrypt(JSON.stringify(getDefaultProjectConfig())),
+        configSerialized: encrypt(JSON.stringify(timesheeterConfig)),
         togglProjectId: togglProject.id,
+        taskPrefixes: {
+          create: taskPrefixes.map((prefix) => ({
+            prefix,
+            workspaceId,
+          })),
+        },
       },
       select: timesheeterProjectSelectQuery,
     })
@@ -117,7 +138,7 @@ export const createTogglProject = async ({
 };
 
 export const deleteTimesheeterProject = async ({
-  context: { prisma, workspaceId },
+  context: { prisma, workspaceId, axiosClient, togglWorkspaceId },
   togglProject,
 }: {
   context: TogglIntegrationContext;
@@ -136,6 +157,15 @@ export const deleteTimesheeterProject = async ({
   if (timesheeterProject) {
     await deleteProject({ prisma, projectId: timesheeterProject.id });
   }
+
+  // Delete the project from toggl, before it was just marked as to delete
+  await toggl.projects.delete({
+    axiosClient: axiosClient,
+    path: {
+      workspace_id: togglWorkspaceId,
+      project_id: togglProject.id,
+    },
+  });
 
   return {
     togglProject,

@@ -37,8 +37,8 @@ export const handleTogglIntegration = async ({
 
   await syncTimesheetEntries({
     context,
+    syncedTaskPairs,
     startDate,
     endDate,
-    syncedTaskPairs,
   });
 };

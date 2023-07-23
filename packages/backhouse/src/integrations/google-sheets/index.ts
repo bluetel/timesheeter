@@ -13,6 +13,7 @@ type GoogleSheetsIntegration = ParsedIntegration & {
 export const handleGoogleSheetsIntegration = async ({
   integration: {
     config: { commitDelayDays, serviceAccountEmail, privateKey, timesheets },
+    workspaceId,
   },
 }: {
   integration: GoogleSheetsIntegration;
@@ -25,6 +26,7 @@ export const handleGoogleSheetsIntegration = async ({
       commitDelayDays,
       sheetId: timesheet.sheetId,
       userId: timesheet.userId,
+      workspaceId,
     });
   }
 };
@@ -35,12 +37,14 @@ const outputToTimesheet = async ({
   commitDelayDays,
   sheetId,
   userId,
+  workspaceId,
 }: {
   serviceAccountEmail: string;
   privateKey: string;
   commitDelayDays: number;
   sheetId: string;
   userId: string;
+  workspaceId: string;
 }) => {
   const doc = await authenticateGoogleSheet({
     sheetId,
@@ -67,6 +71,7 @@ const outputToTimesheet = async ({
     fromStartDate: firstDayToProcess,
     toStartDate: lastDayToProcess,
     userId,
+    workspaceId,
   });
 
   const databaseEntriesBasedStartDate = getDatabaseEntriesStartDate(databaseEntries);

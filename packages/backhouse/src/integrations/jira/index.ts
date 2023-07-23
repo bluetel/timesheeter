@@ -27,6 +27,7 @@ export const handleJiraIntegration = async ({ integration }: { integration: Jira
       ticketForTask: {
         jiraTicketId: null,
       },
+      deleted: false,
     },
     select: {
       id: true,

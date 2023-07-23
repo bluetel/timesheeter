@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { SiToggl } from 'react-icons/si';
 import { chronRegex } from '@timesheeter/web/lib/regex';
 
-const defaultScanPeriod = 30;
+const defaultScanPeriod = 90;
+const maxScanPeriod = 90;
 
 export const TogglIntegration = {
   name: 'Toggl',
@@ -39,7 +40,7 @@ export const TogglIntegration = {
       type: 'string',
       required: true,
       protectCount: 0,
-      description: 'How far back to scan for time entries and sync them',
+      description: `How far back to scan for time entries and sync them, the max is ${maxScanPeriod} days`,
     },
   ],
   configSchema: z.object({
@@ -47,13 +48,13 @@ export const TogglIntegration = {
     apiKey: z.string().min(1),
     togglWorkspaceId: z
       .any()
-      .transform((val) => (val === '' ? null : parseInt(String(val), 10)))
+      .transform((value) => (!value ? null : parseInt(String(value), 10)))
       .pipe(z.number().int().positive().nullable()),
     chronExpression: z.string().regex(chronRegex),
     scanPeriod: z
       .any()
       .transform((val) => (val === '' ? defaultScanPeriod : parseInt(String(val), 10)))
-      .pipe(z.number().int().positive()),
+      .pipe(z.number().int().positive().max(maxScanPeriod)),
   }),
   updateIntegrationSchema: z.object({
     type: z.literal('TogglIntegration'),
@@ -68,7 +69,7 @@ export const TogglIntegration = {
       .transform((value) =>
         value === undefined ? undefined : !!value ? parseInt(String(value), 10) : defaultScanPeriod
       )
-      .pipe(z.number().int().positive().optional()),
+      .pipe(z.number().int().positive().max(maxScanPeriod).optional()),
   }),
   defaultConfig: {
     type: 'TogglIntegration',

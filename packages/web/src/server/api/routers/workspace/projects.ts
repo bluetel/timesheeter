@@ -43,6 +43,9 @@ export const projectsRouter = createTRPCRouter({
               },
             },
           },
+          orderBy: {
+            createdAt: 'desc',
+          },
         })
         .then((projects) => projects.map((project) => parseProject(project)));
     }),
@@ -74,6 +77,9 @@ export const projectsRouter = createTRPCRouter({
               prefix: true,
             },
           },
+        },
+        orderBy: {
+          updatedAt: 'desc',
         },
       });
     }),

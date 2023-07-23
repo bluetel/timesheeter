@@ -4,10 +4,12 @@ export const getDatabaseEntries = async ({
   fromStartDate,
   toStartDate,
   userId,
+  workspaceId,
 }: {
   fromStartDate: Date;
   toStartDate: Date;
   userId: string;
+  workspaceId: string;
 }) => {
   const prisma = await getPrismaClient();
 
@@ -15,6 +17,7 @@ export const getDatabaseEntries = async ({
     // Holidays have a start and an end date, the start date may be before the from date and the end date may be after the to date
     // so we need to check if the start date is before the to date and the end date is after the from date
     where: {
+      workspaceId,
       start: {
         lte: toStartDate,
       },
@@ -27,11 +30,13 @@ export const getDatabaseEntries = async ({
 
   const timesheetEntries = await prisma.timesheetEntry.findMany({
     where: {
+      workspaceId,
       start: {
         gte: fromStartDate,
         lte: toStartDate,
       },
       userId,
+      deleted: false,
     },
     include: {
       task: {

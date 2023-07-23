@@ -1,6 +1,5 @@
 import { TogglProject, TogglTask, TogglTimeEntry, toggl } from '../api';
 import { TogglIntegrationContext } from '../lib';
-import { TimesheeterProject } from '../sync';
 
 export const matchTimeEntryToTask = async ({
   context,
@@ -19,19 +18,27 @@ export const matchTimeEntryToTask = async ({
 
   const matchingTask = togglTasks.find((task) => task.name === taskName);
 
+  if (!timeEntry.stop) {
+    throw new Error(
+      `Time entry ${timeEntry.id} has no stop time, this should have been filtered out while getting pre-sync data`
+    );
+  }
+
   if (matchingTask) {
     toggl.timeEntries.put({
       axiosClient: context.axiosClient,
       path: { workspace_id: context.togglWorkspaceId, time_entry_id: timeEntry.id },
       body: {
-        description: timeEntry.description ?? undefined,
+        description: timeEntry.description ?? '',
         task_id: matchingTask.id,
         created_with: 'timesheeter',
         tag_action: 'add',
         workspace_id: context.togglWorkspaceId,
         start: timeEntry.start,
-        stop: timeEntry.stop ?? undefined,
+        stop: timeEntry.stop,
         billable: timeEntry.billable,
+        project_id: matchedProject.id,
+        user_id: timeEntry.user_id,
       },
     });
 
@@ -44,7 +51,7 @@ export const matchTimeEntryToTask = async ({
     body: {
       name: taskName,
       active: true,
-      estimated_seconds: null,
+      estimated_seconds: 0,
       workspace_id: context.togglWorkspaceId,
       project_id: matchedProject.id,
       user_id: null,

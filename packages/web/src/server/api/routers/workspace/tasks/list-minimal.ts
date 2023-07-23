@@ -24,6 +24,19 @@ export const listMinimalTasksProcedure = protectedProcedure
       select: {
         id: true,
         name: true,
+        ticketForTask: {
+          select: {
+            number: true,
+            taskPrefix: {
+              select: {
+                prefix: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
   });

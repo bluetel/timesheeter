@@ -6,7 +6,7 @@ import {
   TIMESHEET_ENTRIES_HELP_TEXT,
 } from "@timesheeter/web/lib/workspace/timesheet-entries";
 import { api, type RouterOutputs } from "@timesheeter/web/utils/api";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { SideOver } from "@timesheeter/web/components/ui/SideOver";
 import { BasicForm } from "@timesheeter/web/components/ui/forms/BasicForm/BasicForm";
@@ -192,11 +192,17 @@ const useTimesheetEntryFields = (
   tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"],
   defaultTaskId: string
 ) => {
+  const selectOptions = useMemo(() => tasks.map(({ id, name, ticketForTask }) => ({
+    value: id,
+    label: !!name ? name : ((ticketForTask?.number && ticketForTask.taskPrefix.prefix) ? `${ticketForTask.taskPrefix.prefix}-${ticketForTask.number}` : "Unnamed task"),
+  })), [tasks]);
+
   let taskId = methods.getValues("taskId");
 
   if (!taskId) {
     taskId = defaultTaskId;
   }
+
 
   const taskIdFormItem: BasicFormItemProps<true> = {
     required: true,
@@ -208,10 +214,7 @@ const useTimesheetEntryFields = (
       variant: "select",
       error: methods.formState.errors.taskId,
       select: {
-        options: tasks.map(({ id, name }) => ({
-          value: id,
-          label: name ?? "Unnamed task",
-        })),
+        options: selectOptions,
         onChange: (value) =>
           methods.setValue("taskId", value, {
             shouldValidate: true,

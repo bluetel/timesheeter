@@ -1,7 +1,7 @@
 import {
   deleteTimesheetEntry,
   encrypt,
-  getDefaultTaskConfig,
+  getDefaultTimesheetEntryConfig,
   matchTaskRegex,
   parseTimesheetEntry,
 } from '@timesheeter/web';
@@ -70,19 +70,26 @@ export const updateTogglTimeEntry = async ({
   updatedTogglTaskId: number;
   updatedTogglUserId: number;
 }): Promise<TimesheetEntryPair> => {
+  if (!timesheeterTimesheetEntry.task.project.togglProjectId) {
+    throw new Error(
+      `Timesheeter task does not have a toggl project id, this should have been set in the sync projects step, task id: ${timesheeterTimesheetEntry.task.id}`
+    );
+  }
+
   const updatedTogglTimeEntry = await toggl.timeEntries.put({
     axiosClient,
     path: { workspace_id: togglWorkspaceId, time_entry_id: togglTimeEntry.id },
     body: {
       task_id: updatedTogglTaskId,
       billable: true,
-      description: timesheeterTimesheetEntry.description ?? undefined,
+      description: timesheeterTimesheetEntry.description ?? '',
       start: timesheeterTimesheetEntry.start.toISOString(),
       stop: timesheeterTimesheetEntry.end.toISOString(),
       workspace_id: togglWorkspaceId,
       created_with: 'timesheeter',
       tag_action: 'add',
       user_id: updatedTogglUserId,
+      project_id: Number(timesheeterTimesheetEntry.task.project.togglProjectId),
     },
   });
 
@@ -134,7 +141,7 @@ export const createTimesheeterTimesheetEntry = async ({
       data: {
         start: new Date(togglTimeEntry.start),
         end: new Date(togglTimeEntry.stop),
-        configSerialized: encrypt(JSON.stringify(getDefaultTaskConfig())),
+        configSerialized: encrypt(JSON.stringify(getDefaultTimesheetEntryConfig())),
         description,
         workspaceId,
         taskId: timesheeterTaskId,
@@ -163,19 +170,26 @@ export const createTogglTimeEntry = async ({
   togglTaskId: number;
   togglUserId: number;
 }): Promise<TimesheetEntryPair> => {
+  if (!timesheeterTimesheetEntry.task.project.togglProjectId) {
+    throw new Error(
+      `Timesheeter task does not have a toggl project id, this should have been set in the sync projects step, task id: ${timesheeterTimesheetEntry.task.id}`
+    );
+  }
+
   const togglTimeEntry = await toggl.timeEntries.post({
     axiosClient,
     path: { workspace_id: togglWorkspaceId },
     body: {
       task_id: togglTaskId,
       billable: true,
-      description: timesheeterTimesheetEntry.description ?? undefined,
+      description: timesheeterTimesheetEntry.description ?? '',
       start: timesheeterTimesheetEntry.start.toISOString(),
       stop: timesheeterTimesheetEntry.end.toISOString(),
       workspace_id: togglWorkspaceId,
       created_with: 'timesheeter',
       tag_action: 'add',
       user_id: togglUserId,
+      project_id: Number(timesheeterTimesheetEntry.task.project.togglProjectId),
     },
   });
 
@@ -205,7 +219,7 @@ export const createTogglTimeEntry = async ({
 };
 
 export const deleteTimesheeterTimesheetEntry = async ({
-  context: { prisma, workspaceId },
+  context: { prisma, workspaceId, axiosClient, togglWorkspaceId },
   togglTimeEntry,
 }: {
   context: TogglIntegrationContext;
@@ -227,6 +241,15 @@ export const deleteTimesheeterTimesheetEntry = async ({
       timesheetEntryId: timesheeterTimesheetEntry.id,
     });
   }
+
+  // Delete the time entry from toggl, before it was just marked as to delete
+  await toggl.timeEntries.delete({
+    axiosClient: axiosClient,
+    path: {
+      workspace_id: togglWorkspaceId,
+      time_entry_id: togglTimeEntry.id,
+    },
+  });
 
   return {
     togglTimeEntry,

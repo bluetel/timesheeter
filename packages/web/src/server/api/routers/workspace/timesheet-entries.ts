@@ -68,6 +68,9 @@ export const timesheetEntriesRouter = createTRPCRouter({
           },
           skip: (input.page - 1) * API_PAGINATION_LIMIT,
           take: API_PAGINATION_LIMIT,
+          orderBy: {
+            start: 'desc',
+          },
         })
         .then((timesheetEntries) => timesheetEntries.map((timesheetEntry) => parseTimesheetEntry(timesheetEntry)));
 
