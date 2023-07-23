@@ -77,6 +77,6 @@ export const TogglIntegration = {
     togglWorkspaceId: null,
     // Default to every 15 minutes
     chronExpression: '*/15 * * * *',
-    scanPeriod: 30,
+    scanPeriod: defaultScanPeriod,
   },
 } as const;
