@@ -81,7 +81,7 @@ export const updateTogglTimeEntry = async ({
     path: { workspace_id: togglWorkspaceId, time_entry_id: togglTimeEntry.id },
     body: {
       task_id: updatedTogglTaskId,
-      billable: true,
+      billable: false,
       description: timesheeterTimesheetEntry.description ?? '',
       start: timesheeterTimesheetEntry.start.toISOString(),
       stop: timesheeterTimesheetEntry.end.toISOString(),
@@ -181,7 +181,7 @@ export const createTogglTimeEntry = async ({
     path: { workspace_id: togglWorkspaceId },
     body: {
       task_id: togglTaskId,
-      billable: true,
+      billable: false,
       description: timesheeterTimesheetEntry.description ?? '',
       start: timesheeterTimesheetEntry.start.toISOString(),
       stop: timesheeterTimesheetEntry.end.toISOString(),

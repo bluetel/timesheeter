@@ -12,7 +12,7 @@ const togglProjectSchema = z
   })
   .transform((data) => ({
     ...data,
-    deleted: data.name.toLowerCase().trim() === 'delete',
+    deleted: data.name.toLowerCase().trim().startsWith('delete'),
     at: new Date(data.at),
   }));
 

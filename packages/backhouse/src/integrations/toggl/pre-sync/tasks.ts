@@ -1,3 +1,4 @@
+import { matchTaskRegex } from '@timesheeter/web';
 import { TogglProject, TogglTask, TogglTimeEntry, toggl } from '../api';
 import { TogglIntegrationContext } from '../lib';
 
@@ -24,12 +25,15 @@ export const matchTimeEntryToTask = async ({
     );
   }
 
+  const matchResult = matchTaskRegex(timeEntry.description ?? '');
+
   if (matchingTask) {
     toggl.timeEntries.put({
       axiosClient: context.axiosClient,
       path: { workspace_id: context.togglWorkspaceId, time_entry_id: timeEntry.id },
       body: {
-        description: timeEntry.description ?? '',
+        // We only set the desciption if we got a match result with a custom description
+        description: matchResult.variant === 'with-task' ? matchResult.description ?? '' : '',
         task_id: matchingTask.id,
         created_with: 'timesheeter',
         tag_action: 'add',

@@ -21,7 +21,7 @@ const togglTimeEntrySchema = z
   })
   .transform((data) => ({
     ...data,
-    deleted: data.description?.toLowerCase().trim() === 'delete',
+    deleted: data.description?.toLowerCase().trim().startsWith('delete'),
     at: new Date(data.at),
   }));
 
@@ -51,7 +51,7 @@ export const timeEntriesGet = async ({
 };
 
 const togglTimeEntryMutationSchema = z.object({
-  billable: z.boolean().default(true),
+  billable: z.boolean().default(false),
   created_with: z.string().default('Timesheeter'),
   description: z.string(),
   start: z.string().regex(isoStringRegex),

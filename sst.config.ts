@@ -55,7 +55,7 @@ const config = {
   async stacks(app) {
     const appStacks = await import('./stacks');
     appStacks.default(app);
-  }, 
+  },
 } satisfies SSTConfig;
 
 export default config;
