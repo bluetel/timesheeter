@@ -11,7 +11,9 @@ import { getWorkspaceInfo } from "@timesheeter/web/server/lib/workspace-info";
 import {
   HOLIDAYS_HELP_TEXT,
   HolidayIcon,
+  INVITATIONS_HELP_TEXT,
   IntegrationIcon,
+  MEMBERSHIPS_HELP_TEXT,
   PROJECTS_HELP_TEXT,
   ProjectIcon,
   TASKS_HELP_TEXT,
@@ -19,6 +21,10 @@ import {
   TaskIcon,
   TimesheetEntryIcon,
 } from "@timesheeter/web/lib";
+import { useState } from "react";
+import { EditWorkspaceSideOver } from "@timesheeter/web/components/workspace/management/EditWorkspaceSideOver";
+import { useRefetchServersideProps } from "@timesheeter/web/utils/refetch-serverside-props";
+import { UserList } from "@timesheeter/web/components/UserList";
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext
@@ -99,14 +105,34 @@ const Dashboard = ({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { push } = useRouter();
 
-  return (
+  const [showEditWorkspaceSideOver, setShowEditWorkspaceSideOver] =
+    useState(false);
+
+  const refetchSeverSideProps = useRefetchServersideProps();
+
+  return (<>
+    <EditWorkspaceSideOver
+      refetchWorkspaces={refetchSeverSideProps}
+      show={showEditWorkspaceSideOver}
+      onClose={() => setShowEditWorkspaceSideOver(false)}
+      data={{
+        new: false,
+        workspace: workspaceInfo.workspace,
+        memberships: workspaceInfo.memberships,
+        invitations: workspaceInfo.invitations,
+      }}
+    />
     <WorkspaceLayout workspaceInfo={workspaceInfo}>
       <div className="p-16">
         <StartingPointsEmptyState
           header={{
-            title: "Welcome to your workspace!",
+            title: workspaceInfo.workspace.name,
             description:
               "Get started with one of our recommended actions below.",
+            newButton: {
+              label: "Edit workspace and members",
+              onClick: () => setShowEditWorkspaceSideOver(true),
+            },
           }}
           items={[
             {
@@ -184,8 +210,25 @@ const Dashboard = ({
             },
           ]}
         />
+        <div className="mt-6 grid grid-cols-1 gap-6 py-6 sm:grid-cols-2">
+          <div>
+            <UserList users={workspaceInfo.memberships.map((m) => ({
+              name: m.user.name ?? "Unknown",
+              email: m.user.email ?? undefined,
+              imageUrl: m.user.image ?? undefined
+            }))} title="Workspace members" subtitle={MEMBERSHIPS_HELP_TEXT} emptyText="No members yet." />
+          </div>
+          <div>
+            <UserList users={workspaceInfo.invitations.map((i) => ({
+              name: i.email,
+              email: undefined,
+              imageUrl: undefined
+            }))} title="Workspace invitations" subtitle={INVITATIONS_HELP_TEXT} emptyText="No invitations yet." />
+          </div>
+        </div>
       </div>
-    </WorkspaceLayout>
+    </WorkspaceLayout >
+  </>
   );
 };
 

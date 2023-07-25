@@ -1,0 +1,20 @@
+{
+  "name": "@timesheeter/email",
+  "version": "0.0.18",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "email dev --port 6002",
+    "build": "rm -rf dist && tsc",
+    "install": "rm -rf dist && tsc",
+    "export": "email export"
+  },
+  "dependencies": {
+    "@react-email/components": "0.0.6",
+    "react-email": "1.9.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.1.6"
+  }
+}

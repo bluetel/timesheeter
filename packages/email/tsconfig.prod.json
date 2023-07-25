@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "target": "es2021",
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "experimentalDecorators": true,
+    "strict": true,
+    // allow es modules to be imported in typescript
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    // aallow outside modules to be imported in typescript
+    "isolatedModules": false,
+    "skipLibCheck": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["test/**/*.spec.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}

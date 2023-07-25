@@ -6,7 +6,7 @@ import {
 } from "./DetailPanel/DetailHeader";
 
 type StartingPointsEmptyStateProps = {
-  header: Omit<DetailHeaderProps, "newButton">;
+  header: DetailHeaderProps;
   items: {
     background: string;
     icon: IconType;

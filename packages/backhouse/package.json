@@ -1,7 +1,6 @@
 {
     "name": "@timesheeter/backhouse",
     "version": "0.1.0",
-    "main": "dist/src/index.js",
     "author": "",
     "license": "MPL-2.0",
     "scripts": {

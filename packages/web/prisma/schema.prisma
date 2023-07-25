@@ -79,6 +79,7 @@ model Workspace {
   holidays         Holiday[]
   taskPrefixes     TaskPrefix[]
   ticketForTasks   TicketForTask[]
+  invitations      Invitation[]
 }
 
 model Membership {
@@ -90,6 +91,19 @@ model Membership {
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   workspaceId String
   role        String
+
+  @@unique([userId, workspaceId])
+}
+
+model Invitation {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  email       String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+
+  @@unique([email, workspaceId])
 }
 
 model Integration {

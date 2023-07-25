@@ -15,6 +15,10 @@ type Membership = {
   };
 };
 
+type Invitation = {
+  email: string;
+};
+
 export type WorkspaceInfo = {
   membership: Membership;
   workspace: {
@@ -22,6 +26,7 @@ export type WorkspaceInfo = {
     name: string;
   };
   memberships: Membership[];
+  invitations: Invitation[];
 };
 
 export type WorkspaceInfoResult =
@@ -74,6 +79,7 @@ export const getWorkspaceInfo = async ({
           user: true,
         },
       },
+      invitations: true,
     },
   });
 
@@ -116,6 +122,9 @@ export const getWorkspaceInfo = async ({
         name: workspace.name,
       },
       memberships,
+      invitations: workspace.invitations.map((invitation) => ({
+        email: invitation.email,
+      })),
     },
   };
 };

@@ -104,6 +104,10 @@ export const env = createEnv({
       .default('9999')
       .transform((s) => parseInt(s, 10))
       .pipe(z.number()),
+
+    RESEND_API_KEY: z.string(),
+
+    RESEND_FROM_EMAIL: z.string().email().default('noreply@timesheeter.pro'),
   },
   client: {},
   runtimeEnv: {
@@ -117,5 +121,7 @@ export const env = createEnv({
     BULLMQ_REDIS_PATH: process.env.BULLMQ_REDIS_PATH,
     BULLMQ_REDIS_PORT: process.env.BULLMQ_REDIS_PORT,
     BULL_BOARD_PORT: process.env.BULL_BOARD_PORT,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
   },
 });

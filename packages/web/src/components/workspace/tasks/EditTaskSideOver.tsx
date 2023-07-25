@@ -165,7 +165,7 @@ export const EditTaskSideOver = ({
       });
       return;
     }
-    console.log(values)
+
     values.new
       ? createTask(values, {
         onError: (error) => {
