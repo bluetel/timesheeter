@@ -19,7 +19,48 @@ export const getServerSideProps = async ({
     };
   }
 
-  const memberships = await prisma.membership.findMany({
+  if (!session.user.email) {
+    throw new Error("User email is required");
+  }
+
+  const acceptedInvitations = await prisma.invitation.findMany({
+    where: {
+      email: session.user.email,
+      accepted: true,
+    },
+  });
+
+  const newMemberships = await Promise.all(acceptedInvitations.map(async (invitation) =>
+    prisma.membership.create({
+      data: {
+        role: "member",
+        user: {
+          connect: {
+            id: session.user.id,
+          },
+        },
+        workspace: {
+          connect: {
+            id: invitation.workspaceId,
+          },
+        },
+      },
+      select: {
+        workspaceId: true,
+        role: true,
+      },
+    })
+  ))
+
+  await prisma.invitation.deleteMany({
+    where: {
+      id: {
+        in: acceptedInvitations.map((invitation) => invitation.id),
+      }
+    },
+  });
+
+  const membershipsUnsorted = [...newMemberships, ...await prisma.membership.findMany({
     where: {
       userId: session.user.id,
     },
@@ -27,7 +68,12 @@ export const getServerSideProps = async ({
       workspaceId: true,
       role: true,
     },
-  });
+  })]
+
+  // Remove duplicates
+  const memberships = membershipsUnsorted.filter((membership, index) =>
+    membershipsUnsorted.findIndex((m) => m.workspaceId === membership.workspaceId) === index
+  )
 
   // Find one where role is owner
   const ownerMembership = memberships.find(
@@ -38,6 +84,16 @@ export const getServerSideProps = async ({
     return {
       redirect: {
         destination: `/workspace/${ownerMembership.workspaceId}`,
+        permanent: false,
+      },
+    };
+  }
+
+  // If no owner membership found, return first membership
+  if (memberships[0]) {
+    return {
+      redirect: {
+        destination: `/workspace/${memberships[0].workspaceId}`,
         permanent: false,
       },
     };

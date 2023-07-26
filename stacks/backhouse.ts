@@ -78,6 +78,7 @@ export const Backhouse = ({ stack }: StackContext) => {
       BULLMQ_REDIS_PATH: bullmqElastiCache.attrRedisEndpointAddress,
       BULLMQ_REDIS_PORT: bullmqElastiCache.attrRedisEndpointPort,
       DB_SECRET_ARN: database.secret.secretArn,
+      RESEND_API_KEY: sstEnv.RESEND_API_KEY,
     },
   });
 

@@ -19,7 +19,7 @@ type MobileSideBarProps = {
 }
 
 export const MobileSideBar = ({
-  workspaceInfo: { workspace },
+  workspaceInfo: { workspace, membership: { user: { name } } },
   sideBarOpen,
   setSideBarOpen,
 }: MobileSideBarProps) => {
@@ -91,7 +91,7 @@ export const MobileSideBar = ({
               <WorkspaceSwitcher activeWorkspace={{
                 id: workspace.id,
                 name: workspace.name,
-              }} />
+              }} userName={name ?? ""} />
               <nav aria-label="Sidebar" className="mt-5">
                 <div className="space-y-1 px-2">
                   {navigation.map((item) => (

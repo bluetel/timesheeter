@@ -13,9 +13,10 @@ type WorkspaceSwitcherProps = {
     id: string
     name: string
   }
+  userName: string
 }
 
-export const WorkspaceSwitcher = ({ activeWorkspace }: WorkspaceSwitcherProps) => {
+export const WorkspaceSwitcher = ({ activeWorkspace, userName }: WorkspaceSwitcherProps) => {
   const { data: myWorkpaces = [], refetch: refetchMyWorkspaces } = api.workspace.management.myWorkspaces.useQuery();
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export const WorkspaceSwitcher = ({ activeWorkspace }: WorkspaceSwitcherProps) =
                 <span className="truncate text-sm font-medium text-gray-900">
                   {activeWorkspace.name}
                 </span>
-                <span className="truncate text-sm text-gray-500">Current Workspace</span>
+                <span className="truncate text-sm text-gray-500">{userName}</span>
               </span>
             </span>
             <ChevronUpDownIcon

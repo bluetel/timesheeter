@@ -6,7 +6,6 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "email dev --port 6002",
-    "build": "rm -rf dist && tsc",
     "install": "rm -rf dist && tsc",
     "export": "email export"
   },

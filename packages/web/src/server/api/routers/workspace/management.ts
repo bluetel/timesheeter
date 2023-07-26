@@ -81,13 +81,6 @@ export const managementRouter = createTRPCRouter({
             },
           ],
         },
-        invitations: {
-          create: [
-            ...input.invitations.map((email) => ({
-              email,
-            })),
-          ],
-        },
       },
       select: {
         id: true,
@@ -96,12 +89,32 @@ export const managementRouter = createTRPCRouter({
     });
 
     if (input.invitations.length > 0) {
+      const createdInvitations = await Promise.all(
+        input.invitations.map((email) =>
+          ctx.prisma.invitation.create({
+            data: {
+              email,
+              workspaceId: createdWorkspace.id,
+            },
+            select: {
+              email: true,
+              id: true,
+            },
+          })
+        )
+      ).then((invitations) =>
+        invitations.map((invitation) => ({
+          email: invitation.email,
+          invitationId: invitation.id,
+        }))
+      );
+
       await sendInviteEmails({
         workspace: {
           id: createdWorkspace.id,
           name: createdWorkspace.name,
         },
-        emails: input.invitations,
+        emails: createdInvitations,
       });
     }
 
@@ -206,16 +219,11 @@ export const managementRouter = createTRPCRouter({
               }
             : undefined,
         invitations:
-          invitationsToCreate !== undefined && invitationsToDelete !== undefined
+          invitationsToDelete !== undefined
             ? {
                 deleteMany: invitationsToDelete.map((invitation) => ({
                   email: invitation.email,
                 })),
-                createMany: {
-                  data: invitationsToCreate.map((invitation) => ({
-                    email: invitation,
-                  })),
-                },
               }
             : undefined,
       },
@@ -226,12 +234,32 @@ export const managementRouter = createTRPCRouter({
     });
 
     if (invitationsToCreate) {
+      const createdInvitations = await Promise.all(
+        invitationsToCreate.map((email) =>
+          ctx.prisma.invitation.create({
+            data: {
+              email,
+              workspaceId: updatedWorkspace.id,
+            },
+            select: {
+              email: true,
+              id: true,
+            },
+          })
+        )
+      ).then((invitations) =>
+        invitations.map((invitation) => ({
+          email: invitation.email,
+          invitationId: invitation.id,
+        }))
+      );
+
       await sendInviteEmails({
         workspace: {
           id: updatedWorkspace.id,
           name: updatedWorkspace.name,
         },
-        emails: invitationsToCreate,
+        emails: createdInvitations,
       });
     }
 
@@ -299,18 +327,22 @@ export const sendInviteEmails = async ({
     id: string;
     name: string;
   };
-  emails: string[];
+  emails: {
+    email: string;
+    invitationId: string;
+  }[];
 }) =>
   Promise.all(
-    emails.map((email) => {
+    emails.map(({ email, invitationId }) => {
       const { pretty, plainText, title } = inviteEmail({
         workspaceName: workspace.name,
         email,
-        inviteLink: `https://timesheeter.app/accept-invitation?workspaceId=${workspace.id}`,
+        inviteLink: `${env.PUBLIC_URL}/accept-invitation/${invitationId}`,
+        publicUrl: env.PUBLIC_URL,
       });
 
       return resend.emails.send({
-        subject: title as string,
+        subject: title,
         from: env.RESEND_FROM_EMAIL,
         to: email,
         text: plainText,

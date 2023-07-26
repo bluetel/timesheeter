@@ -102,6 +102,7 @@ model Invitation {
   email       String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   workspaceId String
+  accepted    Boolean   @default(false)
 
   @@unique([email, workspaceId])
 }

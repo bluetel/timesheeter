@@ -19,8 +19,8 @@ export const UserList = ({ title, subtitle, users, emptyText }: UserListProps) =
   <div className="mt-6 border-t border-gray-100 mr-16">
     {users.length > 0 ?
       (<ul role="list" className="divide-y divide-gray-100">
-        {users.map((user) => (
-          <li key={user.email} className="flex gap-x-4 py-5">
+        {users.map((user, index) => (
+          <li key={index} className="flex gap-x-4 py-5">
             {user.imageUrl ?
               // eslint-disable-next-line @next/next/no-img-element
               <img className="h-12 w-12 flex-none rounded-full bg-gray-50" src={user.imageUrl} alt="" />

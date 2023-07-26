@@ -264,7 +264,7 @@ export const EditWorkspaceSideOver = ({
             icon: InvitationIcon,
             label: "Invitations",
             body: <ListableForm
-              minRows={1}
+              minRows={0}
               placeholder="Email address"
               values={getInvitationValues()}
               onChange={(newValues) => {

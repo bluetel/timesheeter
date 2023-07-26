@@ -12,7 +12,7 @@ type DesktopSideBarProps = {
 }
 
 export const DesktopSideBar = ({
-  workspaceInfo: { workspace },
+  workspaceInfo: { workspace, membership: { user: { name } } },
 }: DesktopSideBarProps) => {
   const { pathname } = useRouter();
 
@@ -37,7 +37,7 @@ export const DesktopSideBar = ({
             <WorkspaceSwitcher activeWorkspace={{
               id: workspace.id,
               name: workspace.name,
-            }} />
+            }} userName={name ?? ""} />
 
             <nav className="mt-5 flex-1" aria-label="Sidebar">
               <div className="space-y-1 px-2">

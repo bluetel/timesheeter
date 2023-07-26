@@ -1,13 +1,12 @@
 import { NextjsSite, StackContext, use } from 'sst/constructs';
-import { Dns } from './dns';
 import { sstEnv } from './env';
 import { Database, makeDatabaseUrl } from './database';
 import { BullmqElastiCache } from './bullmq-elasticache';
 import { Network } from './network';
 import { SubnetType } from 'aws-cdk-lib/aws-ec2';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 
 export async function Web({ stack, app }: StackContext) {
-  const dns = use(Dns);
   const { vpc } = use(Network);
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
   const { bullmqElastiCache, elastiCacheAccessPolicy } = use(BullmqElastiCache);
@@ -16,15 +15,26 @@ export async function Web({ stack, app }: StackContext) {
     throw new Error('Database secret not found');
   }
 
+  if (sstEnv.EXTERNAL_DOMAIN && !sstEnv.EXTERNAL_CERT_ARN) {
+    throw new Error('EXTERNAL_CERT_ARN must be set when using EXTERNAL_DOMAIN');
+  }
+
   // docs: https://docs.serverless-stack.com/constructs/NextjsSite
   const frontendSite = new NextjsSite(stack, 'Web', {
     path: 'packages/web',
-    customDomain: dns.domainName
-      ? {
-          domainName: dns.domainName,
-          domainAlias: 'www.' + dns.domainName,
-        }
-      : undefined,
+    customDomain: {
+      domainName: sstEnv.PUBLIC_URL,
+      isExternalDomain: sstEnv.EXTERNAL_DOMAIN,
+      cdk: sstEnv.EXTERNAL_DOMAIN
+        ? {
+            certificate: Certificate.fromCertificateArn(
+              stack,
+              `FrontendCert-${app.stage}`,
+              sstEnv.EXTERNAL_CERT_ARN as string
+            ),
+          }
+        : undefined,
+    },
     cdk: {
       distribution: {
         comment: `NextJS distribution for ${app.name} (${app.stage})`,
@@ -50,6 +60,7 @@ export async function Web({ stack, app }: StackContext) {
       BULLMQ_REDIS_PATH: bullmqElastiCache.attrRedisEndpointAddress,
       BULLMQ_REDIS_PORT: bullmqElastiCache.attrRedisEndpointPort,
       DB_SECRET_ARN: database.secret.secretArn,
+      RESEND_API_KEY: sstEnv.RESEND_API_KEY,
     },
   });
 

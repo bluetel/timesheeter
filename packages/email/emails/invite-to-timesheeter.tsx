@@ -20,14 +20,14 @@ export type TimesheeterInviteUserEmailProps = {
   email: string;
   workspaceName: string;
   inviteLink: string;
+  publicUrl?: string;
 }
-
-const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '';
 
 export const TimesheeterInviteUserEmail = ({
   email = 'harrytwigg111@gmail.com',
   workspaceName = 'My Project',
   inviteLink = 'https://vercel.com/teams/invite/foo',
+  publicUrl,
 }: TimesheeterInviteUserEmailProps) => {
   const previewText = `Join ${workspaceName} on Timesheeter`;
 
@@ -40,7 +40,7 @@ export const TimesheeterInviteUserEmail = ({
           <Container className="my-[40px] mx-auto w-[465px] rounded border border-solid border-[#eaeaea] p-[20px]">
             <Section className="mt-[32px]">
               <Img
-                src={`${baseUrl}/static/logo.png`}
+                src={`${publicUrl ?? ""}/email-static/logo.png`}
                 width="75"
                 height="75"
                 alt="Timesheeter"

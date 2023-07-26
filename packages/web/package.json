@@ -15,7 +15,7 @@
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "next lint",
-    "install": "./scripts/generate-prisma.sh && pnpm build:module",
+    "install": "./scripts/generate-prisma.sh && pnpm build:module && rm -rf public/email-static && cp -r ../email/email-static public/email-static",
     "db:seed": "./scripts/seed-prisma.sh",
     "db:seed:clean": "./scripts/seed-prisma-clean.sh",
     "build-storybook": "build-storybook",
