@@ -89,7 +89,7 @@ export const tasksPut = async ({
 }) => {
   const response = await axiosClient.put(
     `${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/projects/${path.project_id}/tasks/${path.task_id}`,
-    body
+    { ...body, active: false }
   );
 
   return togglTaskSchema.parse(response.data);

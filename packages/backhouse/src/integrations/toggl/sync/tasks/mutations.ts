@@ -57,7 +57,7 @@ export const updateTogglTask = async ({
     axiosClient,
     path: {
       workspace_id: togglWorkspaceId,
-      project_id: updatedTogglProjectId,
+      project_id: togglTask.project_id,
       task_id: togglTask.id,
     },
     body: {

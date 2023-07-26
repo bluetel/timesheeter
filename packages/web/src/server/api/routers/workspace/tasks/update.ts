@@ -86,6 +86,11 @@ export const updateTaskProcedure = protectedProcedure
       })
       .then(parseTask);
 
+    // If new task prefix or number undefined then do nothing
+    if (newTaskPrefix === undefined || newTaskNumber === undefined) {
+      return updatedTask;
+    }
+
     // if existing task prefix and number are the same as the new ones, do nothing
     if (existingTaskPrefix?.id === newTaskPrefix && existingTaskNumber === newTaskNumber) {
       return updatedTask;
