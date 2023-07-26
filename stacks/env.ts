@@ -26,7 +26,10 @@ const sstEnvSchema = z.object({
 
   RESEND_API_KEY: z.string().min(1),
 
-  EXTERNAL_DOMAIN: z.boolean().default(false),
+  EXTERNAL_DOMAIN: z
+    .string()
+    .default('false')
+    .transform((s) => s === 'true'),
   EXTERNAL_CERT_ARN: z.string().min(1).optional(),
 });
 
