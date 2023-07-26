@@ -1,6 +1,7 @@
 import { StackContext } from 'sst/constructs';
 import { DnsValidatedCertificate, ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
+import { sstEnv } from './env';
 
 export function Dns({ stack, app }: StackContext) {
   // route53 zone
@@ -18,7 +19,7 @@ export function Dns({ stack, app }: StackContext) {
     certificateRegional = new DnsValidatedCertificate(stack, 'RegionalCertificate', {
       domainName: hostedZoneName,
       hostedZone,
-      subjectAlternativeNames: [`*.${hostedZoneName}`],
+      subjectAlternativeNames: [`*.${hostedZoneName}`, sstEnv.PUBLIC_URL],
     });
     // cert in us-east-1, required for cloudfront, cognito
     certificateGlobal =
@@ -28,7 +29,7 @@ export function Dns({ stack, app }: StackContext) {
             domainName: hostedZoneName,
 
             hostedZone,
-            subjectAlternativeNames: [`*.${hostedZoneName}`],
+            subjectAlternativeNames: [`*.${hostedZoneName}`, sstEnv.PUBLIC_URL],
             region: 'us-east-1',
           });
   }

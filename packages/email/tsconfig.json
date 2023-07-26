@@ -8,7 +8,7 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "experimentalDecorators": true,
-    "strict": true,
+    "strict": false,
     // allow es modules to be imported in typescript
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

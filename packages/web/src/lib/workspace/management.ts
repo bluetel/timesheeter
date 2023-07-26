@@ -8,7 +8,8 @@ export type MembershipRole = z.infer<typeof membershipRoleSchema>;
 
 export const WORKSPACES_HELP_TEXT = 'Group related projects and team members together into workspaces' as const;
 
-export const MEMBERSHIPS_HELP_TEXT = 'Team members can be added to a workspace with a role of owner or member' as const;
+export const MEMBERSHIPS_HELP_TEXT =
+  'Team members can be added to a workspace and share projects, tasks and integrations' as const;
 
 export const INVITATIONS_HELP_TEXT =
   'Invite team members to a workspace, they will receive an email with a link to join' as const;

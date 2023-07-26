@@ -11,7 +11,7 @@ import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
 
 export const Backhouse = ({ stack }: StackContext) => {
   const { cluster } = use(Ecs);
-  const { defaultLambdaSecurityGroup, vpc } = use(Network);
+  const { vpc } = use(Network);
 
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
   const { elastiCacheAccessPolicy, bullmqElastiCache } = use(BullmqElastiCache);
@@ -79,6 +79,7 @@ export const Backhouse = ({ stack }: StackContext) => {
       BULLMQ_REDIS_PORT: bullmqElastiCache.attrRedisEndpointPort,
       DB_SECRET_ARN: database.secret.secretArn,
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
+      PUBLIC_URL: sstEnv.PUBLIC_URL,
     },
   });
 

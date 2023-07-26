@@ -22,7 +22,7 @@ export const Ecs = ({ stack }: StackContext) => {
     machineImage: ecs.EcsOptimizedImage.amazonLinux2(),
     securityGroup: defaultLambdaSecurityGroup,
     desiredCapacity: 1,
-    healthCheck: autoscaling.HealthCheck.ec2({ grace: cdk.Duration.minutes(5) }),
+    healthCheck: autoscaling.HealthCheck.ec2({ grace: cdk.Duration.minutes(1) }),
   });
 
   const capacityProvider = new ecs.AsgCapacityProvider(stack, 'TimesheeterEcsCapacityProvider', {

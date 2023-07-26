@@ -25,5 +25,3 @@ node_modules
 .DS_Store
 
 .sst*
-
-.react-email/
