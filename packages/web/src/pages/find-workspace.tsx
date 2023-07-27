@@ -60,7 +60,16 @@ export const getServerSideProps = async ({
     },
   });
 
-  const membershipsUnsorted = [...newMemberships, ...await prisma.membership.findMany({
+  if (newMemberships[0]) {
+    return {
+      redirect: {
+        destination: `/workspace/${newMemberships[0].workspaceId}`,
+        permanent: false,
+      },
+    };
+  }
+
+  const memberships = await prisma.membership.findMany({
     where: {
       userId: session.user.id,
     },
@@ -68,12 +77,7 @@ export const getServerSideProps = async ({
       workspaceId: true,
       role: true,
     },
-  })]
-
-  // Remove duplicates
-  const memberships = membershipsUnsorted.filter((membership, index) =>
-    membershipsUnsorted.findIndex((m) => m.workspaceId === membership.workspaceId) === index
-  )
+  })
 
   // Find one where role is owner
   const ownerMembership = memberships.find(

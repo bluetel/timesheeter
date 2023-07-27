@@ -4,7 +4,7 @@ import { chronRegex } from '@timesheeter/web/lib/regex';
 
 export const timesheetSchema = z.object({
   sheetId: z.string().min(1),
-  userId: z.string().min(1),
+  userId: z.string().cuid2(),
 });
 
 export type Timesheet = z.infer<typeof timesheetSchema>;

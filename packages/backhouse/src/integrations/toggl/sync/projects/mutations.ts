@@ -44,7 +44,8 @@ export const updateTogglProject = async ({
     axiosClient,
     path: { workspace_id: togglWorkspaceId, project_id: togglProject.id },
     body: {
-      name: timesheeterProject.name,
+      // Toggl Projects must have a name
+      name: !!timesheeterProject.name ? timesheeterProject.name : 'Unnamed project',
       active: true,
       is_private: false,
     },

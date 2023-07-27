@@ -1,9 +1,23 @@
 import { z } from 'zod';
 import { SiToggl } from 'react-icons/si';
 import { chronRegex } from '@timesheeter/web/lib/regex';
+import { InboxIcon } from '@heroicons/react/20/solid';
+import { type IconType } from 'react-icons/lib';
 
 const defaultScanPeriod = 90;
 const maxScanPeriod = 90;
+
+export const emailMapEntrySchema = z.object({
+  togglEmail: z.string().email(),
+  userId: z.string().cuid2(),
+});
+
+export type EmailMapEntry = z.infer<typeof emailMapEntrySchema>;
+
+export const emailMapDescription =
+  'Assocciate Toggl emails to Timesheeter emails, if they are the same then this is not needed';
+
+export const TogglEmailMapIcon = InboxIcon as IconType;
 
 export const TogglIntegration = {
   name: 'Toggl',
@@ -42,6 +56,14 @@ export const TogglIntegration = {
       protectCount: 0,
       description: `How far back to scan for time entries and sync them, the max is ${maxScanPeriod} days`,
     },
+    {
+      accessor: 'emailMap',
+      name: 'Toggl Email Map',
+      type: 'hidden',
+      required: false,
+      protectCount: 0,
+      description: emailMapDescription,
+    },
   ],
   configSchema: z.object({
     type: z.literal('TogglIntegration'),
@@ -55,6 +77,7 @@ export const TogglIntegration = {
       .any()
       .transform((val) => (val === '' ? defaultScanPeriod : parseInt(String(val), 10)))
       .pipe(z.number().int().positive().max(maxScanPeriod)),
+    emailMap: z.array(emailMapEntrySchema).default([]),
   }),
   updateIntegrationSchema: z.object({
     type: z.literal('TogglIntegration'),
@@ -70,6 +93,7 @@ export const TogglIntegration = {
         value === undefined ? undefined : !!value ? parseInt(String(value), 10) : defaultScanPeriod
       )
       .pipe(z.number().int().positive().max(maxScanPeriod).optional()),
+    emailMap: z.array(emailMapEntrySchema).optional(),
   }),
   defaultConfig: {
     type: 'TogglIntegration',
@@ -78,5 +102,6 @@ export const TogglIntegration = {
     // Default to every 15 minutes
     chronExpression: '*/15 * * * *',
     scanPeriod: defaultScanPeriod,
+    emailMap: [] as EmailMapEntry[],
   },
 } as const;

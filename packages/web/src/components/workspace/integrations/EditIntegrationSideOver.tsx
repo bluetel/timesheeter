@@ -21,6 +21,7 @@ import { SelectAndTextForm } from '../../ui/SelectAndTextForm';
 import { type WorkspaceInfo } from '@timesheeter/web/server';
 import { type Timesheet, timesheetSchema, timesheetDescription } from '@timesheeter/web/lib/workspace/integrations/google-sheets';
 import { customJSONStringify } from '@timesheeter/web/lib';
+import { type EmailMapEntry, emailMapDescription, emailMapEntrySchema, TogglEmailMapIcon } from '@timesheeter/web/lib/workspace/integrations/toggl';
 
 const mutationSchema = z.union([
   createIntegrationSchema.extend({
@@ -171,73 +172,135 @@ export const EditIntegrationSideOver = ({
     const integrationDefinition = INTEGRATION_DEFINITIONS[integrationType];
 
     if (integrationType === 'GoogleSheetsIntegration') {
-      const getTimesheetTabs = () => {
-        const timesheets = [...(config.timesheets ?? ([] as { userId: string | null; sheetId: string }[]))]
+      const timesheets = [...(config.timesheets ?? ([] as { userId: string | null; sheetId: string }[]))]
 
-        if (timesheets.length === 0) {
-          timesheets.push({
-            userId: null,
-            sheetId: '',
-          });
-        }
+      if (timesheets.length === 0) {
+        timesheets.push({
+          userId: null,
+          sheetId: '',
+        });
+      }
 
-        const values = timesheets.map((timesheet) => ({
-          selectValue: timesheet.userId,
-          text: timesheet.sheetId,
-        }));
+      const values = timesheets.map((timesheet) => ({
+        selectValue: timesheet.userId,
+        text: timesheet.sheetId,
+      }));
 
-        const selectOptions = memberships.map((membership) => ({
-          value: membership.user.id,
-          label: membership.user.name ?? membership.user.email ?? `Unknown user ${membership.user.id}`,
-        }));
+      const selectOptions = memberships.map((membership) => ({
+        value: membership.user.id,
+        label: membership.user.name ?? membership.user.email ?? `Unknown user ${membership.user.id}`,
+      }));
 
-        return {
-          multiple: true as const,
-          bodies: [
-            {
-              icon: ConfigIcon,
-              label: 'Configuration',
-              body: <BasicForm items={fields} />,
-              subDescription: integrationDefinition.description,
-            },
-            {
-              icon: SiGooglesheets,
-              label: 'Timesheets',
-              body: (
-                <SelectAndTextForm
-                  minRows={1}
-                  placeholder="Sheet ID"
-                  values={values}
-                  selectOptions={selectOptions}
-                  onChange={(newValues) => {
-                    const filteredValues = newValues.map(({ selectValue, text }) => ({
-                      userId: selectValue,
-                      sheetId: text,
-                    })).map((value) => {
-                      const result = timesheetSchema.safeParse(value);
-                      if (!result.success) return null;
+      return {
+        multiple: true as const,
+        bodies: [
+          {
+            icon: ConfigIcon,
+            label: 'Configuration',
+            body: <BasicForm items={fields} />,
+            subDescription: integrationDefinition.description,
+          },
+          {
+            icon: SiGooglesheets,
+            label: 'Timesheets',
+            body: (
+              <SelectAndTextForm
+                minRows={1}
+                placeholder="Sheet ID"
+                values={values}
+                selectOptions={selectOptions}
+                onChange={(newValues) => {
+                  const filteredValues = newValues.map(({ selectValue, text }) => ({
+                    userId: selectValue,
+                    sheetId: text,
+                  })).map((value) => {
+                    const result = timesheetSchema.safeParse(value);
+                    if (!result.success) return null;
 
-                      return result.data;
-                    }).filter((value): value is Timesheet => value !== null);
+                    return result.data;
+                  }).filter((value): value is Timesheet => value !== null);
 
-                    methods.setValue(
-                      'config.timesheets',
-                      filteredValues,
-                      {
-                        shouldValidate: true,
-                      }
-                    );
-                  }}
-                  nullable
-                />
-              ),
-              subDescription: timesheetDescription
-            },
-          ],
-        };
+                  methods.setValue(
+                    'config.timesheets',
+                    filteredValues,
+                    {
+                      shouldValidate: true,
+                    }
+                  );
+                }}
+                nullable
+              />
+            ),
+            subDescription: timesheetDescription
+          },
+        ],
       };
+    }
 
-      return getTimesheetTabs();
+    if (integrationType === 'TogglIntegration') {
+      const emailMap = [...(config.emailMap ?? ([] as { userId: string | null; togglEmail: string }[]))]
+
+      if (emailMap.length === 0) {
+        emailMap.push({
+          userId: null,
+          togglEmail: '',
+        });
+      }
+
+      const values = emailMap.map((emailMapEntry) => ({
+        selectValue: emailMapEntry.userId,
+        text: emailMapEntry.togglEmail,
+      }));
+
+      const selectOptions = memberships.map((membership) => ({
+        value: membership.user.id,
+        label: membership.user.name ?? membership.user.email ?? `Unknown user ${membership.user.id}`,
+      }));
+
+      return {
+        multiple: true as const,
+        bodies: [
+          {
+            icon: ConfigIcon,
+            label: 'Configuration',
+            body: <BasicForm items={fields} />,
+            subDescription: integrationDefinition.description,
+          },
+          {
+            icon: TogglEmailMapIcon,
+            label: 'Toggl Email Map',
+            body: (
+              <SelectAndTextForm
+                minRows={1}
+                placeholder="Toggl user email"
+                values={values}
+                selectOptions={selectOptions}
+                onChange={(newValues) => {
+                  const filteredValues = newValues.map(({ selectValue, text }) => ({
+                    userId: selectValue,
+                    togglEmail: text,
+                  })).map((value) => {
+                    const result = emailMapEntrySchema.safeParse(value);
+                    if (!result.success) return null;
+
+                    return result.data;
+                  }).filter((value): value is EmailMapEntry => value !== null);
+
+                  methods.setValue(
+                    'config.emailMap',
+                    filteredValues,
+                    {
+                      shouldValidate: true,
+                    }
+                  );
+                }}
+                nullable
+              />
+            ),
+            subDescription: emailMapDescription
+          },
+        ],
+      };
     }
 
     return {
@@ -286,7 +349,7 @@ const useIntegrationFields = (methods: ReturnType<typeof useZodForm<typeof mutat
       required: true,
       label: {
         title: 'Integration name',
-        description: `Descriptive name for the integration, e.g. "James's Toggl"`,
+        description: `Descriptive name for the integration, e.g. "ACME's Toggl"`,
       },
       field: {
         variant: 'text',

@@ -5,7 +5,7 @@ import { syncProjects, syncTasks, syncTimesheetEntries } from './sync';
 
 export const handleTogglIntegration = async ({
   integration: {
-    config: { apiKey, togglWorkspaceId: unverifiedTogglWorkspaceId, scanPeriod },
+    config: { apiKey, togglWorkspaceId: unverifiedTogglWorkspaceId, scanPeriod, emailMap },
     workspaceId,
   },
 }: {
@@ -15,6 +15,7 @@ export const handleTogglIntegration = async ({
     apiKey,
     unverifiedTogglWorkspaceId,
     workspaceId,
+    emailMap,
   });
 
   const endDate = new Date();

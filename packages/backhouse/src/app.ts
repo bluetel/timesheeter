@@ -11,27 +11,30 @@ import { config as dotenvConfig } from 'dotenv';
 
 dotenvConfig({ path: envPath });
 
-import { type IntegrationJob, connectionConfig, env, getPrismaClient, parseIntegration } from '@timesheeter/web';
+import { type IntegrationJob, connectionConfig, env } from '@timesheeter/web';
 import { Worker, Queue } from 'bullmq';
 import { handleIntegrationsJob } from '@timesheeter/backhouse/integrations';
 import fastify from 'fastify';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { FastifyAdapter } from '@bull-board/fastify';
+import { checkSchedule } from './check-schedule';
 
-const packageVersion = process.env.npm_package_version;
+console.log(`Starting Backhouse Worker v${process.env.npm_package_version}`);
 
-console.log(`Starting Backhouse Worker v${packageVersion}`);
+// Ensure valid integrations are in the schedule, Elasticache is not persistent
+checkSchedule();
 
 const worker = new Worker<IntegrationJob>('integrations', handleIntegrationsJob, {
   connection: connectionConfig,
+  concurrency: 10,
 });
 
-// Error handler is required to prevent unhandled errors from crashing the worker
-worker.on('error', (error) => {
-  // log the error
-  console.error('Error in worker', error);
-});
+// // Error handler is required to prevent unhandled errors from crashing the worker
+// worker.on('error', (error) => {
+//   // log the error
+//   console.error('Error in worker', error);
+// });
 
 const bullBoardApp = fastify();
 const serverAdapter = new FastifyAdapter();

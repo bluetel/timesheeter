@@ -50,3 +50,5 @@ export const updateIntegrationSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   config: updateIntegrationConfigSchema,
 });
+
+export * from './toggl';

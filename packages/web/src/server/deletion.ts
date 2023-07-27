@@ -17,6 +17,12 @@ export const deleteProject = async ({ prisma, projectId }: { prisma: PrismaClien
     },
   });
 
+  await prisma.taskPrefix.deleteMany({
+    where: {
+      projectId,
+    },
+  });
+
   await Promise.all(deletedProject.tasks.map(async (task) => deleteTask({ prisma, taskId: task.id })));
 
   return deletedProject;
@@ -37,6 +43,12 @@ export const deleteTask = async ({ prisma, taskId }: { prisma: PrismaClient; tas
           id: true,
         },
       },
+    },
+  });
+
+  await prisma.ticketForTask.deleteMany({
+    where: {
+      taskId,
     },
   });
 
