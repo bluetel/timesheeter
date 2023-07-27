@@ -186,13 +186,18 @@ export type ParsedIntegration = Omit<Integration, 'configSerialized'> & {
 export const parseIntegration = (integration: Integration, safe = true): ParsedIntegration => {
   const { configSerialized, ...rest } = integration;
 
-  const config = JSON.parse(decrypt(configSerialized)) as IntegrationConfig;
+  const unverifiedConfig = JSON.parse(decrypt(configSerialized)) as IntegrationConfig;
+
+  const integrationDefinition = INTEGRATION_DEFINITIONS[unverifiedConfig.type];
+
+  // In the case of new default fields being added to the config schema, we want to
+  // ensure that the integration config is still valid. This is done by parsing the
+  // config
+  const config = integrationDefinition.configSchema.parse(unverifiedConfig);
 
   return {
     ...rest,
-    config: safe
-      ? filterConfig<IntegrationConfig>(config, INTEGRATION_DEFINITIONS[config.type].fields, config.type)
-      : config,
+    config: safe ? filterConfig<IntegrationConfig>(config, integrationDefinition.fields, config.type) : config,
   };
 };
 
