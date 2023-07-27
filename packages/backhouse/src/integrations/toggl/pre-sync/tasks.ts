@@ -17,7 +17,8 @@ export const matchTimeEntryToTask = async ({
 }) => {
   let updatedTogglTasks = togglTasks;
 
-  const matchingTask = togglTasks.find((task) => task.name === taskName);
+  // The matched task needs to be in the same project as the time entry
+  const matchingTask = togglTasks.find((task) => task.name === taskName && task.project_id === matchedProject.id);
 
   if (!timeEntry.stop) {
     throw new Error(
@@ -59,6 +60,24 @@ export const matchTimeEntryToTask = async ({
       workspace_id: context.togglWorkspaceId,
       project_id: matchedProject.id,
       user_id: null,
+    },
+  });
+
+  // Update the time entry with the new task
+  await toggl.timeEntries.put({
+    axiosClient: context.axiosClient,
+    path: { workspace_id: context.togglWorkspaceId, time_entry_id: timeEntry.id },
+    body: {
+      description: matchResult.variant === 'with-task' ? matchResult.description ?? '' : '',
+      task_id: newTask.id,
+      created_with: 'timesheeter',
+      tag_action: 'add',
+      workspace_id: context.togglWorkspaceId,
+      start: timeEntry.start,
+      stop: timeEntry.stop,
+      billable: timeEntry.billable,
+      project_id: matchedProject.id,
+      user_id: timeEntry.user_id,
     },
   });
 

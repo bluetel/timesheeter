@@ -13,7 +13,8 @@ export const env = createEnv({
         let sFormatted = s;
 
         if (
-          s === 'postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@${APP_DB_HOST}:${APP_DB_PORT}/${APP_DB_NAME}' ||
+          s ===
+            'postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@${APP_DB_HOST}:${APP_DB_PORT}/${APP_DB_NAME}?schema=public&connection_limit=1' ||
           // Check for non-substituted DATABASE_URL, this occurs when building on local machine
           (typeof s === 'string' && s.includes('{'))
         ) {
@@ -32,7 +33,7 @@ export const env = createEnv({
           );
         }
 
-        const databaseUrl = `postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@${APP_DB_HOST}:${APP_DB_PORT}/${APP_DB_NAME}`;
+        const databaseUrl = `postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@${APP_DB_HOST}:${APP_DB_PORT}/${APP_DB_NAME}?schema=public&connection_limit=1`;
 
         process.env.DATABASE_URL = databaseUrl;
 

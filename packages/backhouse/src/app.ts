@@ -30,11 +30,11 @@ const worker = new Worker<IntegrationJob>('integrations', handleIntegrationsJob,
   concurrency: 10,
 });
 
-// // Error handler is required to prevent unhandled errors from crashing the worker
-// worker.on('error', (error) => {
-//   // log the error
-//   console.error('Error in worker', error);
-// });
+// Error handler is required to prevent unhandled errors from crashing the worker
+worker.on('error', (error) => {
+  // log the error
+  console.error('Error in worker', error);
+});
 
 const bullBoardApp = fastify();
 const serverAdapter = new FastifyAdapter();
