@@ -16,6 +16,8 @@ export type TogglIntegrationContext = {
   togglUsers: TogglUser[];
   togglIdToEmail: Record<number, string>;
   timesheeterUserIdToEmail: Record<string, string>;
+  startDate: Date;
+  endDate: Date;
 };
 
 export const createTogglIntegrationContext = async ({
@@ -23,11 +25,13 @@ export const createTogglIntegrationContext = async ({
   unverifiedTogglWorkspaceId,
   workspaceId,
   emailMap,
+  scanPeriod,
 }: {
   apiKey: string;
   unverifiedTogglWorkspaceId: number | null;
   workspaceId: string;
   emailMap: EmailMapEntry[];
+  scanPeriod: number;
 }): Promise<TogglIntegrationContext> => {
   const prisma = await getPrismaClient();
 
@@ -80,6 +84,11 @@ export const createTogglIntegrationContext = async ({
     return acc;
   }, {} as Record<string, string>);
 
+  const endDate = new Date();
+
+  const startDate = new Date(endDate);
+  startDate.setUTCDate(startDate.getUTCDate() - scanPeriod);
+
   return {
     axiosClient,
     prisma,
@@ -88,6 +97,8 @@ export const createTogglIntegrationContext = async ({
     togglUsers,
     togglIdToEmail,
     timesheeterUserIdToEmail,
+    startDate,
+    endDate,
   };
 };
 

@@ -17,13 +17,9 @@ export type TogglTimeEntry =
     } & TogglTimeEntrySyncRecord);
 
 const getTimesheetEntryData = async ({
-  context: { prisma, workspaceId, togglWorkspaceId, axiosClient },
-  startDate,
-  endDate,
+  context: { prisma, workspaceId, togglWorkspaceId, axiosClient, startDate, endDate },
 }: {
   context: TogglIntegrationContext;
-  startDate: Date;
-  endDate: Date;
 }) => {
   const togglTimeEntriesPromise = toggl.timeEntries
     .get({ axiosClient, params: { start_date: startDate, end_date: endDate } })
@@ -127,17 +123,11 @@ export const timesheeterTimesheetEntrySelectQuery = {
 
 export const createTimesheetEntryPairs = async ({
   context,
-  startDate,
-  endDate,
 }: {
   context: TogglIntegrationContext;
-  startDate: Date;
-  endDate: Date;
 }): Promise<TimesheetEntryPair[]> => {
   const { togglTimeEntries, timesheeterTimesheetEntries, togglTimeEntrySyncRecords } = await getTimesheetEntryData({
     context,
-    startDate,
-    endDate,
   });
 
   const timesheetEntryPairs: TimesheetEntryPair[] = [];

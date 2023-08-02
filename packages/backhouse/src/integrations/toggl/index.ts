@@ -15,12 +15,8 @@ export const handleTogglIntegration = async ({
     unverifiedTogglWorkspaceId,
     workspaceId,
     emailMap,
+    scanPeriod,
   });
-
-  const endDate = new Date();
-
-  const startDate = new Date(endDate);
-  startDate.setUTCDate(startDate.getUTCDate() - scanPeriod);
 
   // Before we start syncing, we need to auto-create projects and tasks for any new time entries
   // that have been created in Toggl since the last time we synced
@@ -28,7 +24,7 @@ export const handleTogglIntegration = async ({
   // If we don't do this, then we will end up with time entries that don't have a task,
   // timesheeter requires all time entries to have a task
 
-  await preSync({ context, startDate, endDate });
+  await preSync({ context });
 
   // Now we can sync projects, then tasks, then time entries
 
@@ -39,7 +35,5 @@ export const handleTogglIntegration = async ({
   await syncTimesheetEntries({
     context,
     syncedTaskPairs,
-    startDate,
-    endDate,
   });
 };

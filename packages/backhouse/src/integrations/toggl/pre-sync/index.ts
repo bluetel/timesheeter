@@ -32,19 +32,9 @@ import { matchTimeEntryToTask } from './tasks';
  *
  * 6. We then update the time entry to be assigned to the task
  */
-export const preSync = async ({
-  context,
-  startDate,
-  endDate,
-}: {
-  context: TogglIntegrationContext;
-  startDate: Date;
-  endDate: Date;
-}) => {
+export const preSync = async ({ context }: { context: TogglIntegrationContext }) => {
   const preSyncData = await getPreSyncData({
     context,
-    startDate,
-    endDate,
   });
 
   await createTogglSyncRecords({ preSyncData, context });

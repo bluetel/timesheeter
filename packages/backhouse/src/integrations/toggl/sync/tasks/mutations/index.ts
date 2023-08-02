@@ -7,10 +7,10 @@ import {
   parseProject,
   parseTask,
 } from '@timesheeter/web';
-import { toggl } from '../../api';
-import { TogglIntegrationContext } from '../../lib';
-import { TaskPair, TimesheeterTask, TogglTask, timesheeterTaskSelectQuery } from './data';
-import { togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../pre-sync/sync-records';
+import { toggl } from '../../../api';
+import { TogglIntegrationContext } from '../../../lib';
+import { TaskPair, TimesheeterTask, TogglTask, timesheeterTaskSelectQuery } from '../data';
+import { togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../../pre-sync/sync-records';
 
 export const updateTimesheeterTask = async ({
   context: { prisma },
@@ -42,43 +42,6 @@ export const updateTimesheeterTask = async ({
   return {
     togglTask,
     timesheeterTask: updatedTimesheeterTask,
-  };
-};
-
-export const updateTogglTask = async ({
-  context: { axiosClient, togglWorkspaceId },
-  timesheeterTask,
-  togglTask,
-  updatedTogglProjectId,
-}: {
-  context: TogglIntegrationContext;
-  timesheeterTask: TimesheeterTask;
-  togglTask: TogglTask & {
-    deleted: false;
-  };
-  updatedTogglProjectId: number;
-}): Promise<TaskPair> => {
-  const updatedTogglTask = await toggl.tasks.put({
-    axiosClient,
-    path: {
-      workspace_id: togglWorkspaceId,
-      project_id: togglTask.project_id,
-      task_id: togglTask.id,
-    },
-    body: {
-      // Toggl Tasks must have a name
-      name: !!timesheeterTask.name ? timesheeterTask.name : 'Unnamed task',
-      active: true,
-      estimated_seconds: 0,
-      workspace_id: togglWorkspaceId,
-      user_id: null,
-      project_id: updatedTogglProjectId,
-    },
-  });
-
-  return {
-    togglTask: { ...updatedTogglTask, deleted: false as const },
-    timesheeterTask,
   };
 };
 
@@ -312,3 +275,5 @@ export const deleteTogglTask = async ({
     timesheeterTask,
   };
 };
+
+export * from './update-toggl-task';

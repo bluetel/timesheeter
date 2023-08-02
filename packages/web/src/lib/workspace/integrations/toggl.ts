@@ -4,8 +4,8 @@ import { chronRegex } from '@timesheeter/web/lib/regex';
 import { InboxIcon } from '@heroicons/react/20/solid';
 import { type IconType } from 'react-icons/lib';
 
-const defaultScanPeriod = 90;
-const maxScanPeriod = 90;
+export const togglDefaultScanPeriod = 90;
+export const togglMaxScanPeriod = 90;
 
 export const emailMapEntrySchema = z.object({
   togglEmail: z.string().email(),
@@ -54,7 +54,7 @@ export const TogglIntegration = {
       type: 'string',
       required: true,
       protectCount: 0,
-      description: `How far back to scan for time entries and sync them, the max is ${maxScanPeriod} days`,
+      description: `How far back to scan for time entries and sync them, the max is ${togglMaxScanPeriod} days`,
     },
     {
       accessor: 'emailMap',
@@ -75,8 +75,8 @@ export const TogglIntegration = {
     chronExpression: z.string().regex(chronRegex),
     scanPeriod: z
       .any()
-      .transform((val) => (val === '' ? defaultScanPeriod : parseInt(String(val), 10)))
-      .pipe(z.number().int().positive().max(maxScanPeriod)),
+      .transform((val) => (val === '' ? togglDefaultScanPeriod : parseInt(String(val), 10)))
+      .pipe(z.number().int().positive().max(togglMaxScanPeriod)),
     emailMap: z.array(emailMapEntrySchema).default([]),
   }),
   updateIntegrationSchema: z.object({
@@ -90,9 +90,9 @@ export const TogglIntegration = {
     scanPeriod: z
       .any()
       .transform((value) =>
-        value === undefined ? undefined : !!value ? parseInt(String(value), 10) : defaultScanPeriod
+        value === undefined ? undefined : !!value ? parseInt(String(value), 10) : togglDefaultScanPeriod
       )
-      .pipe(z.number().int().positive().max(maxScanPeriod).optional()),
+      .pipe(z.number().int().positive().max(togglMaxScanPeriod).optional()),
     emailMap: z.array(emailMapEntrySchema).optional(),
   }),
   defaultConfig: {
@@ -101,7 +101,7 @@ export const TogglIntegration = {
     togglWorkspaceId: null,
     // Default to every 15 minutes
     chronExpression: '*/15 * * * *',
-    scanPeriod: defaultScanPeriod,
+    scanPeriod: togglDefaultScanPeriod,
     emailMap: [] as EmailMapEntry[],
   },
 } as const;

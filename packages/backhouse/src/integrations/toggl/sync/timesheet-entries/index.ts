@@ -7,15 +7,11 @@ import { handleTwoWayUpdates, handleCreateTimesheeterEntry, handleCreateTogglEnt
 export const syncTimesheetEntries = async ({
   context,
   syncedTaskPairs,
-  startDate,
-  endDate,
 }: {
   context: TogglIntegrationContext;
   syncedTaskPairs: EvaluatedTaskPair[];
-  startDate: Date;
-  endDate: Date;
 }): Promise<EvaluatedTimesheetEntryPair[]> => {
-  const timesheetEntryPairs = await createTimesheetEntryPairs({ context, startDate, endDate });
+  const timesheetEntryPairs = await createTimesheetEntryPairs({ context });
 
   // As we update the timesheeter timesheet entries in the loop, we need to store the updated imesheet entries
   const updatedTimesheetEntryPairs = [] as TimesheetEntryPair[];
