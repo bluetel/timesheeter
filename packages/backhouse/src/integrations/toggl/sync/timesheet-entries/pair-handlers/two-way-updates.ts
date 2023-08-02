@@ -1,7 +1,7 @@
 import { matchTaskRegex } from '@timesheeter/web';
 import { TogglIntegrationContext } from '../../../lib';
 import { EvaluatedTaskPair } from '../../tasks';
-import { FilteredTogglTimeEntry, TimesheetEntryPair, TimesheeterTimesheetEntry } from '../data';
+import { TimesheetEntryPair, TimesheeterTimesheetEntry, TogglTimeEntry } from '../data';
 import { updateTimesheeterTimesheetEntry, updateTogglTimeEntry } from '../mutations';
 
 export const handleTwoWayUpdates = async ({
@@ -11,7 +11,10 @@ export const handleTwoWayUpdates = async ({
   syncedTaskPairs,
 }: {
   context: TogglIntegrationContext;
-  togglTimeEntry: FilteredTogglTimeEntry;
+  togglTimeEntry: TogglTimeEntry & {
+    deleted: false;
+    stop: string;
+  };
   timesheeterTimesheetEntry: TimesheeterTimesheetEntry;
   syncedTaskPairs: EvaluatedTaskPair[];
 }): Promise<TimesheetEntryPair> => {
@@ -38,7 +41,10 @@ export const handleTwoWayUpdates = async ({
 
 const timesheetEntriesAreTheSame = (
   context: TogglIntegrationContext,
-  togglTimeEntry: FilteredTogglTimeEntry,
+  togglTimeEntry: TogglTimeEntry & {
+    deleted: false;
+    stop: string;
+  },
   timesheeterTimesheetEntry: TimesheeterTimesheetEntry
 ): boolean => {
   // Filter out the task number from the description for comparison as we don't copy
@@ -72,7 +78,10 @@ const handleUpdateTimesheeterTimesheetEntry = async ({
   syncedTaskPairs,
 }: {
   context: TogglIntegrationContext;
-  togglTimeEntry: FilteredTogglTimeEntry;
+  togglTimeEntry: TogglTimeEntry & {
+    deleted: false;
+    stop: string;
+  };
   timesheeterTimesheetEntry: TimesheeterTimesheetEntry;
   syncedTaskPairs: EvaluatedTaskPair[];
 }): Promise<TimesheetEntryPair> => {
@@ -121,7 +130,9 @@ const handleUpdateTogglTimeEntry = async ({
   timesheeterTimesheetEntry,
 }: {
   context: TogglIntegrationContext;
-  togglTimeEntry: FilteredTogglTimeEntry;
+  togglTimeEntry: TogglTimeEntry & {
+    deleted: false;
+  };
   timesheeterTimesheetEntry: TimesheeterTimesheetEntry;
 }): Promise<TimesheetEntryPair> => {
   const targetUserEmail = context.timesheeterUserIdToEmail[timesheeterTimesheetEntry.userId];

@@ -71,7 +71,7 @@ export const syncTimesheetEntries = async ({
   // Ensure that all pairs have a toggl time entry and a timesheeter timesheet entry
   return updatedTimesheetEntryPairs
     .map((timesheetEntryPair) => {
-      if (timesheetEntryPair.togglTimeEntry && timesheetEntryPair.timesheeterTimesheetEntry) {
+      if (timesheetEntryPair.togglTimeEntry?.deleted === false && timesheetEntryPair.timesheeterTimesheetEntry) {
         return timesheetEntryPair as EvaluatedTimesheetEntryPair;
       }
 

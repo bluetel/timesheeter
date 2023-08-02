@@ -67,10 +67,10 @@ model VerificationToken {
 }
 
 model Workspace {
-  id               String           @id @default(cuid())
+  id               String            @id @default(cuid())
   name             String
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   memberships      Membership[]
   integrations     Integration[]
   projects         Project[]
@@ -80,6 +80,7 @@ model Workspace {
   taskPrefixes     TaskPrefix[]
   ticketForTasks   TicketForTask[]
   invitations      Invitation[]
+  togglSyncRecords TogglSyncRecord[]
 }
 
 model Membership {
@@ -253,4 +254,20 @@ model Holiday {
 
   start DateTime
   end   DateTime
+}
+
+model TogglSyncRecord {
+  id          String    @id @default(cuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category      String
+  togglEntityId BigInt
+
+  togglProjectId BigInt
+
+  @@unique([workspaceId, category, togglEntityId, togglProjectId])
 }

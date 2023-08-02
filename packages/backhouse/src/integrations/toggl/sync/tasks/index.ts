@@ -1,8 +1,7 @@
 import { matchTaskRegex } from '@timesheeter/web';
-import { TogglTask, toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
 import { EvaluatedProjectPair } from '../projects';
-import { EvaluatedTaskPair, TaskPair, TimesheeterTask, createTaskPairs } from './data';
+import { EvaluatedTaskPair, TaskPair, TimesheeterTask, TogglTask, createTaskPairs } from './data';
 import {
   createTimesheeterTask,
   createTogglTask,
@@ -130,7 +129,7 @@ export const syncTasks = async ({
   // Ensure that all pairs have a toggl task and a timesheeter task
   return updatedTaskPairs
     .map((taskPair) => {
-      if (taskPair.togglTask && taskPair.timesheeterTask) {
+      if (taskPair.togglTask?.deleted === false && taskPair.timesheeterTask) {
         return taskPair as EvaluatedTaskPair;
       }
 
@@ -141,7 +140,12 @@ export const syncTasks = async ({
 
 export * from './data';
 
-const tasksAreTheSame = (togglTask: TogglTask, timesheeterTask: TimesheeterTask): boolean => {
+const tasksAreTheSame = (
+  togglTask: TogglTask & {
+    deleted: false;
+  },
+  timesheeterTask: TimesheeterTask
+): boolean => {
   const baseCondition =
     BigInt(togglTask.id) === timesheeterTask.togglTaskId &&
     togglTask.project_id.toString() === timesheeterTask.project?.togglProjectId?.toString();

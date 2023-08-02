@@ -8,11 +8,12 @@ import {
 import { toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
 import {
-  FilteredTogglTimeEntry,
   TimesheetEntryPair,
   TimesheeterTimesheetEntry,
+  TogglTimeEntry,
   timesheeterTimesheetEntrySelectQuery,
 } from './data';
+import { togglTimeEntrySyncRecordType } from '../../pre-sync/sync-records';
 
 export const updateTimesheeterTimesheetEntry = async ({
   context: { prisma },
@@ -22,7 +23,10 @@ export const updateTimesheeterTimesheetEntry = async ({
   updatedTimesheeterUserId,
 }: {
   context: TogglIntegrationContext;
-  togglTimeEntry: FilteredTogglTimeEntry;
+  togglTimeEntry: TogglTimeEntry & {
+    deleted: false;
+    stop: string;
+  };
   timesheeterTimesheetEntry: TimesheeterTimesheetEntry;
   updatedTimesheeterTaskId: string;
   updatedTimesheeterUserId: string;
@@ -65,7 +69,9 @@ export const updateTogglTimeEntry = async ({
   updatedTogglUserId,
 }: {
   context: TogglIntegrationContext;
-  togglTimeEntry: FilteredTogglTimeEntry;
+  togglTimeEntry: TogglTimeEntry & {
+    deleted: false;
+  };
   timesheeterTimesheetEntry: TimesheeterTimesheetEntry;
   updatedTogglTaskId: number;
   updatedTogglUserId: number;
@@ -113,6 +119,7 @@ export const updateTogglTimeEntry = async ({
     togglTimeEntry: {
       ...updatedTogglTimeEntry,
       stop: updatedTogglTimeEntry.stop,
+      deleted: false as const,
     },
     timesheeterTimesheetEntry: updatedTimesheeterTimesheetEntry,
   };
@@ -125,7 +132,10 @@ export const createTimesheeterTimesheetEntry = async ({
   timesheeterUserId,
 }: {
   context: TogglIntegrationContext;
-  togglTimeEntry: FilteredTogglTimeEntry;
+  togglTimeEntry: TogglTimeEntry & {
+    deleted: false;
+    stop: string;
+  };
   timesheeterTaskId: string;
   timesheeterUserId: string;
 }): Promise<TimesheetEntryPair> => {
@@ -160,7 +170,7 @@ export const createTimesheeterTimesheetEntry = async ({
 };
 
 export const createTogglTimeEntry = async ({
-  context: { axiosClient, prisma, togglWorkspaceId },
+  context: { axiosClient, prisma, togglWorkspaceId, workspaceId },
   timesheeterTimesheetEntry,
   togglTaskId,
   togglUserId,
@@ -193,6 +203,16 @@ export const createTogglTimeEntry = async ({
     },
   });
 
+  // Create a new sync record as we have a new toggl entity
+  await prisma.togglSyncRecord.create({
+    data: {
+      workspaceId,
+      togglEntityId: togglTimeEntry.id,
+      category: togglTimeEntrySyncRecordType,
+      togglProjectId: Number(timesheeterTimesheetEntry.task.project.togglProjectId),
+    },
+  });
+
   const updatedTimsheeterTimesheetEnty = await prisma.timesheetEntry
     .update({
       where: {
@@ -213,6 +233,7 @@ export const createTogglTimeEntry = async ({
     togglTimeEntry: {
       ...togglTimeEntry,
       stop: togglTimeEntry.stop,
+      deleted: false as const,
     },
     timesheeterTimesheetEntry: updatedTimsheeterTimesheetEnty,
   };
@@ -223,12 +244,14 @@ export const deleteTimesheeterTimesheetEntry = async ({
   togglTimeEntry,
 }: {
   context: TogglIntegrationContext;
-  togglTimeEntry: FilteredTogglTimeEntry;
+  togglTimeEntry: TogglTimeEntry & {
+    deleted: true;
+  };
 }): Promise<TimesheetEntryPair> => {
   const timesheeterTimesheetEntry = await prisma.timesheetEntry.findFirst({
     where: {
       workspaceId,
-      togglTimeEntryId: togglTimeEntry.id,
+      togglTimeEntryId: togglTimeEntry.togglEntityId,
     },
     select: {
       id: true,
@@ -247,7 +270,7 @@ export const deleteTimesheeterTimesheetEntry = async ({
     axiosClient: axiosClient,
     path: {
       workspace_id: togglWorkspaceId,
-      time_entry_id: togglTimeEntry.id,
+      time_entry_id: Number(togglTimeEntry.togglEntityId),
     },
   });
 
@@ -262,7 +285,9 @@ export const deleteTogglTimeEntry = async ({
   togglTimeEntry,
 }: {
   context: TogglIntegrationContext;
-  togglTimeEntry: FilteredTogglTimeEntry;
+  togglTimeEntry: TogglTimeEntry & {
+    deleted: false;
+  };
 }): Promise<TimesheetEntryPair> => {
   await toggl.timeEntries.delete({
     axiosClient,

@@ -1,7 +1,10 @@
 import { UNCATEGORIZED_TASKS_PROJECT_NAME, parseProject } from '@timesheeter/web';
-import { TogglProject, toggl } from '../api';
+import { RawTogglProject, toggl } from '../api';
 import { TogglIntegrationContext } from '../lib';
-import { timesheeterProjectSelectQuery } from '../sync';
+import { TogglProject, timesheeterProjectSelectQuery } from '../sync';
+import { TogglProjectSyncRecord, togglProjectSyncRecordType, togglSyncRecordSelectQuery } from './sync-records';
+
+export type PreSyncData = Awaited<ReturnType<typeof getPreSyncData>>;
 
 export const getPreSyncData = async ({
   context,
@@ -20,13 +23,52 @@ export const getPreSyncData = async ({
         end_date: endDate,
       },
     })
-    .then((timeEntries) =>
-      timeEntries.filter((timeEntry) => timeEntry.workspace_id === context.togglWorkspaceId && timeEntry.stop)
-    );
+    .then((timeEntries) => {
+      const filteredEntries = timeEntries.filter(
+        (timeEntry) => timeEntry.workspace_id === context.togglWorkspaceId && timeEntry.stop
+      );
+
+      // Sort filtered entries so that those with taskId and projectId are first then those with projectId and no taskId second then those with no projectId and no taskId last
+      return filteredEntries.sort((a, b) => {
+        if (a.project_id && b.project_id) {
+          if (a.task_id && b.task_id) {
+            return 0;
+          }
+
+          if (a.task_id) {
+            return -1;
+          }
+
+          if (b.task_id) {
+            return 1;
+          }
+
+          return 0;
+        }
+
+        if (a.project_id) {
+          return -1;
+        }
+
+        if (b.project_id) {
+          return 1;
+        }
+
+        return 0;
+      });
+    });
 
   const togglProjects = await toggl.projects.get({
     axiosClient: context.axiosClient,
     path: { workspace_id: context.togglWorkspaceId },
+  });
+
+  const togglSyncRecords = await context.prisma.togglSyncRecord.findMany({
+    where: {
+      workspaceId: context.workspaceId,
+      category: togglProjectSyncRecordType,
+    },
+    select: togglSyncRecordSelectQuery,
   });
 
   const togglTasksPromise = Promise.all(
@@ -66,16 +108,16 @@ const getUncategorizedTasksProject = async ({
   togglProjects,
   context,
 }: {
-  togglProjects: TogglProject[];
+  togglProjects: RawTogglProject[];
   context: TogglIntegrationContext;
-}): Promise<TogglProject> => {
+}): Promise<RawTogglProject> => {
   const unassignedTasksProject = togglProjects.find((project) => project.name === UNCATEGORIZED_TASKS_PROJECT_NAME);
 
   if (unassignedTasksProject) {
     return unassignedTasksProject;
   }
 
-  return toggl.projects.post({
+  const uncategorizedTasksProject = await toggl.projects.post({
     axiosClient: context.axiosClient,
     path: { workspace_id: context.togglWorkspaceId },
     body: {
@@ -84,4 +126,18 @@ const getUncategorizedTasksProject = async ({
       is_private: false,
     },
   });
+
+  await context.prisma.togglSyncRecord.create({
+    data: {
+      workspaceId: context.workspaceId,
+      category: togglProjectSyncRecordType,
+      togglEntityId: uncategorizedTasksProject.id,
+      togglProjectId: uncategorizedTasksProject.id,
+    },
+    select: togglSyncRecordSelectQuery,
+  });
+
+  return {
+    ...uncategorizedTasksProject,
+  };
 };

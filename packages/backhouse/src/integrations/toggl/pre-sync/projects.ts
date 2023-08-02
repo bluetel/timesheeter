@@ -1,7 +1,7 @@
 import { encrypt, getDefaultProjectConfig, matchTaskRegex, parseProject } from '@timesheeter/web';
 import { TogglIntegrationContext } from '../lib';
 import { TimesheeterProject, timesheeterProjectSelectQuery } from '../sync';
-import { TogglProject, TogglTask, TogglTimeEntry, toggl } from '../api';
+import { RawTogglProject, RawTogglTask, RawTogglTimeEntry, toggl } from '../api';
 
 export const matchTimeEntryToProject = async ({
   context,
@@ -12,11 +12,11 @@ export const matchTimeEntryToProject = async ({
   togglTasks,
 }: {
   context: TogglIntegrationContext;
-  timeEntry: TogglTimeEntry;
-  togglProjects: TogglProject[];
+  timeEntry: RawTogglTimeEntry;
+  togglProjects: RawTogglProject[];
   timesheeterProjects: TimesheeterProject[];
-  uncategorizedTasksProject: TogglProject;
-  togglTasks: TogglTask[];
+  uncategorizedTasksProject: RawTogglProject;
+  togglTasks: RawTogglTask[];
 }) => {
   // The parent task may already be in a project, if so set the timesheeterProject to that project
   if (timeEntry.project_id) {
@@ -123,7 +123,7 @@ const handleAutoAssign = async ({
 }: {
   context: TogglIntegrationContext;
   autoAssignTimesheeterProject: TimesheeterProject;
-  togglProjects: TogglProject[];
+  togglProjects: RawTogglProject[];
   timesheeterProjects: TimesheeterProject[];
   description: string;
 }) => {
@@ -169,10 +169,10 @@ const handleTaskPrefixMatch = async ({
   matchResult: ReturnType<typeof matchTaskRegex> & {
     variant: 'with-task';
   };
-  togglProjects: TogglProject[];
+  togglProjects: RawTogglProject[];
   timesheeterProjects: TimesheeterProject[];
-  togglTasks: TogglTask[];
-  createInProject?: TogglProject;
+  togglTasks: RawTogglTask[];
+  createInProject?: RawTogglProject;
 }) => {
   let updatedTogglProjects = togglProjects;
   let updatedTimesheeterProjects = timesheeterProjects;
@@ -286,7 +286,7 @@ const handleCreateInsideExistingTimesheeterProject = async ({
   matchResult: ReturnType<typeof matchTaskRegex> & {
     variant: 'with-task';
   };
-  togglProjects: TogglProject[];
+  togglProjects: RawTogglProject[];
   timesheeterProjects: TimesheeterProject[];
   existingTimesheeterProject: TimesheeterProject;
 }) => {
@@ -348,10 +348,10 @@ const handleNoTaskPrefixMatch = async ({
   togglTasks,
 }: {
   description: string;
-  togglProjects: TogglProject[];
+  togglProjects: RawTogglProject[];
   timesheeterProjects: TimesheeterProject[];
-  uncategorizedTasksProject: TogglProject;
-  togglTasks: TogglTask[];
+  uncategorizedTasksProject: RawTogglProject;
+  togglTasks: RawTogglTask[];
 }) => {
   // See if any existing tasks match the task name
   const existingTogglTask = togglTasks.find((task) => task.name === description);

@@ -17,11 +17,10 @@ const togglTaskSchema = z
   })
   .transform((data) => ({
     ...data,
-    deleted: data.name.toLowerCase().trim().startsWith('delete'),
     at: new Date(data.at),
   }));
 
-export type TogglTask = z.infer<typeof togglTaskSchema>;
+export type RawTogglTask = z.infer<typeof togglTaskSchema>;
 
 const togglTaskArraySchema = togglTaskSchema.array();
 

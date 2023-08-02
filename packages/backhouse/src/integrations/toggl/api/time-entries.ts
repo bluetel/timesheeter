@@ -21,11 +21,10 @@ const togglTimeEntrySchema = z
   })
   .transform((data) => ({
     ...data,
-    deleted: data.description?.toLowerCase().trim().startsWith('delete'),
     at: new Date(data.at),
   }));
 
-export type TogglTimeEntry = z.infer<typeof togglTimeEntrySchema>;
+export type RawTogglTimeEntry = z.infer<typeof togglTimeEntrySchema>;
 
 const togglTimeEntryArraySchema = togglTimeEntrySchema.array();
 

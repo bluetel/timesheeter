@@ -1,6 +1,6 @@
-import { TogglProject } from '../../api';
+import { RawTogglProject } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
-import { EvaluatedProjectPair, ProjectPair, TimesheeterProject, createProjectPairs } from './data';
+import { EvaluatedProjectPair, ProjectPair, TimesheeterProject, TogglProject, createProjectPairs } from './data';
 import {
   createTimesheeterProject,
   createTogglProject,
@@ -85,7 +85,7 @@ export const syncProjects = async ({
   // Ensure that all pairs have a toggl project and a timesheeter project
   return updatedProjectPairs
     .map((projectPair) => {
-      if (projectPair.togglProject && projectPair.timesheeterProject) {
+      if (projectPair.togglProject?.deleted === false && projectPair.timesheeterProject) {
         return projectPair as EvaluatedProjectPair;
       }
 
@@ -96,6 +96,6 @@ export const syncProjects = async ({
 
 export * from './data';
 
-const projectsAreTheSame = (project1: TogglProject, project2: TimesheeterProject): boolean => {
+const projectsAreTheSame = (project1: RawTogglProject, project2: TimesheeterProject): boolean => {
   return project1.name === project2.name && BigInt(project1.id) === project2.togglProjectId;
 };

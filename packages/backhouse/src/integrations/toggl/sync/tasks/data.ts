@@ -1,7 +1,67 @@
 import { parseTask } from '@timesheeter/web';
-import { TogglTask, toggl } from '../../api';
+import { RawTogglTask, toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
 import { EvaluatedProjectPair } from '../projects';
+import { TogglTaskSyncRecord, togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../pre-sync/sync-records';
+
+export type TogglTask =
+  | (RawTogglTask & {
+      deleted: false;
+    })
+  | ({
+      deleted: true;
+    } & TogglTaskSyncRecord);
+
+const getTaskData = async ({
+  context: { prisma, workspaceId, togglWorkspaceId, axiosClient },
+  syncedProjectPairs,
+}: {
+  context: TogglIntegrationContext;
+  syncedProjectPairs: EvaluatedProjectPair[];
+}) => {
+  const togglTasksPromise = Promise.all(
+    syncedProjectPairs.map(async ({ togglProject }) =>
+      toggl.tasks.get({
+        axiosClient,
+        path: {
+          workspace_id: togglWorkspaceId,
+          project_id: togglProject.id,
+        },
+      })
+    )
+  ).then((tasks) => tasks.flat().map((task) => ({ ...task, deleted: false as const })));
+
+  const togglTaskSyncRecordsPromise = prisma.togglSyncRecord.findMany({
+    where: {
+      workspaceId,
+      category: togglTaskSyncRecordType,
+    },
+    select: togglSyncRecordSelectQuery,
+  }) as Promise<TogglTaskSyncRecord[]>;
+
+  const timesheeterTasksPromise = prisma.task
+    .findMany({
+      where: {
+        workspaceId,
+      },
+      select: timesheeterTaskSelectQuery,
+    })
+    .then((tasks) => tasks.map((task) => parseTask(task, false)));
+
+  const [togglTasks, togglTaskSyncRecords, timesheeterTasks] = await Promise.all([
+    togglTasksPromise,
+    togglTaskSyncRecordsPromise,
+    timesheeterTasksPromise,
+  ]);
+
+  return {
+    togglTasks,
+    togglTaskSyncRecords,
+    timesheeterTasks,
+  };
+};
+
+export type TimesheeterTask = Awaited<ReturnType<typeof getTaskData>>['timesheeterTasks'][0];
 
 export type TaskPair = {
   togglTask: TogglTask | null;
@@ -12,7 +72,9 @@ export type TaskPair = {
  * may be marked as deleted
  */
 export type EvaluatedTaskPair = {
-  togglTask: TogglTask;
+  togglTask: TogglTask & {
+    deleted: false;
+  };
   timesheeterTask: TimesheeterTask | null;
 };
 
@@ -51,7 +113,7 @@ export const createTaskPairs = async ({
   context: TogglIntegrationContext;
   syncedProjectPairs: EvaluatedProjectPair[];
 }): Promise<TaskPair[]> => {
-  const { togglTasks, timesheeterTasks } = await getTaskData({ context, syncedProjectPairs });
+  const { togglTasks, timesheeterTasks, togglTaskSyncRecords } = await getTaskData({ context, syncedProjectPairs });
 
   const taskPairs = [] as TaskPair[];
 
@@ -79,43 +141,26 @@ export const createTaskPairs = async ({
     });
   });
 
+  // Add togglTaskSyncRecords that are not present in togglTasks
+  const togglTaskSyncRecordsWithoutTogglTask = togglTaskSyncRecords.filter(
+    (togglTaskSyncRecord) => !togglTasks.find((togglTask) => togglTask.id === Number(togglTaskSyncRecord.togglEntityId))
+  );
+
+  togglTaskSyncRecordsWithoutTogglTask.forEach((togglTaskSyncRecord) => {
+    const timesheeterTask = timesheeterTasks.find(
+      (timesheeterTask) => timesheeterTask.togglTaskId === togglTaskSyncRecord.togglEntityId
+    );
+
+    if (timesheeterTask) {
+      taskPairs.push({
+        togglTask: {
+          ...togglTaskSyncRecord,
+          deleted: true,
+        },
+        timesheeterTask,
+      });
+    }
+  });
+
   return taskPairs;
 };
-
-const getTaskData = async ({
-  context: { prisma, workspaceId, togglWorkspaceId, axiosClient },
-  syncedProjectPairs,
-}: {
-  context: TogglIntegrationContext;
-  syncedProjectPairs: EvaluatedProjectPair[];
-}) => {
-  const togglTasksPromise = Promise.all(
-    syncedProjectPairs.map(async ({ togglProject }) =>
-      toggl.tasks.get({
-        axiosClient,
-        path: {
-          workspace_id: togglWorkspaceId,
-          project_id: togglProject.id,
-        },
-      })
-    )
-  ).then((tasks) => tasks.flat());
-
-  const timesheeterTasksPromise = prisma.task
-    .findMany({
-      where: {
-        workspaceId,
-      },
-      select: timesheeterTaskSelectQuery,
-    })
-    .then((tasks) => tasks.map((task) => parseTask(task, false)));
-
-  const [togglTasks, timesheeterTasks] = await Promise.all([togglTasksPromise, timesheeterTasksPromise]);
-
-  return {
-    togglTasks,
-    timesheeterTasks,
-  };
-};
-
-export type TimesheeterTask = Awaited<ReturnType<typeof getTaskData>>['timesheeterTasks'][0];

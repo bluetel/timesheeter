@@ -8,15 +8,13 @@ const togglProjectSchema = z
     workspace_id: z.number().int().positive(),
     name: z.string(),
     at: z.string(),
-    server_deleted_at: z.string().regex(isoStringRegex).nullable(),
   })
   .transform((data) => ({
     ...data,
-    deleted: data.name.toLowerCase().trim().startsWith('delete'),
     at: new Date(data.at),
   }));
 
-export type TogglProject = z.infer<typeof togglProjectSchema>;
+export type RawTogglProject = z.infer<typeof togglProjectSchema>;
 
 const togglProjectArraySchema = togglProjectSchema.array();
 

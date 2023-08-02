@@ -1,17 +1,80 @@
 import { parseTimesheetEntry } from '@timesheeter/web';
-import { toggl, TogglTimeEntry } from '../../api';
+import { RawTogglTimeEntry, toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
+import {
+  TogglTimeEntrySyncRecord,
+  togglSyncRecordSelectQuery,
+  togglTimeEntrySyncRecordType,
+} from '../../pre-sync/sync-records';
 
-//   will need to still remove task prefix and description from any time entries that are synced into toggl
+export type TogglTimeEntry =
+  | (RawTogglTimeEntry & {
+      deleted: false;
+      stop: string;
+    })
+  | ({
+      deleted: true;
+    } & TogglTimeEntrySyncRecord);
 
-// this will alos have to be incorporated into the difference check as the description fields will be different
+const getTimesheetEntryData = async ({
+  context: { prisma, workspaceId, togglWorkspaceId, axiosClient },
+  startDate,
+  endDate,
+}: {
+  context: TogglIntegrationContext;
+  startDate: Date;
+  endDate: Date;
+}) => {
+  const togglTimeEntriesPromise = toggl.timeEntries
+    .get({ axiosClient, params: { start_date: startDate, end_date: endDate } })
+    .then((timeEntries) =>
+      timeEntries.filter((timeEntry) => timeEntry.workspace_id === togglWorkspaceId && timeEntry.stop)
+    ) as Promise<
+    (TogglTimeEntry & {
+      deleted: false;
+      stop: string;
+    })[]
+  >;
 
-export type FilteredTogglTimeEntry = Omit<TogglTimeEntry, 'stop'> & {
-  stop: string;
+  const togglTimeEntrySyncRecordsPromise = prisma.togglSyncRecord.findMany({
+    where: {
+      workspaceId,
+      category: togglTimeEntrySyncRecordType,
+    },
+    select: togglSyncRecordSelectQuery,
+  }) as Promise<TogglTimeEntrySyncRecord[]>;
+
+  const timesheeterTimesheetEntriesPromise = prisma.timesheetEntry
+    .findMany({
+      where: {
+        workspaceId,
+        start: {
+          gte: startDate,
+        },
+      },
+      select: timesheeterTimesheetEntrySelectQuery,
+    })
+    .then((timesheetEntries) => timesheetEntries.map((timesheetEntry) => parseTimesheetEntry(timesheetEntry, false)));
+
+  const [togglTimeEntries, togglTimeEntrySyncRecords, timesheeterTimesheetEntries] = await Promise.all([
+    togglTimeEntriesPromise,
+    togglTimeEntrySyncRecordsPromise,
+    timesheeterTimesheetEntriesPromise,
+  ]);
+
+  return {
+    togglTimeEntries,
+    togglTimeEntrySyncRecords,
+    timesheeterTimesheetEntries,
+  };
 };
 
+export type TimesheeterTimesheetEntry = Awaited<
+  ReturnType<typeof getTimesheetEntryData>
+>['timesheeterTimesheetEntries'][0];
+
 export type TimesheetEntryPair = {
-  togglTimeEntry: FilteredTogglTimeEntry | null;
+  togglTimeEntry: TogglTimeEntry | null;
   timesheeterTimesheetEntry: TimesheeterTimesheetEntry | null;
 };
 
@@ -19,7 +82,9 @@ export type TimesheetEntryPair = {
  * may be marked as deleted
  */
 export type EvaluatedTimesheetEntryPair = {
-  togglTimeEntry: FilteredTogglTimeEntry;
+  togglTimeEntry: TogglTimeEntry & {
+    deleted: false;
+  };
   timesheeterTimesheetEntry: TimesheeterTimesheetEntry | null;
 };
 
@@ -69,7 +134,7 @@ export const createTimesheetEntryPairs = async ({
   startDate: Date;
   endDate: Date;
 }): Promise<TimesheetEntryPair[]> => {
-  const { togglTimeEntries, timesheeterTimesheetEntries } = await getTimesheetEntryData({
+  const { togglTimeEntries, timesheeterTimesheetEntries, togglTimeEntrySyncRecords } = await getTimesheetEntryData({
     context,
     startDate,
     endDate,
@@ -103,47 +168,28 @@ export const createTimesheetEntryPairs = async ({
     });
   });
 
+  // Add togglTimeEntrySyncRecords that are not in togglTimeEntries
+  const togglTimeEntrySyncRecordsWithoutTogglTimeEntry = togglTimeEntrySyncRecords.filter(
+    (togglTimeEntrySyncRecord) =>
+      !togglTimeEntries.find((togglTimeEntry) => togglTimeEntry.id === Number(togglTimeEntrySyncRecord.togglEntityId))
+  );
+
+  togglTimeEntrySyncRecordsWithoutTogglTimeEntry.forEach((togglTimeEntrySyncRecord) => {
+    const timesheeterTimesheetEntry = timesheeterTimesheetEntries.find(
+      (timesheeterTimesheetEntry) =>
+        timesheeterTimesheetEntry.togglTimeEntryId === togglTimeEntrySyncRecord.togglEntityId
+    );
+
+    if (timesheeterTimesheetEntry) {
+      timesheetEntryPairs.push({
+        togglTimeEntry: {
+          ...togglTimeEntrySyncRecord,
+          deleted: true,
+        },
+        timesheeterTimesheetEntry,
+      });
+    }
+  });
+
   return timesheetEntryPairs;
 };
-
-const getTimesheetEntryData = async ({
-  context: { prisma, workspaceId, togglWorkspaceId, axiosClient },
-  startDate,
-  endDate,
-}: {
-  context: TogglIntegrationContext;
-  startDate: Date;
-  endDate: Date;
-}) => {
-  const togglTimeEntriesPromise = toggl.timeEntries
-    .get({ axiosClient, params: { start_date: startDate, end_date: endDate } })
-    .then((timeEntries) =>
-      timeEntries.filter((timeEntry) => timeEntry.workspace_id === togglWorkspaceId && timeEntry.stop)
-    ) as Promise<FilteredTogglTimeEntry[]>;
-
-  const timesheeterTimesheetEntriesPromise = prisma.timesheetEntry
-    .findMany({
-      where: {
-        workspaceId,
-        start: {
-          gte: startDate,
-        },
-      },
-      select: timesheeterTimesheetEntrySelectQuery,
-    })
-    .then((timesheetEntries) => timesheetEntries.map((timesheetEntry) => parseTimesheetEntry(timesheetEntry, false)));
-
-  const [togglTimeEntries, timesheeterTimesheetEntries] = await Promise.all([
-    togglTimeEntriesPromise,
-    timesheeterTimesheetEntriesPromise,
-  ]);
-
-  return {
-    togglTimeEntries,
-    timesheeterTimesheetEntries,
-  };
-};
-
-export type TimesheeterTimesheetEntry = Awaited<
-  ReturnType<typeof getTimesheetEntryData>
->['timesheeterTimesheetEntries'][0];

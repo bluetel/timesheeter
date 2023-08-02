@@ -1,5 +1,5 @@
 import { matchTaskRegex } from '@timesheeter/web';
-import { TogglProject, TogglTask, TogglTimeEntry, toggl } from '../api';
+import { RawTogglProject, RawTogglTask, RawTogglTimeEntry, toggl } from '../api';
 import { TogglIntegrationContext } from '../lib';
 
 export const matchTimeEntryToTask = async ({
@@ -10,9 +10,9 @@ export const matchTimeEntryToTask = async ({
   taskName,
 }: {
   context: TogglIntegrationContext;
-  timeEntry: TogglTimeEntry;
-  matchedProject: TogglProject;
-  togglTasks: TogglTask[];
+  timeEntry: RawTogglTimeEntry;
+  matchedProject: RawTogglProject;
+  togglTasks: RawTogglTask[];
   taskName: string;
 }) => {
   let updatedTogglTasks = togglTasks;

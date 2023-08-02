@@ -15,26 +15,24 @@ export const getAxiosClient = ({ apiKey }: { apiKey: string }) => {
     { maxRequests: 1, perMilliseconds: 1000 }
   );
 
-  // // This is useful for debugging
+  // This is useful for debugging
   // axiosClient.interceptors.request.use((request) => {
   //   console.log('Starting Request', request.method, request.url);
-
   //   if (request.method === 'post' || request.method === 'put') {
   //     console.log('Request Data', request.data);
   //   }
-
   //   return request;
   // });
 
-  // axiosClient.interceptors.response.use((response) => {
-  //   // If not ok, throw an error
-  //   if (response.status !== 200) {
-  //     console.error('Response Error', response.data, response.status, response.statusText);
-  //     throw new Error(response.statusText);
-  //   }
+  axiosClient.interceptors.response.use((response) => {
+    // If not ok, throw an error
+    if (response.status !== 200) {
+      console.error('Response Error', response.data, response.status, response.statusText);
+      throw new Error(response.statusText);
+    }
 
-  //   return response;
-  // });
+    return response;
+  });
 
   return axiosClient;
 };

@@ -1,4 +1,3 @@
-import { cleanupStrayDeletes } from './cleanup-stray-deletes';
 import { createTogglIntegrationContext, TogglIntegration } from './lib';
 import { preSync } from './pre-sync';
 import { syncProjects, syncTasks, syncTimesheetEntries } from './sync';
@@ -40,12 +39,6 @@ export const handleTogglIntegration = async ({
   await syncTimesheetEntries({
     context,
     syncedTaskPairs,
-    startDate,
-    endDate,
-  });
-
-  await cleanupStrayDeletes({
-    context,
     startDate,
     endDate,
   });
