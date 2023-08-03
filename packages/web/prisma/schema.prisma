@@ -209,7 +209,6 @@ model TicketForTask {
   deleted Boolean @default(false)
 
   @@unique([taskPrefixId, number])
-  @@unique([jiraTicketId, workspaceId])
 }
 
 model TimesheetEntry {
