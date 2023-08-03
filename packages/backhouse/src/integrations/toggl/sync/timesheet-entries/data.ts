@@ -1,11 +1,7 @@
 import { parseTimesheetEntry } from '@timesheeter/web';
 import { RawTogglTimeEntry, toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
-import {
-  TogglTimeEntrySyncRecord,
-  togglSyncRecordSelectQuery,
-  togglTimeEntrySyncRecordType,
-} from '../../pre-sync/sync-records';
+import { TogglTimeEntrySyncRecord, togglSyncRecordSelectQuery, togglTimeEntrySyncRecordType } from '../../sync-records';
 
 export type TogglTimeEntry =
   | (RawTogglTimeEntry & {

@@ -2,11 +2,7 @@ import { deleteProject, encrypt, getDefaultProjectConfig, parseProject } from '@
 import { toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
 import { ProjectPair, TimesheeterProject, TogglProject, timesheeterProjectSelectQuery } from './data';
-import {
-  TogglProjectSyncRecord,
-  togglProjectSyncRecordType,
-  togglSyncRecordSelectQuery,
-} from '../../pre-sync/sync-records';
+import { TogglProjectSyncRecord, togglProjectSyncRecordType, togglSyncRecordSelectQuery } from '../../sync-records';
 
 export const updateTimesheeterProject = async ({
   context: { prisma },

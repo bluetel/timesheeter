@@ -8,12 +8,14 @@ export const matchTimeEntryToTask = async ({
   matchedProject,
   togglTasks,
   taskName,
+  autoAssignTrimmedDescription,
 }: {
   context: TogglIntegrationContext;
   timeEntry: RawTogglTimeEntry;
   matchedProject: RawTogglProject;
   togglTasks: RawTogglTask[];
   taskName: string;
+  autoAssignTrimmedDescription: string | null;
 }) => {
   let updatedTogglTasks = togglTasks;
 
@@ -28,13 +30,19 @@ export const matchTimeEntryToTask = async ({
 
   const matchResult = matchTaskRegex(timeEntry.description ?? '');
 
+  let timeEntryUpdatedDescription = matchResult.variant === 'with-task' ? matchResult.description ?? '' : '';
+
+  if (autoAssignTrimmedDescription) {
+    timeEntryUpdatedDescription = autoAssignTrimmedDescription;
+  }
+
   if (matchingTask) {
     toggl.timeEntries.put({
       axiosClient: context.axiosClient,
       path: { workspace_id: context.togglWorkspaceId, time_entry_id: timeEntry.id },
       body: {
         // We only set the desciption if we got a match result with a custom description
-        description: matchResult.variant === 'with-task' ? matchResult.description ?? '' : '',
+        description: timeEntryUpdatedDescription,
         task_id: matchingTask.id,
         created_with: 'timesheeter',
         tag_action: 'add',
@@ -68,7 +76,7 @@ export const matchTimeEntryToTask = async ({
     axiosClient: context.axiosClient,
     path: { workspace_id: context.togglWorkspaceId, time_entry_id: timeEntry.id },
     body: {
-      description: matchResult.variant === 'with-task' ? matchResult.description ?? '' : '',
+      description: timeEntryUpdatedDescription,
       task_id: newTask.id,
       created_with: 'timesheeter',
       tag_action: 'add',

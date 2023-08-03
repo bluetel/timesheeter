@@ -2,7 +2,7 @@ import { parseTask, togglMaxScanPeriod } from '@timesheeter/web';
 import { toggl } from '../../../api';
 import { TogglIntegrationContext } from '../../../lib';
 import { TaskPair, TimesheeterTask, TogglTask, timesheeterTaskSelectQuery } from '../data';
-import { togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../../pre-sync/sync-records';
+import { togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../../sync-records';
 
 export const updateTogglTask = async ({
   context,

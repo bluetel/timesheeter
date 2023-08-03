@@ -1,7 +1,7 @@
 import { TogglIntegrationContext } from '../lib';
+import { createTogglSyncRecords } from '../sync-records';
 import { getPreSyncData } from './data';
 import { matchTimeEntryToProject } from './projects';
-import { createTogglSyncRecords } from './sync-records';
 import { matchTimeEntryToTask } from './tasks';
 
 /**
@@ -48,7 +48,7 @@ export const preSync = async ({ context }: { context: TogglIntegrationContext })
   }
 
   for (const timeEntry of togglTimeEntriesWithoutTask) {
-    const { matchedProject, updatedTogglProjects, updatedTimesheeterProjects, taskName } =
+    const { matchedProject, updatedTogglProjects, updatedTimesheeterProjects, taskName, autoAssignTrimmedDescription } =
       await matchTimeEntryToProject({
         context,
         timeEntry,
@@ -67,6 +67,7 @@ export const preSync = async ({ context }: { context: TogglIntegrationContext })
       matchedProject,
       togglTasks,
       taskName,
+      autoAssignTrimmedDescription,
     });
 
     togglTasks = updatedTogglTasks;

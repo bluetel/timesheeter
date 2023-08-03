@@ -2,7 +2,7 @@ import { UNCATEGORIZED_TASKS_PROJECT_NAME, parseProject } from '@timesheeter/web
 import { RawTogglProject, toggl } from '../api';
 import { TogglIntegrationContext } from '../lib';
 import { timesheeterProjectSelectQuery } from '../sync';
-import { togglProjectSyncRecordType, togglSyncRecordSelectQuery } from './sync-records';
+import { togglProjectSyncRecordType, togglSyncRecordSelectQuery } from '../sync-records';
 
 export type PreSyncData = Awaited<ReturnType<typeof getPreSyncData>>;
 
@@ -53,14 +53,6 @@ export const getPreSyncData = async ({ context }: { context: TogglIntegrationCon
   const togglProjects = await toggl.projects.get({
     axiosClient: context.axiosClient,
     path: { workspace_id: context.togglWorkspaceId },
-  });
-
-  const togglSyncRecords = await context.prisma.togglSyncRecord.findMany({
-    where: {
-      workspaceId: context.workspaceId,
-      category: togglProjectSyncRecordType,
-    },
-    select: togglSyncRecordSelectQuery,
   });
 
   const togglTasksPromise = Promise.all(

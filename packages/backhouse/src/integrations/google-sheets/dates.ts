@@ -48,7 +48,7 @@ export const monthYearToDate = (monthYear: string) => {
 };
 
 export const dateToMonthYear = (date: Date) => {
-  const monthLowerCase = MONTHS[date.getUTCMonth()][0];
+  const monthLowerCase = MONTHS[date.getUTCMonth()];
   const month = `${monthLowerCase[0].toUpperCase()}${monthLowerCase.slice(1)}`;
 
   const year = date.getUTCFullYear();

@@ -2,7 +2,7 @@ import { parseTask } from '@timesheeter/web';
 import { RawTogglTask, toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
 import { EvaluatedProjectPair } from '../projects';
-import { TogglTaskSyncRecord, togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../pre-sync/sync-records';
+import { TogglTaskSyncRecord, togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../sync-records';
 
 export type TogglTask =
   | (RawTogglTask & {

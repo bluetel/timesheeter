@@ -13,7 +13,7 @@ import {
   TogglTimeEntry,
   timesheeterTimesheetEntrySelectQuery,
 } from './data';
-import { togglTimeEntrySyncRecordType } from '../../pre-sync/sync-records';
+import { togglTimeEntrySyncRecordType } from '../../sync-records';
 
 export const updateTimesheeterTimesheetEntry = async ({
   context: { prisma },

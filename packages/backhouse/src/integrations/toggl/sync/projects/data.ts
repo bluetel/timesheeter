@@ -1,11 +1,7 @@
 import { parseProject } from '@timesheeter/web';
 import { toggl, RawTogglProject } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
-import {
-  TogglProjectSyncRecord,
-  togglProjectSyncRecordType,
-  togglSyncRecordSelectQuery,
-} from '../../pre-sync/sync-records';
+import { TogglProjectSyncRecord, togglProjectSyncRecordType, togglSyncRecordSelectQuery } from '../../sync-records';
 
 export type TogglProject =
   | (RawTogglProject & {
