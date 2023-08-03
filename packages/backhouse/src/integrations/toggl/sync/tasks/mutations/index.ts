@@ -7,9 +7,10 @@ import {
   parseProject,
   parseTask,
 } from '@timesheeter/web';
-import { TogglTask, toggl } from '../../api';
-import { TogglIntegrationContext } from '../../lib';
-import { TaskPair, TimesheeterTask, timesheeterTaskSelectQuery } from './data';
+import { toggl } from '../../../api';
+import { TogglIntegrationContext } from '../../../lib';
+import { TaskPair, TimesheeterTask, TogglTask, timesheeterTaskSelectQuery } from '../data';
+import { togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../../sync-records';
 
 export const updateTimesheeterTask = async ({
   context: { prisma },
@@ -18,7 +19,9 @@ export const updateTimesheeterTask = async ({
   updatedTimesheeterProjectId,
 }: {
   context: TogglIntegrationContext;
-  togglTask: TogglTask;
+  togglTask: TogglTask & {
+    deleted: false;
+  };
   timesheeterTask: TimesheeterTask;
   updatedTimesheeterProjectId: string;
 }): Promise<TaskPair> => {
@@ -42,47 +45,15 @@ export const updateTimesheeterTask = async ({
   };
 };
 
-export const updateTogglTask = async ({
-  context: { axiosClient, togglWorkspaceId },
-  timesheeterTask,
-  togglTask,
-  updatedTogglProjectId,
-}: {
-  context: TogglIntegrationContext;
-  timesheeterTask: TimesheeterTask;
-  togglTask: TogglTask;
-  updatedTogglProjectId: number;
-}): Promise<TaskPair> => {
-  const updatedTogglTask = await toggl.tasks.put({
-    axiosClient,
-    path: {
-      workspace_id: togglWorkspaceId,
-      project_id: updatedTogglProjectId,
-      task_id: togglTask.id,
-    },
-    body: {
-      name: timesheeterTask.name,
-      active: true,
-      estimated_seconds: 0,
-      workspace_id: togglWorkspaceId,
-      user_id: null,
-      project_id: updatedTogglProjectId,
-    },
-  });
-
-  return {
-    togglTask: updatedTogglTask,
-    timesheeterTask,
-  };
-};
-
 export const createTimesheeterTask = async ({
   context: { prisma, workspaceId },
   togglTask,
   timesheeterProjectId,
 }: {
   context: TogglIntegrationContext;
-  togglTask: TogglTask;
+  togglTask: TogglTask & {
+    deleted: false;
+  };
   timesheeterProjectId: string;
 }): Promise<TaskPair> => {
   const matchResult = matchTaskRegex(togglTask.name);
@@ -183,7 +154,7 @@ export const createTimesheeterTask = async ({
 };
 
 export const createTogglTask = async ({
-  context: { axiosClient, prisma, togglWorkspaceId },
+  context: { axiosClient, prisma, togglWorkspaceId, workspaceId },
   timesheeterTask,
   togglProjectId,
 }: {
@@ -211,6 +182,17 @@ export const createTogglTask = async ({
     },
   });
 
+  // Create a new sync record as we have a new toggl entity
+  await prisma.togglSyncRecord.create({
+    data: {
+      workspaceId,
+      togglEntityId: togglTask.id,
+      category: togglTaskSyncRecordType,
+      togglProjectId: togglTask.project_id,
+    },
+    select: togglSyncRecordSelectQuery,
+  });
+
   const updatedTimesheeterTask = await prisma.task
     .update({
       where: {
@@ -224,7 +206,7 @@ export const createTogglTask = async ({
     .then((task) => parseTask(task, false));
 
   return {
-    togglTask,
+    togglTask: { ...togglTask, deleted: false as const },
     timesheeterTask: updatedTimesheeterTask,
   };
 };
@@ -234,11 +216,13 @@ export const deleteTimesheeterTask = async ({
   togglTask,
 }: {
   context: TogglIntegrationContext;
-  togglTask: TogglTask;
+  togglTask: TogglTask & {
+    deleted: true;
+  };
 }): Promise<TaskPair> => {
   const timesheeterTask = await prisma.task.findFirst({
     where: {
-      togglTaskId: togglTask.id,
+      togglTaskId: togglTask.togglEntityId,
       workspaceId,
     },
     select: {
@@ -255,8 +239,8 @@ export const deleteTimesheeterTask = async ({
     axiosClient: axiosClient,
     path: {
       workspace_id: togglWorkspaceId,
-      project_id: togglTask.project_id,
-      task_id: togglTask.id,
+      project_id: Number(togglTask.togglProjectId),
+      task_id: Number(togglTask.togglEntityId),
     },
   });
 
@@ -272,11 +256,11 @@ export const deleteTogglTask = async ({
   timesheeterTask,
 }: {
   context: TogglIntegrationContext;
-  togglTask: TogglTask;
+  togglTask: TogglTask & {
+    deleted: false;
+  };
   timesheeterTask: TimesheeterTask;
 }): Promise<TaskPair> => {
-  // Altough we have to set as inactive to delete from inside toggl, we can still
-  // delete the task from timesheeter
   await toggl.tasks.delete({
     axiosClient,
     path: {
@@ -291,3 +275,5 @@ export const deleteTogglTask = async ({
     timesheeterTask,
   };
 };
+
+export * from './update-toggl-task';

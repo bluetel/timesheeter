@@ -1,7 +1,8 @@
 import { deleteProject, encrypt, getDefaultProjectConfig, parseProject } from '@timesheeter/web';
-import { TogglProject, toggl } from '../../api';
+import { toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
-import { ProjectPair, TimesheeterProject, timesheeterProjectSelectQuery } from './data';
+import { ProjectPair, TimesheeterProject, TogglProject, timesheeterProjectSelectQuery } from './data';
+import { TogglProjectSyncRecord, togglProjectSyncRecordType, togglSyncRecordSelectQuery } from '../../sync-records';
 
 export const updateTimesheeterProject = async ({
   context: { prisma },
@@ -9,7 +10,9 @@ export const updateTimesheeterProject = async ({
   timesheeterProject,
 }: {
   context: TogglIntegrationContext;
-  togglProject: TogglProject;
+  togglProject: TogglProject & {
+    deleted: false;
+  };
   timesheeterProject: TimesheeterProject;
 }): Promise<ProjectPair> => {
   const updatedTimesheeterProject = await prisma.project
@@ -37,21 +40,24 @@ export const updateTogglProject = async ({
   timesheeterProject,
 }: {
   context: TogglIntegrationContext;
-  togglProject: TogglProject;
+  togglProject: TogglProject & {
+    deleted: false;
+  };
   timesheeterProject: TimesheeterProject;
 }): Promise<ProjectPair> => {
   const updatedTogglProject = await toggl.projects.put({
     axiosClient,
     path: { workspace_id: togglWorkspaceId, project_id: togglProject.id },
     body: {
-      name: timesheeterProject.name,
+      // Toggl Projects must have a name
+      name: !!timesheeterProject.name ? timesheeterProject.name : 'Unnamed project',
       active: true,
       is_private: false,
     },
   });
 
   return {
-    togglProject: updatedTogglProject,
+    togglProject: { ...updatedTogglProject, deleted: false as const },
     timesheeterProject,
   };
 };
@@ -61,7 +67,9 @@ export const createTimesheeterProject = async ({
   togglProject,
 }: {
   context: TogglIntegrationContext;
-  togglProject: TogglProject;
+  togglProject: TogglProject & {
+    deleted: false;
+  };
 }): Promise<ProjectPair> => {
   // If project name starts with "Auto created by Timesheeter - " it means it was created by
   // us and we need to create a task prefix for it
@@ -103,7 +111,7 @@ export const createTimesheeterProject = async ({
 };
 
 export const createTogglProject = async ({
-  context: { axiosClient, prisma, togglWorkspaceId },
+  context: { axiosClient, prisma, togglWorkspaceId, workspaceId },
   timesheeterProject,
 }: {
   context: TogglIntegrationContext;
@@ -119,6 +127,17 @@ export const createTogglProject = async ({
     },
   });
 
+  // Create a new sync record as we have a new toggl entity
+  await prisma.togglSyncRecord.create({
+    data: {
+      workspaceId,
+      togglEntityId: togglProject.id,
+      togglProjectId: togglProject.id,
+      category: togglProjectSyncRecordType,
+    },
+    select: togglSyncRecordSelectQuery,
+  });
+
   const updatedTimesheeterProject = await prisma.project
     .update({
       where: {
@@ -132,7 +151,7 @@ export const createTogglProject = async ({
     .then((project) => parseProject(project, false));
 
   return {
-    togglProject,
+    togglProject: { ...togglProject, deleted: false as const },
     timesheeterProject: updatedTimesheeterProject,
   };
 };
@@ -142,12 +161,14 @@ export const deleteTimesheeterProject = async ({
   togglProject,
 }: {
   context: TogglIntegrationContext;
-  togglProject: TogglProject;
+  togglProject: TogglProject & {
+    deleted: true;
+  };
 }): Promise<ProjectPair> => {
   const timesheeterProject = await prisma.project.findFirst({
     where: {
       workspaceId,
-      togglProjectId: togglProject.id,
+      togglProjectId: togglProject.togglEntityId,
     },
     select: {
       id: true,
@@ -163,7 +184,7 @@ export const deleteTimesheeterProject = async ({
     axiosClient: axiosClient,
     path: {
       workspace_id: togglWorkspaceId,
-      project_id: togglProject.id,
+      project_id: Number(togglProject.togglEntityId),
     },
   });
 
@@ -179,7 +200,9 @@ export const deleteTogglProject = async ({
   timesheeterProject,
 }: {
   context: TogglIntegrationContext;
-  togglProject: TogglProject;
+  togglProject: TogglProject & {
+    deleted: false;
+  };
   timesheeterProject: TimesheeterProject;
 }): Promise<ProjectPair> => {
   await toggl.projects.delete({

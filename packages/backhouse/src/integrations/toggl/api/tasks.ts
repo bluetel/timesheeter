@@ -17,11 +17,10 @@ const togglTaskSchema = z
   })
   .transform((data) => ({
     ...data,
-    deleted: data.name.toLowerCase().trim().startsWith('delete'),
     at: new Date(data.at),
   }));
 
-export type TogglTask = z.infer<typeof togglTaskSchema>;
+export type RawTogglTask = z.infer<typeof togglTaskSchema>;
 
 const togglTaskArraySchema = togglTaskSchema.array();
 
@@ -89,7 +88,7 @@ export const tasksPut = async ({
 }) => {
   const response = await axiosClient.put(
     `${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/projects/${path.project_id}/tasks/${path.task_id}`,
-    body
+    { ...body, active: false }
   );
 
   return togglTaskSchema.parse(response.data);

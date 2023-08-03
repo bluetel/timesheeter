@@ -21,11 +21,10 @@ const togglTimeEntrySchema = z
   })
   .transform((data) => ({
     ...data,
-    deleted: data.description?.toLowerCase().trim().startsWith('delete'),
     at: new Date(data.at),
   }));
 
-export type TogglTimeEntry = z.infer<typeof togglTimeEntrySchema>;
+export type RawTogglTimeEntry = z.infer<typeof togglTimeEntrySchema>;
 
 const togglTimeEntryArraySchema = togglTimeEntrySchema.array();
 
@@ -55,7 +54,7 @@ const togglTimeEntryMutationSchema = z.object({
   created_with: z.string().default('Timesheeter'),
   description: z.string(),
   start: z.string().regex(isoStringRegex),
-  stop: z.string().regex(isoStringRegex),
+  stop: z.string().regex(isoStringRegex).nullable(),
   tag_action: z.enum(['add', 'delete']).default('add'),
   tag_ids: z.array(z.number().int().positive()).optional(),
   task_id: z.number().int().positive().optional(),

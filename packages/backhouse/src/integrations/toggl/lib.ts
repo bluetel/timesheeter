@@ -1,5 +1,6 @@
 import { ParsedIntegration, PrismaClient, getPrismaClient } from '@timesheeter/web';
 import { RateLimitedAxiosClient, TogglUser, getAxiosClient, toggl } from './api';
+import { EmailMapEntry } from '@timesheeter/web';
 
 export type TogglIntegration = ParsedIntegration & {
   config: {
@@ -15,16 +16,22 @@ export type TogglIntegrationContext = {
   togglUsers: TogglUser[];
   togglIdToEmail: Record<number, string>;
   timesheeterUserIdToEmail: Record<string, string>;
+  startDate: Date;
+  endDate: Date;
 };
 
 export const createTogglIntegrationContext = async ({
   apiKey,
   unverifiedTogglWorkspaceId,
   workspaceId,
+  emailMap,
+  scanPeriod,
 }: {
   apiKey: string;
   unverifiedTogglWorkspaceId: number | null;
   workspaceId: string;
+  emailMap: EmailMapEntry[];
+  scanPeriod: number;
 }): Promise<TogglIntegrationContext> => {
   const prisma = await getPrismaClient();
 
@@ -53,25 +60,45 @@ export const createTogglIntegrationContext = async ({
     })
     .then((memberships) => memberships.map((membership) => membership.user));
 
+  const togglIdToEmail = togglUsers.reduce((acc, user) => {
+    acc[user.id] = user.email;
+    return acc;
+  }, {} as Record<number, string>);
+
+  const timesheeterUserIdToEmail = workspaceUsers.reduce((acc, user) => {
+    if (!user.email) {
+      console.warn(`Toggl integration: User ${user.id} has no email`);
+      return acc;
+    }
+
+    let userEmail = user.email;
+
+    // See if we have a mapping for this user
+    const emailMapEntry = emailMap.find((entry) => entry.userId === user.id);
+
+    if (emailMapEntry) {
+      userEmail = emailMapEntry.togglEmail;
+    }
+
+    acc[user.id] = userEmail;
+    return acc;
+  }, {} as Record<string, string>);
+
+  const endDate = new Date();
+
+  const startDate = new Date(endDate);
+  startDate.setUTCDate(startDate.getUTCDate() - scanPeriod);
+
   return {
     axiosClient,
     prisma,
     togglWorkspaceId: verifiedTogglWorkspaceId,
     workspaceId,
     togglUsers,
-    togglIdToEmail: togglUsers.reduce((acc, user) => {
-      acc[user.id] = user.email;
-      return acc;
-    }, {} as Record<number, string>),
-    timesheeterUserIdToEmail: workspaceUsers.reduce((acc, user) => {
-      if (!user.email) {
-        console.warn(`Toggl integration: User ${user.id} has no email`);
-        return acc;
-      }
-
-      acc[user.id] = user.email;
-      return acc;
-    }, {} as Record<string, string>),
+    togglIdToEmail,
+    timesheeterUserIdToEmail,
+    startDate,
+    endDate,
   };
 };
 

@@ -19,6 +19,7 @@ import { SiGooglesheets } from "react-icons/si";
 import { timesheetDescription } from "@timesheeter/web/lib/workspace/integrations/google-sheets";
 import { SelectableList } from "../../ui/SelectableList";
 import { SimpleEmptyState } from "../../ui/SimpleEmptyState";
+import { TogglEmailMapIcon, emailMapDescription } from "@timesheeter/web/lib/workspace/integrations/toggl";
 
 type IntegrationDetailProps = {
   integration: ParsedIntegration;
@@ -63,11 +64,9 @@ export const IntegrationPanel = ({
                 items={integration.config.timesheets.map(({ sheetId, userId }) => {
                   const membership = memberships.find((m) => m.user.id === userId)
 
-                  const taskName = membership?.user.name ?? membership?.user.email ?? `Unknown user ${userId}`
-
                   return ({
                     icon: SiGooglesheets,
-                    label: taskName,
+                    label: membership?.user.name ?? membership?.user.email ?? `Unknown user ${userId}`,
                     subLabel: `Sheet ID - ${sheetId}`,
                     actionButtons: [
                       {
@@ -85,6 +84,48 @@ export const IntegrationPanel = ({
                 icon={SiGooglesheets}
                 button={{
                   label: "Add timesheet",
+                  onClick: () => setShowEditIntegrationSideOver(true),
+                }}
+                shrink
+              />
+            ),
+          }
+        ]
+      }
+    }
+
+    if (integrationType === "TogglIntegration") {
+      return {
+        multiple: true,
+        bodies: [
+          {
+            icon: ConfigIcon,
+            label: "Config",
+            body: <BasicDetailList items={basicDetails} />,
+          },
+          {
+            icon: TogglEmailMapIcon,
+            label: "Toggl Email Map",
+            subDescription: emailMapDescription,
+            body: integration.config.emailMap.length > 0 ? (
+              <SelectableList
+                items={integration.config.emailMap.map(({ togglEmail, userId }) => {
+                  const membership = memberships.find((m) => m.user.id === userId)
+
+                  return ({
+                    icon: TogglEmailMapIcon,
+                    label: membership?.user.name ?? membership?.user.email ?? `Unknown user ${userId}`,
+                    subLabel: togglEmail,
+                  })
+                })}
+              />
+            ) : (
+              <SimpleEmptyState
+                title="No mapped emails"
+                helpText="Add some mapped emails to associate Toggl users with Timesheeter users"
+                icon={TogglEmailMapIcon}
+                button={{
+                  label: "Add mapped email",
                   onClick: () => setShowEditIntegrationSideOver(true),
                 }}
                 shrink
@@ -164,7 +205,7 @@ const useBasicDetails = (
     {
       label: {
         title: "Name",
-        description: `Descriptive name for the integration, e.g. "James's Toggl"`,
+        description: `Descriptive name for the integration, e.g. "ACME's Toggl"`,
       },
       field: {
         variant: "text",

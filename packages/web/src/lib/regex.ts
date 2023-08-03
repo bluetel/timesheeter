@@ -6,7 +6,7 @@ export const hostnameRegex =
 
 export const taskPrefixRegex = /^[A-Z]{1,8}$/;
 
-export const taskRegex = /^([A-Za-z]{1,8})-([0-9]+)(?:\s-\s(.+))?$/;
+export const taskRegex = /^([A-Za-z]{1,8})\s*-\s*([0-9]+)(?:\s*[-:]?\s*(.+))?$/;
 
 export const monthYearRegex =
   /^(?:january|february|march|april|may|june|july|august|september|ictober|november|december)\s\d{4}$/i;

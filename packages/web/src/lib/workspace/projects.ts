@@ -12,7 +12,7 @@ export const ProjectIcon = FolderIcon as IconType;
 
 export const taskPrefixesHelpText = `Jira prefixes that will be auto-assigned to this project and contain tracked task numbers (e.g. "AC" in "AC-1234")`;
 
-export const autoAssignTasksHelpText = `Entries that start with these names will automatically be assigned to this project (e.g. Standup in "Standup - New feature discussion"), even if they don't have a task prefix`;
+export const autoAssignTasksHelpText = `Entries that start with these names will automatically be assigned to this project and task (e.g. "INTERNAL-HIRING - New hire onboarding")`;
 
 export const autoAssignTaskSchema = z.string().min(1);
 

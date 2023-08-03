@@ -21,6 +21,8 @@ export const timesheetEntriesRouter = createTRPCRouter({
       z.object({
         workspaceId: z.string(),
         page: z.number().int().positive().default(1),
+        // Temporary fix to deal with data not loading on the client afer refresh
+        fetchAllToPage: z.boolean().default(true),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -66,8 +68,8 @@ export const timesheetEntriesRouter = createTRPCRouter({
               },
             },
           },
-          skip: (input.page - 1) * API_PAGINATION_LIMIT,
-          take: API_PAGINATION_LIMIT,
+          skip: input.fetchAllToPage ? 0 : (input.page - 1) * API_PAGINATION_LIMIT,
+          take: input.fetchAllToPage ? input.page * API_PAGINATION_LIMIT : API_PAGINATION_LIMIT,
           orderBy: {
             start: 'desc',
           },

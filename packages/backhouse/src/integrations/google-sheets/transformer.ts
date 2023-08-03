@@ -197,7 +197,7 @@ const calculateOvertime = (
   if (!isWorkDay) {
     return sortedTimesheetEntries.map((timesheetEntry) => ({
       timesheetEntry,
-      overtime: 8,
+      overtime: timesheetEntry.end.getTime() - timesheetEntry.start.getTime(),
     }));
   }
 

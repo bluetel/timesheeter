@@ -4,7 +4,7 @@ import { chronRegex } from '@timesheeter/web/lib/regex';
 
 export const timesheetSchema = z.object({
   sheetId: z.string().min(1),
-  userId: z.string().min(1),
+  userId: z.string().cuid2(),
 });
 
 export type Timesheet = z.infer<typeof timesheetSchema>;
@@ -71,7 +71,10 @@ export const GoogleSheetsIntegration = {
     serviceAccountEmail: z.string().email(),
     privateKey: z.string().min(1),
     chronExpression: z.string().regex(chronRegex),
-    commitDelayDays: z.number().int().positive().default(2),
+    commitDelayDays: z
+      .any()
+      .transform((data) => parseInt(String(data), 10))
+      .pipe(z.number().int().positive().default(2)),
     timesheets: z.array(timesheetSchema).default([]),
   }),
   updateIntegrationSchema: z.object({
@@ -79,7 +82,10 @@ export const GoogleSheetsIntegration = {
     serviceAccountEmail: z.string().email().optional(),
     privateKey: z.string().min(1).optional(),
     chronExpression: z.string().regex(chronRegex).optional(),
-    commitDelayDays: z.number().int().positive().default(2).optional(),
+    commitDelayDays: z
+      .any()
+      .transform((data) => (!!data ? parseInt(String(data), 10) : undefined))
+      .pipe(z.number().int().positive().optional()),
     timesheets: z.array(timesheetSchema).optional(),
   }),
   defaultConfig: {

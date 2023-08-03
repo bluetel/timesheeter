@@ -1,5 +1,5 @@
 import { matchTaskRegex } from '@timesheeter/web';
-import { TogglProject, TogglTask, TogglTimeEntry, toggl } from '../api';
+import { RawTogglProject, RawTogglTask, RawTogglTimeEntry, toggl } from '../api';
 import { TogglIntegrationContext } from '../lib';
 
 export const matchTimeEntryToTask = async ({
@@ -8,16 +8,19 @@ export const matchTimeEntryToTask = async ({
   matchedProject,
   togglTasks,
   taskName,
+  autoAssignTrimmedDescription,
 }: {
   context: TogglIntegrationContext;
-  timeEntry: TogglTimeEntry;
-  matchedProject: TogglProject;
-  togglTasks: TogglTask[];
+  timeEntry: RawTogglTimeEntry;
+  matchedProject: RawTogglProject;
+  togglTasks: RawTogglTask[];
   taskName: string;
+  autoAssignTrimmedDescription: string | null;
 }) => {
   let updatedTogglTasks = togglTasks;
 
-  const matchingTask = togglTasks.find((task) => task.name === taskName);
+  // The matched task needs to be in the same project as the time entry
+  const matchingTask = togglTasks.find((task) => task.name === taskName && task.project_id === matchedProject.id);
 
   if (!timeEntry.stop) {
     throw new Error(
@@ -27,13 +30,19 @@ export const matchTimeEntryToTask = async ({
 
   const matchResult = matchTaskRegex(timeEntry.description ?? '');
 
+  let timeEntryUpdatedDescription = matchResult.variant === 'with-task' ? matchResult.description ?? '' : '';
+
+  if (autoAssignTrimmedDescription) {
+    timeEntryUpdatedDescription = autoAssignTrimmedDescription;
+  }
+
   if (matchingTask) {
     toggl.timeEntries.put({
       axiosClient: context.axiosClient,
       path: { workspace_id: context.togglWorkspaceId, time_entry_id: timeEntry.id },
       body: {
         // We only set the desciption if we got a match result with a custom description
-        description: matchResult.variant === 'with-task' ? matchResult.description ?? '' : '',
+        description: timeEntryUpdatedDescription,
         task_id: matchingTask.id,
         created_with: 'timesheeter',
         tag_action: 'add',
@@ -59,6 +68,24 @@ export const matchTimeEntryToTask = async ({
       workspace_id: context.togglWorkspaceId,
       project_id: matchedProject.id,
       user_id: null,
+    },
+  });
+
+  // Update the time entry with the new task
+  await toggl.timeEntries.put({
+    axiosClient: context.axiosClient,
+    path: { workspace_id: context.togglWorkspaceId, time_entry_id: timeEntry.id },
+    body: {
+      description: timeEntryUpdatedDescription,
+      task_id: newTask.id,
+      created_with: 'timesheeter',
+      tag_action: 'add',
+      workspace_id: context.togglWorkspaceId,
+      start: timeEntry.start,
+      stop: timeEntry.stop,
+      billable: timeEntry.billable,
+      project_id: matchedProject.id,
+      user_id: timeEntry.user_id,
     },
   });
 

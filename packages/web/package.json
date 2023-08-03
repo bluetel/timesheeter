@@ -32,7 +32,7 @@
     "@hookform/resolvers": "^3.0.0",
     "@next-auth/prisma-adapter": "^1.0.5",
     "@paralleldrive/cuid2": "^2.2.0",
-    "@prisma/client": "^4.9.0",
+    "@prisma/client": "^5.0.0",
     "@prisma/internals": "4.13.0",
     "@prisma/migrate": "4.13.0",
     "@t3-oss/env-nextjs": "^0.4.0",

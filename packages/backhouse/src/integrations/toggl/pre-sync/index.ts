@@ -1,4 +1,5 @@
 import { TogglIntegrationContext } from '../lib';
+import { createTogglSyncRecords } from '../sync-records';
 import { getPreSyncData } from './data';
 import { matchTimeEntryToProject } from './projects';
 import { matchTimeEntryToTask } from './tasks';
@@ -31,21 +32,14 @@ import { matchTimeEntryToTask } from './tasks';
  *
  * 6. We then update the time entry to be assigned to the task
  */
-export const preSync = async ({
-  context,
-  startDate,
-  endDate,
-}: {
-  context: TogglIntegrationContext;
-  startDate: Date;
-  endDate: Date;
-}) => {
-  let { togglTimeEntries, togglProjects, togglTasks, timesheeterProjects, uncategorizedTasksProject } =
-    await getPreSyncData({
-      context,
-      startDate,
-      endDate,
-    });
+export const preSync = async ({ context }: { context: TogglIntegrationContext }) => {
+  const preSyncData = await getPreSyncData({
+    context,
+  });
+
+  await createTogglSyncRecords({ preSyncData, context });
+
+  let { togglTimeEntries, togglProjects, togglTasks, timesheeterProjects, uncategorizedTasksProject } = preSyncData;
 
   const togglTimeEntriesWithoutTask = togglTimeEntries.filter((timeEntry) => !timeEntry.task_id);
 
@@ -54,7 +48,7 @@ export const preSync = async ({
   }
 
   for (const timeEntry of togglTimeEntriesWithoutTask) {
-    const { matchedProject, updatedTogglProjects, updatedTimesheeterProjects, taskName } =
+    const { matchedProject, updatedTogglProjects, updatedTimesheeterProjects, taskName, autoAssignTrimmedDescription } =
       await matchTimeEntryToProject({
         context,
         timeEntry,
@@ -73,6 +67,7 @@ export const preSync = async ({
       matchedProject,
       togglTasks,
       taskName,
+      autoAssignTrimmedDescription,
     });
 
     togglTasks = updatedTogglTasks;

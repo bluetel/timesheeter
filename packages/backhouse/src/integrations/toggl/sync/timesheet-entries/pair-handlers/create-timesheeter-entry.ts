@@ -1,6 +1,6 @@
 import { TogglIntegrationContext } from '../../../lib';
 import { EvaluatedTaskPair } from '../../tasks';
-import { FilteredTogglTimeEntry, TimesheetEntryPair } from '../data';
+import { TimesheetEntryPair, TogglTimeEntry } from '../data';
 import { createTimesheeterTimesheetEntry } from '../mutations';
 
 export const handleCreateTimesheeterEntry = async ({
@@ -9,7 +9,10 @@ export const handleCreateTimesheeterEntry = async ({
   syncedTaskPairs,
 }: {
   context: TogglIntegrationContext;
-  togglTimeEntry: FilteredTogglTimeEntry;
+  togglTimeEntry: TogglTimeEntry & {
+    deleted: false;
+    stop: string;
+  };
   syncedTaskPairs: EvaluatedTaskPair[];
 }): Promise<TimesheetEntryPair> => {
   const targetUserEmail = context.togglIdToEmail[togglTimeEntry.user_id];

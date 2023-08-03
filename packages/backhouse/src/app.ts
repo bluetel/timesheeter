@@ -18,13 +18,16 @@ import fastify from 'fastify';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { FastifyAdapter } from '@bull-board/fastify';
+import { checkSchedule } from './check-schedule';
 
-const packageVersion = process.env.npm_package_version;
+console.log(`Starting Backhouse Worker v${process.env.npm_package_version}`);
 
-console.log(`Starting Backhouse Worker v${packageVersion}`);
+// Ensure valid integrations are in the schedule, Elasticache is not persistent
+checkSchedule();
 
 const worker = new Worker<IntegrationJob>('integrations', handleIntegrationsJob, {
   connection: connectionConfig,
+  concurrency: 10,
 });
 
 // Error handler is required to prevent unhandled errors from crashing the worker
@@ -56,34 +59,32 @@ console.log(`BullBoard running on http://0.0.0.0:${env.BULL_BOARD_PORT}`);
 // In dev its useful to run the integration job manually like this, make sure the
 // bullmq worker is commented out above
 
-/*
-const runDev = async () => {
-  const prisma = await getPrismaClient();
-  const integrations = await prisma.integration
-    .findMany()
-    .then((integrations) => integrations.map((integration) => parseIntegration(integration, false)));
+// const runDev = async () => {
+//   const prisma = await getPrismaClient();
+//   const integrations = await prisma.integration
+//     .findMany()
+//     .then((integrations) => integrations.map((integration) => parseIntegration(integration, false)));
 
-  // Const toggl
-  const togglIntegration = integrations.find((integration) => integration.config.type === 'TogglIntegration');
+//   // Const toggl
+//   const togglIntegration = integrations.find((integration) => integration.config.type === 'JiraIntegration');
 
-  if (!togglIntegration || togglIntegration.config.type !== 'TogglIntegration') {
-    console.error('Toggl integration not found');
-    return;
-  }
+//   if (!togglIntegration || togglIntegration.config.type !== 'JiraIntegration') {
+//     console.error('Toggl integration not found');
+//     return;
+//   }
 
-  console.log('Toggl integration found', togglIntegration.id);
+//   console.log('Toggl integration found', togglIntegration.id);
 
-  // await prisma.project.deleteMany({});
+//   //await prisma.project.deleteMany({});
 
-  await handleTogglIntegration({
-    integration: {
-      ...togglIntegration,
-      config: togglIntegration.config,
-    },
-  });
+//   await handleJiraIntegration({
+//     integration: {
+//       ...togglIntegration,
+//       config: togglIntegration.config,
+//     },
+//   });
 
-  console.log('Done');
-};
+//   console.log('Done');
+// };
 
-runDev();
-*/
+// runDev();
