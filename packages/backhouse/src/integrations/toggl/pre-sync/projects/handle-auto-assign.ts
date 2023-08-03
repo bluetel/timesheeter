@@ -1,7 +1,7 @@
 import { TogglIntegrationContext } from '../../lib';
 import { TimesheeterProject, timesheeterProjectSelectQuery } from '../../sync';
 import { RawTogglProject, RawTogglTimeEntry, toggl } from '../../api';
-import { parseProject } from '@timesheeter/web/server';
+import { parseProject } from '@timesheeter/web';
 
 export const handleAutoAssign = async ({
   context,
