@@ -337,8 +337,8 @@ export const sendInviteEmails = async ({
       const { pretty, plainText, title } = inviteEmail({
         workspaceName: workspace.name,
         email,
-        inviteLink: `${env.PUBLIC_URL}/accept-invitation/${invitationId}`,
-        publicUrl: env.PUBLIC_URL,
+        inviteLink: `${env.NEXT_PUBLIC_URL}/accept-invitation/${invitationId}`,
+        publicUrl: env.NEXT_PUBLIC_URL,
       });
 
       return resend.emails.send({

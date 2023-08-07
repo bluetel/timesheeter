@@ -49,7 +49,6 @@ export const env = createEnv({
       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
       process.env.VERCEL ? z.string().min(1) : z.string().url()
     ),
-    PUBLIC_URL: z.string().url(),
     CONFIG_SECRET_KEY: z.string().length(32),
 
     GOOGLE_CLIENT_ID: z.string(),
@@ -111,13 +110,14 @@ export const env = createEnv({
 
     RESEND_FROM_EMAIL: z.string().email().default('noreply@timesheeter.pro'),
   },
-  client: {},
+  client: {
+    NEXT_PUBLIC_URL: z.string().url(),
+  },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-    PUBLIC_URL: process.env.PUBLIC_URL,
     CONFIG_SECRET_KEY: process.env.CONFIG_SECRET_KEY,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
@@ -126,5 +126,6 @@ export const env = createEnv({
     BULL_BOARD_PORT: process.env.BULL_BOARD_PORT,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
+    NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
   },
 });

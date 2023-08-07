@@ -3,6 +3,7 @@ import { useState } from "react";
 import { MobileAppBar } from "./MobileAppBar";
 import { DesktopSideBar } from "./DesktopSideBar";
 import { MobileSideBar } from "./MobileSideBar";
+import { DevTools } from "../../DevTools";
 
 export type WorkspaceLayoutProps = {
   workspaceInfo: WorkspaceInfo;
@@ -17,7 +18,8 @@ export const WorkspaceLayout = ({
 }: WorkspaceLayoutProps) => {
   const [sideBarOpen, setSideBarOpen] = useState(false);
 
-  return (
+  return (<>
+    <DevTools workspaceId={workspaceInfo.workspace.id} />
     <div className="flex h-screen bg-white">
       <MobileSideBar workspaceInfo={workspaceInfo} sideBarOpen={sideBarOpen} setSideBarOpen={setSideBarOpen} />
 
@@ -38,5 +40,5 @@ export const WorkspaceLayout = ({
         </div>
       </div>
     </div>
-  );
+  </>);
 };

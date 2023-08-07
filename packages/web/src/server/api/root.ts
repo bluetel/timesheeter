@@ -1,5 +1,5 @@
 import { createTRPCRouter } from '@timesheeter/web/server/api/trpc';
-import { workspaceRouter } from './routers/workspace';
+import { workspaceRouter, devToolsRouter } from './routers';
 
 /**
  * This is the primary router for your server.
@@ -8,6 +8,7 @@ import { workspaceRouter } from './routers/workspace';
  */
 export const appRouter = createTRPCRouter({
   workspace: workspaceRouter,
+  devTools: devToolsRouter,
 });
 
 // export type definition of API
