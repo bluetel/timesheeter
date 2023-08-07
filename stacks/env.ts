@@ -12,7 +12,7 @@ const sstEnvSchema = z.object({
     // VERCEL_URL doesn't include `https` so it cant be validated as a URL
     process.env.VERCEL ? z.string().min(1) : z.string().url()
   ),
-  PUBLIC_URL: z.string().url(),
+  NEXT_PUBLIC_URL: z.string().url(),
   CONFIG_SECRET_KEY: z.string().length(32),
 
   GOOGLE_CLIENT_ID: z.string(),

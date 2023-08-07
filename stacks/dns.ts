@@ -19,7 +19,7 @@ export function Dns({ stack, app }: StackContext) {
     certificateRegional = new DnsValidatedCertificate(stack, 'RegionalCertificate', {
       domainName: hostedZoneName,
       hostedZone,
-      subjectAlternativeNames: [`*.${hostedZoneName}`, sstEnv.PUBLIC_URL],
+      subjectAlternativeNames: [`*.${hostedZoneName}`, sstEnv.NEXT_PUBLIC_URL],
     });
     // cert in us-east-1, required for cloudfront, cognito
     certificateGlobal =
@@ -29,7 +29,7 @@ export function Dns({ stack, app }: StackContext) {
             domainName: hostedZoneName,
 
             hostedZone,
-            subjectAlternativeNames: [`*.${hostedZoneName}`, sstEnv.PUBLIC_URL],
+            subjectAlternativeNames: [`*.${hostedZoneName}`, sstEnv.NEXT_PUBLIC_URL],
             region: 'us-east-1',
           });
   }
