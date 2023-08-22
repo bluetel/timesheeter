@@ -1,10 +1,11 @@
 import { matchTaskRegex } from '@timesheeter/web';
 import { TogglIntegrationContext } from '../../lib';
 import { TimesheeterProject } from '../../sync';
-import { RawTogglProject, RawTogglTask, RawTogglTimeEntry } from '../../api';
+import { RawTogglProject, RawTogglTask, RawTogglTimeEntry, toggl } from '../../api';
 import { handleNoTaskPrefixMatch } from './handle-no-task-prefix-match';
 import { handleTaskPrefixMatch } from './handle-task-prefix-match';
 import { findAutoAssignMatch, handleAutoAssign } from './handle-auto-assign';
+import { handleNoDescription } from './handle-no-description';
 
 export const matchTimeEntryToProject = async ({
   context,
@@ -21,6 +22,16 @@ export const matchTimeEntryToProject = async ({
   uncategorizedTasksProject: RawTogglProject;
   togglTasks: RawTogglTask[];
 }) => {
+  // Edge case where user sets a project but nothing more
+  if (!timeEntry.description && !timeEntry.task_id && !!timeEntry.project_id) {
+    return handleNoDescription({
+      timeEntry,
+      togglProjects,
+      timesheeterProjects,
+      uncategorizedTasksProject,
+    });
+  }
+
   // We match auto assign project regardless of user project selection
   const autoAssign = findAutoAssignMatch({ timeEntry, timesheeterProjects });
 

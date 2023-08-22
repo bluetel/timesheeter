@@ -6,13 +6,13 @@ export const membershipRoleSchema = z.enum(['owner', 'member']);
 
 export type MembershipRole = z.infer<typeof membershipRoleSchema>;
 
-export const WORKSPACES_HELP_TEXT = 'Group related projects and team members together into workspaces' as const;
+export const WORKSPACES_HELP_TEXT = 'Group related projects and team members together into workspaces';
 
 export const MEMBERSHIPS_HELP_TEXT =
-  'Team members can be added to a workspace and share projects, tasks and integrations' as const;
+  'Team members can be added to a workspace and share projects, tasks and integrations';
 
 export const INVITATIONS_HELP_TEXT =
-  'Invite team members to a workspace, they will receive an email with a link to join' as const;
+  'Invite team members to a workspace, they will receive an email with a link to join';
 
 export const WorkspaceIcon = UserGroupIcon as IconType;
 

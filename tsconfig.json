@@ -7,6 +7,5 @@
       "@timesheeter/common/*": ["./packages/common/src/*"]
     }
   },
-  "include": ["stacks"],
-  "references": [{ "path": "./packages/*" }]
+  "include": ["stacks"]
 }

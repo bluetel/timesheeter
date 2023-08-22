@@ -1,7 +1,3 @@
-import { ukDateRegex } from '@timesheeter/web';
-import axios from 'axios';
-import { z } from 'zod';
-
 const MONTHS = [
   'january',
   'february',
@@ -29,6 +25,15 @@ export const getMonthIndex = (month: string) => {
   return monthIndex;
 };
 
+export const dateToMonthYear = (date: Date) => {
+  const monthLowerCase = MONTHS[date.getUTCMonth()];
+  const month = `${monthLowerCase[0].toUpperCase()}${monthLowerCase.slice(1)}`;
+
+  const year = date.getUTCFullYear();
+
+  return `${month} ${year}`;
+};
+
 export const monthYearToDate = (monthYear: string) => {
   const [month, year] = monthYear.toLowerCase().split(' ');
   if (!month || !year) {
@@ -47,37 +52,37 @@ export const monthYearToDate = (monthYear: string) => {
   return date;
 };
 
-export const dateToMonthYear = (date: Date) => {
-  const monthLowerCase = MONTHS[date.getUTCMonth()];
-  const month = `${monthLowerCase[0].toUpperCase()}${monthLowerCase.slice(1)}`;
+/** Helper function that deals with all the many date formats a user may enter */
+export const parseCellDate = ({
+  lastEntryCellValue,
+  startMonth,
+  startYear,
+}: {
+  lastEntryCellValue: string;
+  startMonth: number;
+  startYear: number;
+}): Date => {
+  // Extract the day from the cell value
+  let lastEntryDay = parseInt(lastEntryCellValue.toLowerCase().split(' ')[0]);
 
-  const year = date.getUTCFullYear();
+  // Check if the first part is not a number (e.g., "Wednesday 26"), then try the second part
+  if (isNaN(lastEntryDay)) {
+    lastEntryDay = parseInt(lastEntryCellValue.split(' ')[1]);
+  }
 
-  return `${month} ${year}`;
-};
+  // If the date is in the format dd/mm/yyyy, parse it accordingly
+  if (lastEntryCellValue.includes('/')) {
+    const [day] = lastEntryCellValue.split('/').map(Number);
+    return new Date(Date.UTC(startYear, startMonth, day + 1, 0, 0, 0, 0));
+  }
 
-const bankHolidayResponseSchema = z.object({
-  'england-and-wales': z.object({
-    events: z
-      .object({
-        date: z.string().regex(ukDateRegex),
-      })
-      .array(),
-  }),
-});
+  // Construct a date, using the month and year from the provided startMonth and startYear
+  const startDate = new Date(Date.UTC(startYear, startMonth, lastEntryDay + 1, 0, 0, 0, 0));
 
-const BANK_HOLIDAYS_ENDPOINT = 'https://www.gov.uk/bank-holidays.json' as const;
+  // Ensure the date is valid
+  if (isNaN(startDate.getTime())) {
+    throw new Error('Invalid start date');
+  }
 
-export const getBankHolidayDates = async () => {
-  const response = await axios.request({
-    url: BANK_HOLIDAYS_ENDPOINT,
-  });
-
-  const data = bankHolidayResponseSchema.parse(response.data);
-
-  return data['england-and-wales'].events.map(({ date: dateString }) => {
-    const [day, month, year] = dateString.split('-');
-
-    return new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
-  });
+  return startDate;
 };

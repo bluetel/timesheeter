@@ -81,6 +81,7 @@ model Workspace {
   ticketForTasks   TicketForTask[]
   invitations      Invitation[]
   togglSyncRecords TogglSyncRecord[]
+  integrationRuns  IntegrationRun[]
 }
 
 model Membership {
@@ -118,7 +119,21 @@ model Integration {
   name             String
   configSerialized String
 
-  repeatJobKey String?
+  repeatJobKey   String?
+  IntegrationRun IntegrationRun[]
+}
+
+model IntegrationRun {
+  id          String    @id @default(cuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  integrationId String
+
+  logsSerialized String
 }
 
 model Project {

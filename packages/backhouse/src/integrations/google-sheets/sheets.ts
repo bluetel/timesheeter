@@ -1,13 +1,20 @@
 import { monthYearRegex } from '@timesheeter/web';
 import { GoogleSpreadsheet, type GoogleSpreadsheetWorksheet } from 'google-spreadsheet';
-import { monthYearToDate } from './dates';
+import { monthYearToDate, parseCellDate } from './dates';
 import { TransformedData } from './transformer';
 import { createBlankSheet } from './blank-sheet';
 
-const HEADER_ROW = 8 as const;
-const FIRST_ENTRY_ROW = 11 as const;
+const HEADER_ROW = 0;
 
-export const DATE_COLUMN = 0 as const;
+/* The default start row for the case that there are no entries in the sheet */
+const DEFAULT_FIRST_ENTRY_ROW = 2;
+
+const ENTRY_SPACING = 1;
+
+const DATE_COLUMN = 0;
+
+/** The total number of columns we fill in */
+const COLUMN_COUNT = 6;
 
 export type SheetToProcess = {
   sheet: GoogleSpreadsheetWorksheet;
@@ -36,6 +43,12 @@ export const getSheetStart = async (sheetsToProcess: SheetToProcess[]) => {
   for (let i = rowCount - 1; i > HEADER_ROW; i--) {
     const dateCell = sheet.getCell(i, DATE_COLUMN);
 
+    // Check if date cell is 'Date' if so return
+    if (dateCell.value === 'Date') {
+      // Plus 1 as this is the row after the header
+      return { sheet, sheetStartDate, sheetStartRow: i + ENTRY_SPACING + 1 };
+    }
+
     if (dateCell.value) {
       lastDateEntryRow = i;
       break;
@@ -44,7 +57,7 @@ export const getSheetStart = async (sheetsToProcess: SheetToProcess[]) => {
 
   // Scenario for an empty timesheet
   if (lastDateEntryRow === null) {
-    return { sheet, sheetStartDate, sheetStartRow: FIRST_ENTRY_ROW };
+    return { sheet, sheetStartDate, sheetStartRow: DEFAULT_FIRST_ENTRY_ROW };
   }
 
   // The dates are in the format "26 Friday" so we need to extract the date
@@ -54,32 +67,18 @@ export const getSheetStart = async (sheetsToProcess: SheetToProcess[]) => {
     throw new Error('Invalid date cell value');
   }
 
-  const lastEntryDay = parseInt(lastEntryCellValue.split(' ')[0]);
-
-  // Construct a date, using the month and year from the sheet start date
-  const startMonth = sheetStartDate.getUTCMonth();
-  const startYear = sheetStartDate.getUTCFullYear();
-
-  let startDate = new Date(Date.UTC(startYear, startMonth, lastEntryDay + 1, 0, 0, 0, 0));
-
-  // Ensure the date is valid
-  if (isNaN(startDate.getTime())) {
-    //  Assume in format Wednesday 26
-    const lastEntryDate = lastEntryCellValue.split(' ')[1];
-
-    startDate = new Date(Date.UTC(startYear, startMonth, parseInt(lastEntryDate) + 1, 0, 0, 0, 0));
-
-    if (isNaN(startDate.getTime())) {
-      throw new Error('Invalid start date');
-    }
-  }
+  const startDate = parseCellDate({
+    lastEntryCellValue,
+    startMonth: sheetStartDate.getUTCMonth(),
+    startYear: sheetStartDate.getUTCFullYear(),
+  });
 
   let startRow = 0;
 
   // Keep going down from last entry row until we find an empty row
   for (let i = lastDateEntryRow; i <= rowCount; i++) {
     let allEmpty = true;
-    for (let j = 0; j < 6; j++) {
+    for (let j = 0; j < COLUMN_COUNT; j++) {
       const cell = sheet.getCell(i, j);
 
       if (cell.value) {
@@ -89,7 +88,7 @@ export const getSheetStart = async (sheetsToProcess: SheetToProcess[]) => {
     }
 
     if (allEmpty) {
-      startRow = i + 2;
+      startRow = i + ENTRY_SPACING;
       break;
     }
   }
@@ -177,7 +176,7 @@ export const applyTransforms = async ({
             cell.value = cellValue;
           }
         }
-        cursor.currentRow += data.cells.length + 2;
+        cursor.currentRow += data.cells.length + ENTRY_SPACING;
       }
 
       await cursor.currentSheet.saveUpdatedCells();
@@ -210,7 +209,7 @@ const createSheetStartIfBlank = async ({
 
   return {
     currentSheet: sheet,
-    currentRow: FIRST_ENTRY_ROW,
+    currentRow: DEFAULT_FIRST_ENTRY_ROW,
   };
 };
 
@@ -237,7 +236,7 @@ const updateCursor = async ({
 
     return {
       currentSheet: sheet,
-      currentRow: FIRST_ENTRY_ROW,
+      currentRow: DEFAULT_FIRST_ENTRY_ROW,
     };
   }
 

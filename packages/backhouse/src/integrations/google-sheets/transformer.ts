@@ -1,5 +1,5 @@
 import { DatabaseEntries } from './database-entries';
-import { dateToMonthYear, getBankHolidayDates } from './dates';
+import { getBankHolidayDates } from './bank-holidays';
 
 export type TransformedData = {
   date: Date;
@@ -83,31 +83,22 @@ const findTimesheetEntries = (
 ): DatabaseEntries['timesheetEntries'] =>
   timesheetEntries.filter((timesheetEntry) => timesheetEntry.start.toDateString() === dateMidnight.toDateString());
 
-const formatHolidayCells = (holiday: DatabaseEntries['holidays'][number], date: Date): string[][] => {
-  const dateFormatted = date.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    weekday: 'long',
-  });
-
-  return [[dateFormatted, '', 'HOLIDAYS', '8.00', holiday.description ?? '']];
-};
+const formatHolidayCells = (holiday: DatabaseEntries['holidays'][number], date: Date): string[][] => [
+  [formatOutputDate(date), '', 'HOLIDAYS', '8.00', holiday.description ?? ''],
+];
 
 const formatTimesheetEntryCells = (
   timesheetEntriesDate: DatabaseEntries['timesheetEntries'],
   date: Date,
   isWorkDay: boolean
 ): string[][] => {
-  const dateFormatted = date.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    weekday: 'long',
-  });
-
   const groupedEntries = groupEntriesToTasks(timesheetEntriesDate, isWorkDay);
+  const formattedDate = formatOutputDate(date);
 
-  return groupedEntries.map((entry, index) => {
+  return groupedEntries.map((entry) => {
     const { projectName, jiraTask, time, details, overtime } = entry;
 
-    return [index === 0 ? dateFormatted : '', projectName, jiraTask, time, details, overtime];
+    return [formattedDate, projectName, jiraTask, time, removeDetailDuplicates(details), overtime];
   });
 };
 
@@ -139,10 +130,12 @@ const groupEntriesToTasks = (
     if (existingEntry) {
       (existingEntry.time += timesheetEntry.end.getTime() - timesheetEntry.start.getTime()),
         (existingEntry.overtime += overtime);
-      // Join with comma
-      existingEntry.details = timesheetEntry.description
-        ? existingEntry.details + ', ' + timesheetEntry.description
-        : existingEntry.details;
+
+      const trimmedDescription = (timesheetEntry.description ?? '').trim();
+
+      if (trimmedDescription !== '') {
+        existingEntry.details = `${existingEntry.details}, ${trimmedDescription}`;
+      }
     } else {
       const taskNumber = task.ticketForTask
         ? `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}`
@@ -171,19 +164,12 @@ const groupEntriesToTasks = (
   });
 };
 
-/** Formats milliseconds to quarter hourly eg 0.25 hours or 1.25 hours */
-const formatTime = (durationMillis: number): string => {
-  const durationHours = durationMillis / 3600000;
-
-  return (Math.round(durationHours * 4) / 4).toFixed(2);
-};
-
 type OvertimeCalculation = {
   timesheetEntry: DatabaseEntries['timesheetEntries'][number];
   overtime: number;
 };
 
-const OVERTIME_MILLISECONDS = 28800000 as const;
+const OVERTIME_MILLISECONDS = 28800000 as const; // 8 hours
 
 /**  Need to calculate overtime, overtime is applied to each entry based on the hours already worked in that day, ie later entries might have overtime applied to them, earlier ones won't. There are 8 hours */
 const calculateOvertime = (
@@ -245,4 +231,23 @@ const calculateIsWorkDay = (bankHolidays: Date[], date: Date): boolean => {
   }
 
   return true;
+};
+
+/** Formats milliseconds to quarter hourly eg 0.25 hours or 1.25 hours */
+const formatTime = (durationMillis: number): string => {
+  const durationHours = durationMillis / 3600000;
+
+  return (Math.round(durationHours * 4) / 4).toFixed(2);
+};
+
+const formatOutputDate = (date: Date) =>
+  date.toLocaleDateString('en-GB', { day: 'numeric', month: 'numeric', year: 'numeric' });
+
+const removeDetailDuplicates = (input: string) => {
+  const items = input
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item !== '');
+  const uniqueItems = Array.from(new Set(items));
+  return uniqueItems.join(', ');
 };

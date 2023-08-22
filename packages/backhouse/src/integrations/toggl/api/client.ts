@@ -16,13 +16,13 @@ export const getAxiosClient = ({ apiKey }: { apiKey: string }) => {
   );
 
   // This is useful for debugging
-  // axiosClient.interceptors.request.use((request) => {
-  //   console.log('Starting Request', request.method, request.url);
-  //   if (request.method === 'post' || request.method === 'put') {
-  //     console.log('Request Data', request.data);
-  //   }
-  //   return request;
-  // });
+  axiosClient.interceptors.request.use((request) => {
+    console.log('Starting Request', request.method, request.url);
+    if (request.method === 'post' || request.method === 'put') {
+      console.log('Request Data', request.data);
+    }
+    return request;
+  });
 
   axiosClient.interceptors.response.use((response) => {
     // If not ok, throw an error
