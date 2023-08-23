@@ -6,4 +6,3 @@ before_compile:
 
 compile:
   - pnpm install --frozen-lockfile
-  - pnpm build:common

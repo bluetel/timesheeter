@@ -18,7 +18,6 @@ import { Migrate } from '@prisma/migrate/dist/Migrate.js';
 import { ensureDatabaseExists } from '@prisma/migrate/dist/utils/ensureDatabaseExists.js';
 // @ts-expect-error - no types
 import { printFilesFromMigrationIds } from '@prisma/migrate/dist/utils/printFiles.js';
-import { sleep, isProd } from '@timesheeter/common';
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
 
 export const handler = async (): Promise<string> => {
@@ -37,7 +36,7 @@ export const handler = async (): Promise<string> => {
       // it might be waking up from slumber
       // so retry in a short bit
       console.warn('Database not yet available, retrying...');
-      await sleep(30_000);
+      await Promise.resolve(() => setTimeout(() => undefined, 30_000));
       console.info('Retrying...');
 
       await createDbIfNotExists(dbUrl);
@@ -125,7 +124,7 @@ const createDbIfNotExists = async (dbUrl: string): Promise<void> => {
   const dbNameSanitized = dbNameNoParams?.replace(/[^a-zA-Z0-9_]/g, '_');
 
   // create the database if it doesn't exist
-  if (!isProd()) {
+  if (process.env['SST_STAGE'] !== 'production') {
     // check if DB exists
 
     // temporarily set DB to postgres so we can connect

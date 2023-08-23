@@ -313,9 +313,19 @@ const authorize = async ({
     });
   }
 
+  const role = membershipRoleSchema.parse(membership.role);
+
+  // Ensure the user is an owner of the workspace
+  if (role !== 'owner') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'You must be an owner of the workspace to perform this action',
+    });
+  }
+
   return {
     workspace,
-    role: membershipRoleSchema.parse(membership.role),
+    role,
   };
 };
 
