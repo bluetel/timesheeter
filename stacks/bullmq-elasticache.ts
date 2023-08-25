@@ -11,7 +11,7 @@ export function BullmqElastiCache({ stack, app }: StackContext) {
 
   const elastiCacheSubnetGroup = new elasticache.CfnSubnetGroup(stack, 'bullmq-subnet-group', {
     description: 'bullmq subnet group',
-    subnetIds: vpc.isolatedSubnets.map((subnet) => subnet.subnetId),
+    subnetIds: vpc.privateSubnets.map((subnet) => subnet.subnetId),
   });
 
   const elasticCacheSecurityGroup = new ec2.SecurityGroup(stack, 'bullmq-security-group', {

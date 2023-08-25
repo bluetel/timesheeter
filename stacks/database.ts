@@ -6,10 +6,10 @@ import { Network } from './network';
 import { sstEnv } from './lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
+const databaseName = sstEnv.APP_NAME;
+
 export function Database({ stack, app }: StackContext) {
   const { defaultLambdaSecurityGroup, vpc } = use(Network);
-
-  const databaseName = sstEnv.APP_NAME;
 
   const databaseSecurityGroup = new ec2.SecurityGroup(stack, 'database-security-group', {
     vpc,
@@ -28,9 +28,6 @@ export function Database({ stack, app }: StackContext) {
       version: rds.PostgresEngineVersion.VER_15,
     }),
     vpc,
-    vpcSubnets: {
-      subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
-    },
     securityGroups: [databaseSecurityGroup],
     instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE4_GRAVITON, ec2.InstanceSize.MICRO),
     multiAz: false,
@@ -112,10 +109,12 @@ export function makeDatabaseUrl() {
     return process.env.DATABASE_URL as string;
   }
 
+  const prismaConnectionLimit = process.env.PRISMA_CONNECTION_LIMIT ?? 1;
+
   const { database, databaseName } = use(Database);
 
   const dbUsername = database.secret?.secretValueFromJson('username');
   const dbPassword = database.secret?.secretValueFromJson('password');
 
-  return `postgresql://${dbUsername}:${dbPassword}@${database.dbInstanceEndpointAddress}:${database.dbInstanceEndpointPort}/${databaseName}?connection_limit=1`;
+  return `postgresql://${dbUsername}:${dbPassword}@${database.dbInstanceEndpointAddress}:${database.dbInstanceEndpointPort}/${databaseName}?connection_limit=${prismaConnectionLimit}`;
 }
