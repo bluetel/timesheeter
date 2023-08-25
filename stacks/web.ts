@@ -33,10 +33,11 @@ export function Web({ stack, app }: StackContext) {
       server: {
         vpc,
         vpcSubnets: vpc.selectSubnets({ subnetType: SubnetType.PUBLIC }),
+        allowPublicSubnet: true,
       },
       revalidation: {
         vpc,
-        vpcSubnets: vpc.selectSubnets({ subnetType: SubnetType.PUBLIC }),
+        vpcSubnets: vpc.selectSubnets({ subnetType: SubnetType.PRIVATE_ISOLATED }),
       },
     },
     memorySize: 1024,

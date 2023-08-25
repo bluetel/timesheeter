@@ -2,7 +2,7 @@ import * as sst from 'sst/constructs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { BastionHost } from './bastionHost';
 import { Database } from './database';
-import { DatabaseMigrations } from './databaseMigrations';
+import { DatabaseMigrations } from './database-migrations';
 import { Dns } from './dns';
 import { Layers } from './layers';
 import { Network } from './network';

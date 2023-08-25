@@ -1,5 +1,5 @@
 import { RemovalPolicy } from 'aws-cdk-lib';
-import { IVpc, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
+import { IVpc } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import { App, Function, Script } from 'sst/constructs';
 import { PRISMA_VERSION } from '../layers';
@@ -48,12 +48,11 @@ export class DbMigrationScript extends Construct {
         { from: 'packages/web/prisma/migrations', to: 'packages/web/src/sst/migrations' },
         { from: 'packages/web/package.json', to: 'packages/web/src/package.json' },
       ],
-
       nodejs: {
         format: 'cjs',
         esbuild: { external: [...(migrationLayer.externalModules || [])] },
       },
-      timeout: '3 minutes',
+      timeout: '1 minutes',
       environment: {
         DB_SECRET_ARN: dbSecretsArn,
       },
