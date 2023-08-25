@@ -36,7 +36,7 @@ export const handler = async (): Promise<string> => {
       // it might be waking up from slumber
       // so retry in a short bit
       console.warn('Database not yet available, retrying...');
-      await Promise.resolve(() => setTimeout(() => undefined, 30_000));
+      await new Promise((resolve) => setTimeout(resolve, 30_000));
       console.info('Retrying...');
 
       await createDbIfNotExists(dbUrl);
@@ -124,25 +124,23 @@ const createDbIfNotExists = async (dbUrl: string): Promise<void> => {
   const dbNameSanitized = dbNameNoParams?.replace(/[^a-zA-Z0-9_]/g, '_');
 
   // create the database if it doesn't exist
-  if (process.env['SST_STAGE'] !== 'production') {
-    // check if DB exists
+  // check if DB exists
 
-    // temporarily set DB to postgres so we can connect
-    // parse DSN
-    const dsn = dbUrl.split('/');
-    dsn.pop(); // remove DB name
-    // set DB to postgres
-    dsn.push('postgres');
-    const dbUrlPostgres = dsn.join('/');
+  // temporarily set DB to postgres so we can connect
+  // parse DSN
+  const dsn = dbUrl.split('/');
+  dsn.pop(); // remove DB name
+  // set DB to postgres
+  dsn.push('postgres');
+  const dbUrlPostgres = dsn.join('/');
 
-    const client = new PrismaClient({ datasources: { db: { url: dbUrlPostgres } } });
-    await client.$connect();
-    const dbExists = await client.$queryRawUnsafe<unknown[]>(
-      `SELECT 1 FROM pg_database WHERE datname = '${dbNameSanitized}'`
-    );
-    if (!dbExists.length) {
-      console.info(`Database ${dbNameSanitized} does not exist, creating...`);
-      await client.$queryRawUnsafe(`CREATE DATABASE ${dbNameSanitized}`);
-    }
+  const client = new PrismaClient({ datasources: { db: { url: dbUrlPostgres } } });
+  await client.$connect();
+  const dbExists = await client.$queryRawUnsafe<unknown[]>(
+    `SELECT 1 FROM pg_database WHERE datname = '${dbNameSanitized}'`
+  );
+  if (!dbExists.length) {
+    console.info(`Database ${dbNameSanitized} does not exist, creating...`);
+    await client.$queryRawUnsafe(`CREATE DATABASE ${dbNameSanitized}`);
   }
 };

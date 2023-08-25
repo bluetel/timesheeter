@@ -3,7 +3,7 @@ import { IVpc } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import { App, Function, Script } from 'sst/constructs';
 import { PRISMA_VERSION } from '../layers';
-import { PrismaLayer } from './prismaLayer';
+import { PrismaLayer } from './prisma-layer';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 interface DbMigrationScriptProps {
@@ -52,7 +52,7 @@ export class DbMigrationScript extends Construct {
         format: 'cjs',
         esbuild: { external: [...(migrationLayer.externalModules || [])] },
       },
-      timeout: '1 minutes',
+      timeout: '3 minutes',
       environment: {
         DB_SECRET_ARN: dbSecretsArn,
       },

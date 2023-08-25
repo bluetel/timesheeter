@@ -1,7 +1,7 @@
 import { StackContext } from 'sst/constructs';
 import { RemovalPolicy } from 'aws-cdk-lib';
 import { ESM_REQUIRE_SHIM } from 'stacks';
-import { PrismaLayer } from './resources/prismaLayer';
+import { PrismaLayer } from './resources/prisma-layer';
 
 export const PRISMA_VERSION = '4.13.0';
 
