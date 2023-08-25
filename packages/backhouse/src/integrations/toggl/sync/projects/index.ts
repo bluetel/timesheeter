@@ -78,7 +78,6 @@ export const syncProjects = async ({
       continue;
     }
 
-    console.warn('Unreachable code reached in syncProjects');
     updatedProjectPairs.push(projectPair);
   }
 

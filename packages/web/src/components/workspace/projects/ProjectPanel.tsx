@@ -1,43 +1,33 @@
-import {
-  ProjectIcon,
-  autoAssignTasksHelpText,
-} from "@timesheeter/web/lib/workspace/projects";
-import type { ParsedProject } from "@timesheeter/web/server/api/routers/workspace/projects";
-import { EditProjectSideOver } from "./EditProjectSideOver";
-import { useState } from "react";
-import { DetailPanel } from "@timesheeter/web/components/ui/DetailPanel/DetailPanel";
-import { DeleteProjectModal } from "./DeleteProjectModal";
-import { PROJECTS_HELP_TEXT } from "@timesheeter/web/lib/workspace/projects";
-import { type RouterOutputs } from "@timesheeter/web/utils/api";
-import {
-  BasicDetailList,
-  type BasicDetailListItem,
-} from "@timesheeter/web/components/ui/DetailPanel/BasicDetailList";
-import {
-  ArrowPathRoundedSquareIcon,
-} from "@heroicons/react/24/outline";
-import { type IconType } from "react-icons";
-import { SelectableList } from "../../ui/SelectableList";
-import { SimpleEmptyState } from "../../ui/SimpleEmptyState";
-import { ConfigIcon } from "@timesheeter/web/lib/icons";
-import { type Project } from "@prisma/client";
+import { ProjectIcon, autoAssignTasksHelpText } from '@timesheeter/web/lib/workspace/projects';
+import type { ParsedProject } from '@timesheeter/web/server/api/routers/workspace/projects';
+import { EditProjectSideOver } from './EditProjectSideOver';
+import { useState } from 'react';
+import { DetailPanel } from '@timesheeter/web/components/ui/DetailPanel/DetailPanel';
+import { DeleteProjectModal } from './DeleteProjectModal';
+import { PROJECTS_HELP_TEXT } from '@timesheeter/web/lib/workspace/projects';
+import { type RouterOutputs } from '@timesheeter/web/utils/api';
+import { BasicDetailList, type BasicDetailListItem } from '@timesheeter/web/components/ui/DetailPanel/BasicDetailList';
+import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/outline';
+import { type IconType } from 'react-icons';
+import { SelectableList } from '../../ui/SelectableList';
+import { SimpleEmptyState } from '../../ui/SimpleEmptyState';
+import { ConfigIcon } from '@timesheeter/web/lib/icons';
+import { type Project } from '@prisma/client';
 
-type ProjectDetailProps = {
-  project: ParsedProject<Project & {
-    taskPrefixes: {
-      id: string;
-      prefix: string;
-    }[];
-  }>;
+type ProjectPanelProps = {
+  project: ParsedProject<
+    Project & {
+      taskPrefixes: {
+        id: string;
+        prefix: string;
+      }[];
+    }
+  >;
   refetchProjects: () => unknown;
   onNewProjectClick: () => void;
 };
 
-export const ProjectPanel = ({
-  project,
-  refetchProjects,
-  onNewProjectClick,
-}: ProjectDetailProps) => {
+export const ProjectPanel = ({ project, refetchProjects, onNewProjectClick }: ProjectPanelProps) => {
   const [showEditProjectSideOver, setShowEditProjectSideOver] = useState(false);
   const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false);
 
@@ -63,10 +53,10 @@ export const ProjectPanel = ({
       />
       <DetailPanel
         header={{
-          title: "Projects",
+          title: 'Projects',
           description: PROJECTS_HELP_TEXT,
           newButton: {
-            label: "New project",
+            label: 'New project',
             onClick: onNewProjectClick,
           },
         }}
@@ -83,12 +73,12 @@ export const ProjectPanel = ({
           bodies: [
             {
               icon: ConfigIcon,
-              label: "Config",
+              label: 'Config',
               body: <BasicDetailList items={basicDetails} />,
             },
             {
               icon: ArrowPathRoundedSquareIcon as IconType,
-              label: "Auto Assign Tasks",
+              label: 'Auto Assign Tasks',
               subDescription: autoAssignTasksHelpText,
               body:
                 project.config.autoAssignTasks.length > 0 ? (
@@ -104,7 +94,7 @@ export const ProjectPanel = ({
                     helpText="Edit the project to add auto assign tasks"
                     icon={ProjectIcon}
                     button={{
-                      label: "Edit project",
+                      label: 'Edit project',
                       onClick: () => setShowEditProjectSideOver(true),
                     }}
                     shrink
@@ -118,38 +108,36 @@ export const ProjectPanel = ({
   );
 };
 
-const useBasicDetails = (
-  project: RouterOutputs["workspace"]["projects"]["list"][0]
-) => {
+const useBasicDetails = (project: RouterOutputs['workspace']['projects']['list'][0]) => {
   const details: BasicDetailListItem[] = [
     {
       label: {
-        title: "ID",
-        description: "The unique identifier for this project",
+        title: 'ID',
+        description: 'The unique identifier for this project',
       },
       field: {
-        variant: "text",
+        variant: 'text',
         value: project.id,
       },
     },
     {
       label: {
-        title: "Name",
+        title: 'Name',
         description: `Descriptive name for the project, e.g. "Acme Corp"`,
       },
       field: {
-        variant: "text",
+        variant: 'text',
         value: project.name,
       },
     },
     {
       label: {
-        title: "Task Prefixes",
+        title: 'Task Prefixes',
         description: `Prefix that can be added to tasks created by this project, e.g. "AC" for "AC-1234"`,
       },
       field: {
-        variant: "text",
-        value: project.taskPrefixes.map(({ prefix }) => prefix).join(", "),
+        variant: 'text',
+        value: project.taskPrefixes.map(({ prefix }) => prefix).join(', '),
       },
     },
   ];

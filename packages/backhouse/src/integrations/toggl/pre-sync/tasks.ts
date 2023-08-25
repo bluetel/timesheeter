@@ -1,6 +1,7 @@
 import { matchTaskRegex } from '@timesheeter/web';
 import { RawTogglProject, RawTogglTask, RawTogglTimeEntry, toggl } from '../api';
 import { TogglIntegrationContext } from '../lib';
+import { resolveTaskNumberFromTogglDescriptions } from '../toggl-task-descriptions';
 
 export const matchTimeEntryToTask = async ({
   context,
@@ -20,7 +21,10 @@ export const matchTimeEntryToTask = async ({
   let updatedTogglTasks = togglTasks;
 
   // The matched task needs to be in the same project as the time entry
-  const matchingTask = togglTasks.find((task) => task.name === taskName && task.project_id === matchedProject.id);
+  const matchingTask = togglTasks.find(
+    (togglTask) =>
+      resolveTaskNumberFromTogglDescriptions(togglTask.name) === taskName && togglTask.project_id === matchedProject.id
+  );
 
   if (!timeEntry.stop) {
     throw new Error(

@@ -1,38 +1,25 @@
 import { StackContext } from 'sst/constructs';
-import { DnsValidatedCertificate, ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
-import { sstEnv } from './env';
+import { sstEnv } from './lib';
 
 export function Dns({ stack, app }: StackContext) {
-  // route53 zone
-  const hostedZoneName = process.env['HOSTED_ZONE_NAME'];
-  const hostedZone = hostedZoneName
-    ? HostedZone.fromLookup(stack, 'Zone', {
-        domainName: hostedZoneName,
-      })
-    : undefined;
+  // capitalise the first letter of the stage
+  const appStageFormatted = `${app.stage[0].toUpperCase()}${app.stage.slice(1)}`;
 
-  // certificate (in our region)
-  let certificateRegional: ICertificate | undefined, certificateGlobal: ICertificate | undefined;
+  // Create a new hosted zone
+  const hostedZone = new HostedZone(stack, `HostedZone${appStageFormatted}`, {
+    // No VPCs are associated with this hosted zone as it is a public zone
+    zoneName: sstEnv.HOSTED_ZONE,
+  });
 
-  if (hostedZoneName && hostedZone) {
-    certificateRegional = new DnsValidatedCertificate(stack, 'RegionalCertificate', {
-      domainName: hostedZoneName,
-      hostedZone,
-      subjectAlternativeNames: [`*.${hostedZoneName}`, sstEnv.NEXT_PUBLIC_URL],
-    });
-    // cert in us-east-1, required for cloudfront, cognito
-    certificateGlobal =
-      app.region === 'us-east-1'
-        ? certificateRegional
-        : new DnsValidatedCertificate(stack, 'GlobalCertificate', {
-            domainName: hostedZoneName,
+  const certificate = new Certificate(stack, `Certificate${appStageFormatted}`, {
+    domainName: hostedZone.zoneName,
+    validation: CertificateValidation.fromDns(hostedZone),
+  });
 
-            hostedZone,
-            subjectAlternativeNames: [`*.${hostedZoneName}`, sstEnv.NEXT_PUBLIC_URL],
-            region: 'us-east-1',
-          });
-  }
-
-  return { certificateRegional, certificateGlobal, hostedZone, domainName: hostedZoneName };
+  return {
+    certificate,
+    hostedZone,
+  };
 }

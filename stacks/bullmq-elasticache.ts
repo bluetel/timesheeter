@@ -1,7 +1,7 @@
 import { Config, StackContext, use } from 'sst/constructs';
 import * as elasticache from 'aws-cdk-lib/aws-elasticache';
 import { Network } from './network';
-import { sstEnv } from './env';
+import { sstEnv } from './lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 

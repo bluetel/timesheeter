@@ -1,19 +1,14 @@
-import { type RouterOutputs, api } from "@timesheeter/web/utils/api";
-import { DeleteConfirmationModal } from "@timesheeter/web/components/ui/DeleteConfirmationModal";
+import { type RouterOutputs, api } from '@timesheeter/web/utils/api';
+import { DeleteConfirmationModal } from '@timesheeter/web/components/ui/DeleteConfirmationModal';
 
 type DeleteTaskModalProps = {
   show: boolean;
   onClose: () => void;
-  task: RouterOutputs["workspace"]["tasks"]["list"]["data"][number];
+  task: RouterOutputs['workspace']['tasks']['list']['data'][number];
   refetchTasks: () => void;
 };
 
-export const DeleteTaskModal = ({
-  show,
-  onClose,
-  task,
-  refetchTasks,
-}: DeleteTaskModalProps) => {
+export const DeleteTaskModal = ({ show, onClose, task, refetchTasks }: DeleteTaskModalProps) => {
   const deleteMutation = api.workspace.tasks.delete.useMutation({
     onSuccess: () => {
       void refetchTasks();

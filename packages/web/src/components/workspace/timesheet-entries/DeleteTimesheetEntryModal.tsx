@@ -1,10 +1,10 @@
-import { type RouterOutputs, api } from "@timesheeter/web/utils/api";
-import { DeleteConfirmationModal } from "@timesheeter/web/components/ui/DeleteConfirmationModal";
+import { type RouterOutputs, api } from '@timesheeter/web/utils/api';
+import { DeleteConfirmationModal } from '@timesheeter/web/components/ui/DeleteConfirmationModal';
 
 type DeleteTimesheetEntryModalProps = {
   show: boolean;
   onClose: () => void;
-  timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"]["data"][number];
+  timesheetEntry: RouterOutputs['workspace']['timesheetEntries']['list']['data'][number];
   refetchTimesheetEntries: () => void;
 };
 

@@ -3,7 +3,7 @@ import * as rds from 'aws-cdk-lib/aws-rds';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { RemovalPolicy } from 'aws-cdk-lib';
 import { Network } from './network';
-import { sstEnv } from './env';
+import { sstEnv } from './lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
 export function Database({ stack, app }: StackContext) {
@@ -109,12 +109,10 @@ export function makeDatabaseUrl() {
     return process.env.DATABASE_URL as string;
   }
 
-  const prismaConnectionLimit = process.env.PRISMA_CONNECTION_LIMIT ?? 5;
-
   const { database, databaseName } = use(Database);
 
   const dbUsername = database.secret?.secretValueFromJson('username');
   const dbPassword = database.secret?.secretValueFromJson('password');
 
-  return `postgresql://${dbUsername}:${dbPassword}@${database.dbInstanceEndpointAddress}:${database.dbInstanceEndpointPort}/${databaseName}?connection_limit=${prismaConnectionLimit}`;
+  return `postgresql://${dbUsername}:${dbPassword}@${database.dbInstanceEndpointAddress}:${database.dbInstanceEndpointPort}/${databaseName}?connection_limit=1`;
 }

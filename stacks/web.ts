@@ -1,13 +1,13 @@
 import { NextjsSite, StackContext, use } from 'sst/constructs';
-import { sstEnv } from './env';
+import { sstEnv } from './lib';
 import { Database, makeDatabaseUrl } from './database';
 import { BullmqElastiCache } from './bullmq-elasticache';
 import { Network } from './network';
 import { SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { Dns } from './dns';
 
-export async function Web({ stack, app }: StackContext) {
-  const dns = use(Dns);
+export function Web({ stack, app }: StackContext) {
+  const { hostedZone } = use(Dns);
   const { vpc } = use(Network);
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
   const { bullmqElastiCache, elastiCacheAccessPolicy } = use(BullmqElastiCache);
@@ -16,29 +16,27 @@ export async function Web({ stack, app }: StackContext) {
     throw new Error('Database secret not found');
   }
 
-  if (sstEnv.EXTERNAL_DOMAIN && !sstEnv.EXTERNAL_CERT_ARN) {
-    throw new Error('EXTERNAL_CERT_ARN must be set when using EXTERNAL_DOMAIN');
-  }
-
   // docs: https://docs.serverless-stack.com/constructs/NextjsSite
   const frontendSite = new NextjsSite(stack, 'Web', {
     path: 'packages/web',
-    customDomain: dns.domainName
-      ? {
-          domainName: dns.domainName,
-        }
-      : undefined,
+    // Use the root hosted zone
+    customDomain: {
+      domainName: hostedZone.zoneName,
+      cdk: {
+        hostedZone,
+      },
+    },
     cdk: {
       distribution: {
         comment: `NextJS distribution for ${app.name} (${app.stage})`,
       },
       server: {
         vpc,
-        vpcSubnets: vpc.selectSubnets({ subnetType: SubnetType.PRIVATE_WITH_EGRESS }),
+        vpcSubnets: vpc.selectSubnets({ subnetType: SubnetType.PUBLIC }),
       },
       revalidation: {
         vpc,
-        vpcSubnets: vpc.selectSubnets({ subnetType: SubnetType.PRIVATE_WITH_EGRESS }),
+        vpcSubnets: vpc.selectSubnets({ subnetType: SubnetType.PUBLIC }),
       },
     },
     memorySize: 1024,
@@ -54,7 +52,7 @@ export async function Web({ stack, app }: StackContext) {
       BULLMQ_REDIS_PORT: bullmqElastiCache.attrRedisEndpointPort,
       DB_SECRET_ARN: database.secret.secretArn,
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
-      NEXT_PUBLIC_URL: sstEnv.NEXT_PUBLIC_URL,
+      NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
     },
   });
 

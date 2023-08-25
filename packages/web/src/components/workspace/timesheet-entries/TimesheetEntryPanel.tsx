@@ -1,20 +1,17 @@
-import { TimesheetEntryIcon } from "@timesheeter/web/lib/workspace/timesheet-entries";
-import { EditTimesheetEntrySideOver } from "./EditTimesheetEntrySideOver";
-import { useState } from "react";
-import { DetailPanel } from "@timesheeter/web/components/ui/DetailPanel/DetailPanel";
-import { DeleteTimesheetEntryModal } from "./DeleteTimesheetEntryModal";
-import { type RouterOutputs } from "@timesheeter/web/utils/api";
-import {
-  BasicDetailList,
-  type BasicDetailListItem,
-} from "@timesheeter/web/components/ui/DetailPanel/BasicDetailList";
-import { TIMESHEET_ENTRIES_HELP_TEXT } from "@timesheeter/web/lib";
+import { TimesheetEntryIcon } from '@timesheeter/web/lib/workspace/timesheet-entries';
+import { EditTimesheetEntrySideOver } from './EditTimesheetEntrySideOver';
+import { useState } from 'react';
+import { DetailPanel } from '@timesheeter/web/components/ui/DetailPanel/DetailPanel';
+import { DeleteTimesheetEntryModal } from './DeleteTimesheetEntryModal';
+import { type RouterOutputs } from '@timesheeter/web/utils/api';
+import { BasicDetailList, type BasicDetailListItem } from '@timesheeter/web/components/ui/DetailPanel/BasicDetailList';
+import { TIMESHEET_ENTRIES_HELP_TEXT } from '@timesheeter/web/lib';
 
-type TimesheetEntryDetailProps = {
-  timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"]["data"][number];
+type TimesheetEntryPanelProps = {
+  timesheetEntry: RouterOutputs['workspace']['timesheetEntries']['list']['data'][number];
   refetchTimesheetEntries: () => unknown;
   onNewTimesheetEntryClick: () => void;
-  tasks: RouterOutputs["workspace"]["tasks"]["listMinimal"];
+  tasks: RouterOutputs['workspace']['tasks']['listMinimal'];
 };
 
 export const TimesheetEntryPanel = ({
@@ -22,18 +19,14 @@ export const TimesheetEntryPanel = ({
   refetchTimesheetEntries,
   onNewTimesheetEntryClick,
   tasks,
-}: TimesheetEntryDetailProps) => {
-  const [showEditTimesheetEntrySideOver, setShowEditTimesheetEntrySideOver] =
-    useState(false);
-  const [showDeleteTimesheetEntryModal, setShowDeleteTimesheetEntryModal] =
-    useState(false);
+}: TimesheetEntryPanelProps) => {
+  const [showEditTimesheetEntrySideOver, setShowEditTimesheetEntrySideOver] = useState(false);
+  const [showDeleteTimesheetEntryModal, setShowDeleteTimesheetEntryModal] = useState(false);
 
   const basicDetails = useBasicDetails(timesheetEntry);
 
   const getSubDescription = () => {
-    if (
-      timesheetEntry.task.ticketForTask
-    ) {
+    if (timesheetEntry.task.ticketForTask) {
       return `${timesheetEntry.task.ticketForTask.taskPrefix.prefix}-${timesheetEntry.task.ticketForTask.number}`;
     }
 
@@ -64,15 +57,15 @@ export const TimesheetEntryPanel = ({
       />
       <DetailPanel
         header={{
-          title: "Timesheet Entries",
+          title: 'Timesheet Entries',
           description: TIMESHEET_ENTRIES_HELP_TEXT,
           newButton: {
-            label: "New timesheet entry",
+            label: 'New timesheet entry',
             onClick: onNewTimesheetEntryClick,
           },
         }}
         content={{
-          name: timesheetEntry.description ?? subDescription ?? "Unnamed entry",
+          name: timesheetEntry.description ?? subDescription ?? 'Unnamed entry',
           description: timesheetEntry.description ? subDescription : undefined,
           icon: TimesheetEntryIcon,
           endButtons: {
@@ -89,68 +82,66 @@ export const TimesheetEntryPanel = ({
   );
 };
 
-const useBasicDetails = (
-  timesheetEntry: RouterOutputs["workspace"]["timesheetEntries"]["list"]["data"][number]
-) => {
+const useBasicDetails = (timesheetEntry: RouterOutputs['workspace']['timesheetEntries']['list']['data'][number]) => {
   const details: BasicDetailListItem[] = [
     {
       label: {
-        title: "ID",
-        description: "The unique identifier for this timesheet entry",
+        title: 'ID',
+        description: 'The unique identifier for this timesheet entry',
       },
       field: {
-        variant: "text",
+        variant: 'text',
         value: timesheetEntry.id,
       },
     },
     {
       label: {
-        title: "Task ID",
-        description: "The ID of the parent task",
+        title: 'Task ID',
+        description: 'The ID of the parent task',
       },
       field: {
-        variant: "text",
-        value: timesheetEntry.task?.id ?? "",
+        variant: 'text',
+        value: timesheetEntry.task?.id ?? '',
       },
     },
     {
       label: {
-        title: "Task Name",
-        description: "The name of the parent task",
+        title: 'Task Name',
+        description: 'The name of the parent task',
       },
       field: {
-        variant: "text",
-        value: timesheetEntry.task?.name ?? "",
+        variant: 'text',
+        value: timesheetEntry.task?.name ?? '',
       },
     },
     {
       label: {
-        title: "Description",
+        title: 'Description',
         description: `Description for this timesheet entry e.g. "Implementing new Nav API"`,
       },
       field: {
-        variant: "text",
-        value: timesheetEntry.description ?? "",
+        variant: 'text',
+        value: timesheetEntry.description ?? '',
       },
     },
     {
       label: {
-        title: "Start",
-        description: "The date and time when this timesheet entry started",
+        title: 'Start',
+        description: 'The date and time when this timesheet entry started',
       },
       field: {
-        variant: "text",
-        value: timesheetEntry.start.toLocaleString("en-GB"),
+        variant: 'text',
+        value: timesheetEntry.start.toLocaleString('en-GB'),
       },
     },
     {
       label: {
-        title: "End",
-        description: "The date and time when this timesheet entry ended",
+        title: 'End',
+        description: 'The date and time when this timesheet entry ended',
       },
       field: {
-        variant: "text",
-        value: timesheetEntry.end.toLocaleString("en-GB"),
+        variant: 'text',
+        value: timesheetEntry.end.toLocaleString('en-GB'),
       },
     },
   ];

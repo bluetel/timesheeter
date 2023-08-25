@@ -1,43 +1,39 @@
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import type {
-  GetServerSidePropsContext,
-  InferGetServerSidePropsType,
-} from "next";
-import superjson from "superjson";
-import { WorkspaceLayout } from "@timesheeter/web/components/workspace/WorkspaceLayout";
-import { appRouter } from "@timesheeter/web/server/api/root";
-import { createTRPCContext } from "@timesheeter/web/server/api/trpc";
-import { type RouterOutputs, api } from "@timesheeter/web/utils/api";
-import { type WorkspaceInfo, getWorkspaceInfoDiscrete } from "@timesheeter/web/server/lib/workspace-info";
-import { useEffect, useMemo, useState } from "react";
-import { EditTaskSideOver } from "@timesheeter/web/components/workspace/tasks/EditTaskSideOver";
-import { TaskPanel } from "@timesheeter/web/components/workspace/tasks/TaskPanel";
-import { TASKS_HELP_TEXT } from "@timesheeter/web/lib/workspace/tasks";
-import { ProjectIcon, TaskIcon } from "@timesheeter/web/lib";
-import { SimpleEmptyState } from "@timesheeter/web/components/ui/SimpleEmptyState";
-import { SelectableList } from "@timesheeter/web/components/ui/SelectableList";
-import { useRouter } from "next/router";
+import { createServerSideHelpers } from '@trpc/react-query/server';
+import type { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
+import superjson from 'superjson';
+import { WorkspaceLayout } from '@timesheeter/web/components/workspace/WorkspaceLayout';
+import { appRouter } from '@timesheeter/web/server/api/root';
+import { createTRPCContext } from '@timesheeter/web/server/api/trpc';
+import { type RouterOutputs, api } from '@timesheeter/web/utils/api';
+import { type WorkspaceInfo, getWorkspaceInfoDiscrete } from '@timesheeter/web/server/lib/workspace-info';
+import { useEffect, useMemo, useState } from 'react';
+import { EditTaskSideOver } from '@timesheeter/web/components/workspace/tasks/EditTaskSideOver';
+import { TaskPanel } from '@timesheeter/web/components/workspace/tasks/TaskPanel';
+import { TASKS_HELP_TEXT } from '@timesheeter/web/lib/workspace/tasks';
+import { ProjectIcon, TaskIcon } from '@timesheeter/web/lib';
+import { SimpleEmptyState } from '@timesheeter/web/components/ui/SimpleEmptyState';
+import { SelectableList } from '@timesheeter/web/components/ui/SelectableList';
+import { useRouter } from 'next/router';
 
-type GetServerSidePropsResult = {
-  redirect: {
-    destination: string;
-    permanent: boolean;
-  }
-} | {
-  props: {
-    workspaceInfo: WorkspaceInfo
-    trpcState: unknown
-  };
-} | {
-  notFound: true
-}
+type GetServerSidePropsResult =
+  | {
+      redirect: {
+        destination: string;
+        permanent: boolean;
+      };
+    }
+  | {
+      props: {
+        workspaceInfo: WorkspaceInfo;
+        trpcState: unknown;
+      };
+    }
+  | {
+      notFound: true;
+    };
 
-export const getServerSideProps = async (
-  context: GetServerSidePropsContext
-): Promise<GetServerSidePropsResult> => {
-  const { redirect, props: workspaceInfo } = await getWorkspaceInfoDiscrete(
-    context
-  );
+export const getServerSideProps = async (context: GetServerSidePropsContext): Promise<GetServerSidePropsResult> => {
+  const { redirect, props: workspaceInfo } = await getWorkspaceInfoDiscrete(context);
 
   if (redirect) {
     return { redirect };
@@ -76,33 +72,34 @@ export const getServerSideProps = async (
   };
 };
 
-const Tasks = ({
-  workspaceInfo,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+// Disables pagination for now due to issues
+const fetchAllToPage = true;
+
+const Tasks = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const [pageCount, setPageCount] = useState(1);
 
-  const { refetch: refetchTasks, data: taskData } =
-    api.workspace.tasks.list.useQuery(
-      {
-        workspaceId: workspaceInfo.workspace.id,
-        page: pageCount,
+  const { refetch: refetchTasks, data: taskData } = api.workspace.tasks.list.useQuery(
+    {
+      workspaceId: workspaceInfo.workspace.id,
+      page: pageCount,
+      fetchAllToPage,
+    },
+    {
+      onSuccess: ({ data: newTasks }) => {
+        setTasks((oldTasks) => {
+          if (fetchAllToPage) {
+            return newTasks;
+          }
+
+          const oldTasksNotInNewTasks = oldTasks.filter((oldTask) => !newTasks.find((task) => task.id === oldTask.id));
+
+          return [...oldTasksNotInNewTasks, ...newTasks];
+        });
       },
-      {
-        onSuccess: ({ data: tasks }) => {
-          setTasks((oldTasks) => {
-            const oldTasksNotInNewTasks = oldTasks.filter(
-              (oldTask) => !tasks.find((task) => task.id === oldTask.id)
-            );
+    }
+  );
 
-            return [...oldTasksNotInNewTasks, ...tasks];
-          });
-        },
-      }
-    );
-
-  const [tasks, setTasks] = useState<
-    RouterOutputs["workspace"]["tasks"]["list"]["data"]
-  >(taskData?.data ?? []);
+  const [tasks, setTasks] = useState<RouterOutputs['workspace']['tasks']['list']['data']>(taskData?.data ?? []);
 
   const fetchNextPage = async () => {
     setPageCount((oldPageCount) => oldPageCount + 1);
@@ -125,10 +122,9 @@ const Tasks = ({
       tasks.map((task) => ({
         id: task.id,
         label: task.name,
-        subLabel:
-          task.ticketForTask
-            ? `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}`
-            : undefined,
+        subLabel: task.ticketForTask
+          ? `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}`
+          : undefined,
         icon: TaskIcon,
         onClick: () =>
           setSelectedTask({
@@ -157,10 +153,7 @@ const Tasks = ({
       setSelectedTask(null);
     }
 
-    if (
-      selectedTask !== null &&
-      !tasks?.find((i) => i.id === selectedTask.id)
-    ) {
+    if (selectedTask !== null && !tasks?.find((i) => i.id === selectedTask.id)) {
       setSelectedTask(null);
     }
   }, [tasks, selectedTask]);
@@ -175,11 +168,8 @@ const Tasks = ({
           icon={ProjectIcon}
           helpText="Create a project first then come back here"
           button={{
-            label: "Create project",
-            onClick: () =>
-              push(
-                `/workspace/${workspaceInfo.workspace.id}/projects?create=true`
-              ),
+            label: 'Create project',
+            onClick: () => push(`/workspace/${workspaceInfo.workspace.id}/projects?create=true`),
           }}
         />
       </WorkspaceLayout>
@@ -204,7 +194,7 @@ const Tasks = ({
             title="No Tasks"
             helpText={TASKS_HELP_TEXT}
             button={{
-              label: "New task",
+              label: 'New task',
               onClick: () => setShowNewTaskSideOver(true),
             }}
             icon={TaskIcon}
@@ -228,18 +218,12 @@ const Tasks = ({
         workspaceInfo={workspaceInfo}
         secondAside={
           <nav className="h-full overflow-y-auto">
-            <SelectableList
-              items={taskItems}
-              loadMore={taskData?.next ? fetchNextPage : undefined}
-            />
+            <SelectableList items={taskItems} loadMore={taskData?.next ? fetchNextPage : undefined} />
           </nav>
         }
       >
         {tasks.map((task) => (
-          <div
-            key={task.id}
-            className={task.id === selectedTask?.id ? "" : "hidden"}
-          >
+          <div key={task.id} className={task.id === selectedTask?.id ? '' : 'hidden'}>
             <TaskPanel
               task={task}
               refetchTasks={refetchTasks}

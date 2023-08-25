@@ -1,46 +1,39 @@
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import type {
-  GetServerSidePropsContext,
-  InferGetServerSidePropsType,
-} from "next";
-import superjson from "superjson";
-import { WorkspaceLayout } from "@timesheeter/web/components/workspace/WorkspaceLayout";
-import { appRouter } from "@timesheeter/web/server/api/root";
-import { createTRPCContext } from "@timesheeter/web/server/api/trpc";
-import { type RouterOutputs, api } from "@timesheeter/web/utils/api";
-import { type WorkspaceInfo, getWorkspaceInfoDiscrete } from "@timesheeter/web/server/lib/workspace-info";
-import { useEffect, useMemo, useState } from "react";
-import {
-  TIMESHEET_ENTRIES_HELP_TEXT,
-  TimesheetEntryIcon,
-} from "@timesheeter/web/lib/workspace/timesheet-entries";
-import { SimpleEmptyState } from "@timesheeter/web/components/ui/SimpleEmptyState";
-import { SelectableList } from "@timesheeter/web/components/ui/SelectableList";
-import { useRouter } from "next/router";
-import { TimesheetEntryPanel } from "@timesheeter/web/components/workspace/timesheet-entries/TimesheetEntryPanel";
-import { EditTimesheetEntrySideOver } from "@timesheeter/web/components/workspace/timesheet-entries/EditTimesheetEntrySideOver";
-import { TaskIcon } from "@timesheeter/web/lib";
+import { createServerSideHelpers } from '@trpc/react-query/server';
+import type { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
+import superjson from 'superjson';
+import { WorkspaceLayout } from '@timesheeter/web/components/workspace/WorkspaceLayout';
+import { appRouter } from '@timesheeter/web/server/api/root';
+import { createTRPCContext } from '@timesheeter/web/server/api/trpc';
+import { type RouterOutputs, api } from '@timesheeter/web/utils/api';
+import { type WorkspaceInfo, getWorkspaceInfoDiscrete } from '@timesheeter/web/server/lib/workspace-info';
+import { useEffect, useMemo, useState } from 'react';
+import { TIMESHEET_ENTRIES_HELP_TEXT, TimesheetEntryIcon } from '@timesheeter/web/lib/workspace/timesheet-entries';
+import { SimpleEmptyState } from '@timesheeter/web/components/ui/SimpleEmptyState';
+import { SelectableList } from '@timesheeter/web/components/ui/SelectableList';
+import { useRouter } from 'next/router';
+import { TimesheetEntryPanel } from '@timesheeter/web/components/workspace/timesheet-entries/TimesheetEntryPanel';
+import { EditTimesheetEntrySideOver } from '@timesheeter/web/components/workspace/timesheet-entries/EditTimesheetEntrySideOver';
+import { TaskIcon } from '@timesheeter/web/lib';
 
-type GetServerSidePropsResult = {
-  redirect: {
-    destination: string;
-    permanent: boolean;
-  }
-} | {
-  props: {
-    workspaceInfo: WorkspaceInfo
-    trpcState: unknown
-  };
-} | {
-  notFound: true
-}
+type GetServerSidePropsResult =
+  | {
+      redirect: {
+        destination: string;
+        permanent: boolean;
+      };
+    }
+  | {
+      props: {
+        workspaceInfo: WorkspaceInfo;
+        trpcState: unknown;
+      };
+    }
+  | {
+      notFound: true;
+    };
 
-export const getServerSideProps = async (
-  context: GetServerSidePropsContext
-): Promise<GetServerSidePropsResult> => {
-  const { redirect, props: workspaceInfo } = await getWorkspaceInfoDiscrete(
-    context
-  );
+export const getServerSideProps = async (context: GetServerSidePropsContext): Promise<GetServerSidePropsResult> => {
+  const { redirect, props: workspaceInfo } = await getWorkspaceInfoDiscrete(context);
 
   if (redirect) {
     return { redirect };
@@ -79,35 +72,37 @@ export const getServerSideProps = async (
   };
 };
 
-const TimesheetEntries = ({
-  workspaceInfo,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+// Disables pagination for now due to issues
+const fetchAllToPage = true;
+
+const TimesheetEntries = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const [pageCount, setPageCount] = useState(1);
 
-  const { refetch: refetchTimesheetEntries, data: timesheetEntryData } =
-    api.workspace.timesheetEntries.list.useQuery(
-      {
-        workspaceId: workspaceInfo.workspace.id,
-        page: pageCount,
-      },
-      {
-        onSuccess: ({ data: timesheetEntries }) => {
-          setTimesheetEntries((oldEntries) => {
-            const oldTimesheetEntriesNotInNew = oldEntries.filter(
-              (oldEntry) =>
-                !timesheetEntries.find(
-                  (newEntry) => newEntry.id === oldEntry.id
-                )
-            );
+  const { data: timesheetEntryData, refetch: refetchTimesheetEntries } = api.workspace.timesheetEntries.list.useQuery(
+    {
+      workspaceId: workspaceInfo.workspace.id,
+      page: pageCount,
+      fetchAllToPage,
+    },
+    {
+      onSuccess: ({ data: newTimesheetEntries }) => {
+        setTimesheetEntries((oldEntries) => {
+          if (fetchAllToPage) {
+            return newTimesheetEntries;
+          }
 
-            return [...oldTimesheetEntriesNotInNew, ...timesheetEntries];
-          });
-        },
-      }
-    );
+          const oldTimesheetEntriesNotInNew = oldEntries.filter(
+            (oldEntry) => !newTimesheetEntries.find((newEntry) => newEntry.id === oldEntry.id)
+          );
+
+          return [...oldTimesheetEntriesNotInNew, ...newTimesheetEntries];
+        });
+      },
+    }
+  );
 
   const [timesheetEntries, setTimesheetEntries] = useState<
-    RouterOutputs["workspace"]["timesheetEntries"]["list"]["data"]
+    RouterOutputs['workspace']['timesheetEntries']['list']['data']
   >(timesheetEntryData?.data ?? []);
 
   const fetchNextPage = async () => {
@@ -119,8 +114,7 @@ const TimesheetEntries = ({
     workspaceId: workspaceInfo.workspace.id,
   });
 
-  const [showNewTimesheetEntriesSideOver, setShowNewTimesheetEntriesSideOver] =
-    useState(false);
+  const [showNewTimesheetEntriesSideOver, setShowNewTimesheetEntriesSideOver] = useState(false);
 
   const [selectedTask, setSelectedTask] = useState<{
     id: string;
@@ -131,9 +125,7 @@ const TimesheetEntries = ({
     () =>
       timesheetEntries.map((timesheetEntry) => {
         const getSubDescription = () => {
-          if (
-            timesheetEntry.task.ticketForTask
-          ) {
+          if (timesheetEntry.task.ticketForTask) {
             return `${timesheetEntry.task.ticketForTask.taskPrefix.prefix}-${timesheetEntry.task.ticketForTask.number}`;
           }
 
@@ -143,16 +135,13 @@ const TimesheetEntries = ({
         const subDescription = getSubDescription();
 
         return {
-          label:
-            timesheetEntry.description ?? subDescription ?? "Unnamed entry",
+          label: timesheetEntry.description ?? subDescription ?? 'Unnamed entry',
           subLabel: timesheetEntry.description ? subDescription : undefined,
           icon: TimesheetEntryIcon,
           onClick: () =>
             setSelectedTask({
               id: timesheetEntry.id,
-              index: timesheetEntries.findIndex(
-                (i) => i.id === timesheetEntry.id
-              ),
+              index: timesheetEntries.findIndex((i) => i.id === timesheetEntry.id),
             }),
           selected: selectedTask?.id === timesheetEntry.id,
         };
@@ -177,10 +166,7 @@ const TimesheetEntries = ({
       setSelectedTask(null);
     }
 
-    if (
-      selectedTask !== null &&
-      !timesheetEntries?.find((i) => i.id === selectedTask.id)
-    ) {
+    if (selectedTask !== null && !timesheetEntries?.find((i) => i.id === selectedTask.id)) {
       setSelectedTask(null);
     }
   }, [timesheetEntries, selectedTask]);
@@ -195,11 +181,8 @@ const TimesheetEntries = ({
           icon={TaskIcon}
           helpText="Create a task first then come back here"
           button={{
-            label: "Create task",
-            onClick: () =>
-              push(
-                `/workspace/${workspaceInfo.workspace.id}/tasks?create=true`
-              ),
+            label: 'Create task',
+            onClick: () => push(`/workspace/${workspaceInfo.workspace.id}/tasks?create=true`),
           }}
         />
       </WorkspaceLayout>
@@ -225,7 +208,7 @@ const TimesheetEntries = ({
             title="No Timesheet Entries"
             helpText={TIMESHEET_ENTRIES_HELP_TEXT}
             button={{
-              label: "New timesheet entry",
+              label: 'New timesheet entry',
               onClick: () => setShowNewTimesheetEntriesSideOver(true),
             }}
             icon={TimesheetEntryIcon}
@@ -260,16 +243,11 @@ const TimesheetEntries = ({
         }
       >
         {(timesheetEntries ?? []).map((timesheetEntry) => (
-          <div
-            key={timesheetEntry.id}
-            className={timesheetEntry.id === selectedTask?.id ? "" : "hidden"}
-          >
+          <div key={timesheetEntry.id} className={timesheetEntry.id === selectedTask?.id ? '' : 'hidden'}>
             <TimesheetEntryPanel
               timesheetEntry={timesheetEntry}
               refetchTimesheetEntries={refetchTimesheetEntries}
-              onNewTimesheetEntryClick={() =>
-                setShowNewTimesheetEntriesSideOver(true)
-              }
+              onNewTimesheetEntryClick={() => setShowNewTimesheetEntriesSideOver(true)}
               tasks={tasks ?? []}
             />
           </div>

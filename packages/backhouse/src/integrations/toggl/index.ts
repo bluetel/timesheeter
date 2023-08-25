@@ -1,6 +1,7 @@
 import { createTogglIntegrationContext, TogglIntegration } from './lib';
 import { preSync } from './pre-sync';
 import { syncProjects, syncTasks, syncTimesheetEntries } from './sync';
+import { applyTaskDescriptions } from './toggl-task-descriptions';
 
 export const handleTogglIntegration = async ({
   integration: {
@@ -31,6 +32,8 @@ export const handleTogglIntegration = async ({
   const syncedProjectPairs = await syncProjects({ context });
 
   const syncedTaskPairs = await syncTasks({ context, syncedProjectPairs });
+
+  await applyTaskDescriptions({ context, syncedTaskPairs });
 
   await syncTimesheetEntries({
     context,

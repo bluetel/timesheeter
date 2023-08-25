@@ -1,17 +1,19 @@
 import { StackContext, use } from 'sst/constructs';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import { sstEnv } from './env';
+import { sstEnv } from './lib';
 import { Database, makeDatabaseUrl } from './database';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { BullmqElastiCache } from './bullmq-elasticache';
 import { Ecs } from './ecs';
 import { Network } from './network';
 import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
+import { Dns } from './dns';
 
 export const Backhouse = ({ stack }: StackContext) => {
-  const { cluster } = use(Ecs);
   const { vpc } = use(Network);
+  const { hostedZone } = use(Dns);
+  const { cluster } = use(Ecs);
 
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
   const { elastiCacheAccessPolicy, bullmqElastiCache } = use(BullmqElastiCache);
@@ -79,7 +81,7 @@ export const Backhouse = ({ stack }: StackContext) => {
       BULLMQ_REDIS_PORT: bullmqElastiCache.attrRedisEndpointPort,
       DB_SECRET_ARN: database.secret.secretArn,
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
-      NEXT_PUBLIC_URL: sstEnv.NEXT_PUBLIC_URL,
+      NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
     },
   });
 

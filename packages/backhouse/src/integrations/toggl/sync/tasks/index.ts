@@ -122,7 +122,6 @@ export const syncTasks = async ({
       continue;
     }
 
-    console.warn('Unreachable code reached in syncTasks');
     updatedTaskPairs.push(taskPair);
   }
 
