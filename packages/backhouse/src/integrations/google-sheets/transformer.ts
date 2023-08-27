@@ -96,16 +96,16 @@ const formatTimesheetEntryCells = (
   const formattedDate = formatOutputDate(date);
 
   return groupedEntries.map((entry) => {
-    const { projectName, jiraTask, time, details, overtime } = entry;
+    const { projectName, taskDetails, time, details, overtime } = entry;
 
-    return [formattedDate, projectName, jiraTask, time, removeDetailDuplicates(details), overtime];
+    return [formattedDate, projectName, taskDetails, time, removeDetailDuplicates(details), overtime];
   });
 };
 
 type GroupedEntry = {
   taskId: string;
   projectName: string;
-  jiraTask: string;
+  taskDetails: string;
   time: string;
   details: string;
   overtime: string;
@@ -144,7 +144,7 @@ const groupEntriesToTasks = (
       acc.push({
         taskId: task.id,
         projectName: task.project?.name ?? '',
-        jiraTask: taskNumber ? `${taskNumber} - ${task.name}` : taskNumber ?? task.name,
+        taskDetails: formatTaskDetails({ taskNumber, task }),
         time: timesheetEntry.end.getTime() - timesheetEntry.start.getTime(),
         overtime,
         details: timesheetEntry.description ?? '',
@@ -250,4 +250,18 @@ const removeDetailDuplicates = (input: string) => {
     .filter((item) => item !== '');
   const uniqueItems = Array.from(new Set(items));
   return uniqueItems.join(', ');
+};
+
+const formatTaskDetails = ({
+  taskNumber,
+  task,
+}: {
+  taskNumber: string | undefined;
+  task: DatabaseEntries['timesheetEntries'][number]['task'];
+}) => {
+  if (taskNumber) {
+    return !!task.name ? `${taskNumber}: ${task.name}` : taskNumber;
+  }
+
+  return task.name;
 };
