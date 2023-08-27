@@ -43,11 +43,11 @@ export const createTogglSyncRecords = async ({
 }) => {
   const { togglProjects, uncategorizedTasksProject } = preSyncData;
 
-  // Ensure no duplicate ids
-  const duplicatesAllProjects = [...togglProjects, uncategorizedTasksProject];
+  const duplicateAllProjects = [...togglProjects, uncategorizedTasksProject];
 
-  const allProjects = duplicatesAllProjects.filter(
-    (project, index) => duplicatesAllProjects.findIndex((project2) => project2.id === project.id) === index
+  // Ensure no duplicate ids
+  const allProjects = duplicateAllProjects.filter(
+    (project, index) => duplicateAllProjects.findIndex((project2) => project2.id === project.id) === index
   );
 
   // Create sync records for all projects if they don't exist

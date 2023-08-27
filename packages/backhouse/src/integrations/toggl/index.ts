@@ -1,3 +1,4 @@
+import { cleanupDeletedObjects } from './cleanup-deleted-objects';
 import { createTogglIntegrationContext, TogglIntegration } from './lib';
 import { preSync } from './pre-sync';
 import { syncProjects, syncTasks, syncTimesheetEntries } from './sync';
@@ -33,10 +34,21 @@ export const handleTogglIntegration = async ({
 
   const syncedTaskPairs = await syncTasks({ context, syncedProjectPairs });
 
-  await applyTaskDescriptions({ context, syncedTaskPairs });
-
-  await syncTimesheetEntries({
+  const syncedTimesheetEntryPairs = await syncTimesheetEntries({
     context,
     syncedTaskPairs,
   });
+
+  // We can handle these concurrently to speed things up
+  await Promise.all([
+    applyTaskDescriptions({ context, syncedTaskPairs }),
+
+    // Once an object has been confirmed as deleted, we can delete all delete references to it
+    cleanupDeletedObjects({
+      context,
+      syncedProjectPairs,
+      syncedTaskPairs,
+      syncedTimesheetEntryPairs,
+    }),
+  ]);
 };
