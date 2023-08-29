@@ -10,13 +10,12 @@
 
   Not really using a public API.
 */
+// @ts-expect-error - Bad types
 import type { PrismaClientInitializationError } from '@prisma/client/runtime';
 import chalk from 'chalk';
 import { PrismaClient } from '@prisma/client';
 import { Migrate } from '@prisma/migrate/dist/Migrate.js';
-// @ts-expect-error - no types
 import { ensureDatabaseExists } from '@prisma/migrate/dist/utils/ensureDatabaseExists.js';
-// @ts-expect-error - no types
 import { printFilesFromMigrationIds } from '@prisma/migrate/dist/utils/printFiles.js';
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
 
