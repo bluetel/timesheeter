@@ -32,7 +32,7 @@ export class DbMigrationScript extends Construct {
       layerVersionName: app.logicalPrefixedName('prisma-migrate'),
 
       prismaVersion: PRISMA_VERSION,
-      prismaEngines: ['migration-engine'],
+      prismaEngines: ['schema-engine'],
       prismaModules: ['@prisma/engines', '@prisma/internals', '@prisma/client'],
     });
 

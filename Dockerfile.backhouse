@@ -18,14 +18,11 @@ FROM node:18-alpine
 
 ENV NODE_ENV production
 
-RUN npm install -g pnpm
+COPY --from=builder /app/packages/backhouse/dist/app.js app.js
 
-WORKDIR /app
+# We need prisma to be able to run migrations
+COPY --from=builder /app/packages/web/prisma/schema.prisma schema.prisma
+COPY --from=builder /app/packages/web/node_modules/@prisma/client .prisma/client
+COPY --from=builder /app/packages/web/node_modules/prisma/libquery_engine-linux-musl-openssl-3.0.x.so.node libquery_engine-linux-musl-openssl-3.0.x.so.node
 
-COPY --from=builder /app .
-
-RUN pnpm install --production
-
-WORKDIR /app/packages/backhouse
-
-ENTRYPOINT [ "pnpm", "start" ]
+ENTRYPOINT [ "node", "app.js" ]

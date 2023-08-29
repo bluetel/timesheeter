@@ -1,19 +1,16 @@
 {
     "name": "@timesheeter/backhouse",
     "version": "0.1.0",
-    "author": "",
     "license": "MPL-2.0",
     "scripts": {
-        "dev": "NODE_ENV=development nodemon --exec ts-node -r tsconfig-paths/register ./src/app.ts",
-        "build": "rm -rf dist && tsc -p tsconfig.prod.json --module CommonJS --target ES2015 --outDir dist --esModuleInterop --resolveJsonModule --skipLibCheck && tsc-alias",
+        "dev": "NODE_ENV=development nodemon --exec ts-node -r tsconfig-paths/register ./src/app.dev.ts",
+        "build": "rm -rf dist && etsc --config=etsc.config.mjs",
         "start": "NODE_ENV=production node ./dist/app.js",
         "lint": "eslint --fix --quiet src/**/*.ts",
         "format": "prettier --loglevel silent --write src/**/*.ts",
         "test": "jest",
         "test:watch": "jest --watch",
-        "test:coverage": "jest --coverage",
-        "bullmq:redis:up:dev": "docker-compose -f bullmq-redis.docker-compose.yml --env-file .env up -d",
-        "bullmq:redis:down:dev": "docker-compose -f bullmq-redis.docker-compose.yml down"
+        "test:coverage": "jest --coverage"
     },
     "dependencies": {
         "@bull-board/api": "^5.6.0",
@@ -30,6 +27,7 @@
         "zod": "^3.21.4"
     },
     "devDependencies": {
+        "@harrytwigg/esbuild-node": "^2.0.6",
         "@types/google-spreadsheet": "^3.3.2",
         "@types/jest": "^29.5.2",
         "@types/jira-client": "^7.1.6",

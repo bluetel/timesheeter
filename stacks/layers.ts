@@ -3,7 +3,7 @@ import { RemovalPolicy } from 'aws-cdk-lib';
 import { ESM_REQUIRE_SHIM } from 'stacks';
 import { PrismaLayer } from './resources/prisma-layer';
 
-export const PRISMA_VERSION = '4.13.0';
+export const PRISMA_VERSION = '5.2.0';
 
 // default externalModules (not bundled with lambda function code)
 export const LAYER_MODULES = ['encoding', '@prisma/client/runtime'];

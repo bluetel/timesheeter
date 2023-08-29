@@ -8,7 +8,7 @@ import { RUNTIME } from 'stacks';
 // added to prismaModules
 const PRISMA_LAYER_EXTERNAL = ['@prisma/engines', '@prisma/engines-version', '@prisma/internals'];
 
-type PrismaEngine = 'introspection-engine' | 'migration-engine' | 'prisma-fmt' | 'libquery_engine';
+type PrismaEngine = 'introspection-engine' | 'schema-engine' | 'prisma-fmt' | 'libquery_engine';
 
 export interface PrismaLayerProps extends Omit<LayerVersionProps, 'code'> {
   // e.g. 4.11.0
@@ -68,7 +68,7 @@ export class PrismaLayer extends LayerVersion {
     const modulesToInstallArgs = modulesToInstallWithVersion.concat(nodeModules).join(' ');
 
     // delete engines not requested
-    const allEngines: PrismaEngine[] = ['introspection-engine', 'migration-engine', 'libquery_engine', 'prisma-fmt'];
+    const allEngines: PrismaEngine[] = ['introspection-engine', 'schema-engine', 'libquery_engine', 'prisma-fmt'];
     const prismaEngines = props.prismaEngines || ['libquery_engine'];
     const deleteEngineCmds = allEngines
       .filter((e) => !prismaEngines.includes(e))

@@ -33,8 +33,8 @@
     "prettier": "pnpm run prettier:exc -- '**/*.{js,ts,tsx,css,json,yaml,yml,md}'",
     "db:migrate:dev": "pnpm db:start && pnpm -C packages/web migrate:dev",
     "db:migrate:test": "pnpm db:start && pnpm -C packages/web migrate:test",
-    "db:start": "scripts/start-local-containers.sh",
-    "db:stop": "docker-compose down",
+    "local:containers:up": "scripts/start-local-containers.sh",
+    "local:containers:down": "docker-compose down",
     "db:seed": "pnpm run --filter packages/web db:seed",
     "db:seed:clean": "pnpm run --filter packages/web db:seed:clean",
     "clean": "tsc -b --clean && rm -rf .build .sst dist && pnpm run --recursive --if-present clean"

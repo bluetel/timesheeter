@@ -1,3 +1,16 @@
+import fs from 'fs';
+
+// See what file exists at ../../.env.* and load it, local, staging, or production
+const envPath = fs.existsSync('../../.env.local')
+  ? '../../.env.local'
+  : fs.existsSync('../../.env.staging')
+  ? '../../.env.staging'
+  : '../../.env.production';
+
+import { config as dotenvConfig } from 'dotenv';
+
+dotenvConfig({ path: envPath });
+
 import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
 
@@ -28,6 +41,8 @@ export const env = createEnv({
         const { APP_DB_USER, APP_DB_PASSWORD, APP_DB_HOST, APP_DB_PORT, APP_DB_NAME } = process.env;
 
         if (!APP_DB_USER || !APP_DB_PASSWORD || !APP_DB_HOST || !APP_DB_PORT || !APP_DB_NAME) {
+          console.log(process.env);
+
           throw new Error(
             'DATABASE_URL is not set and individual components are not set. Please set DATABASE_URL or APP_DB_USER, APP_DB_PASSWORD, APP_DB_HOST, APP_DB_PORT, and APP_DB_NAME.'
           );
