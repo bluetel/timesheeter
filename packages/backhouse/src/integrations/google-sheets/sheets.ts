@@ -1,12 +1,12 @@
 import { monthYearRegex } from '@timesheeter/web';
 import { GoogleSpreadsheet, type GoogleSpreadsheetWorksheet } from 'google-spreadsheet';
-import { monthYearToDate, parseCellDate } from './dates';
+import { monthYearToDate, parseCellBasedStartDate } from './dates';
 import { TransformedData } from './transformer';
 import { createBlankSheet } from './blank-sheet';
 
 const HEADER_ROW = 0;
 
-/* The default start row for the case that there are no entries in the sheet */
+/** The default start row for the case that there are no entries in the sheet */
 const DEFAULT_FIRST_ENTRY_ROW = 2;
 
 const ENTRY_SPACING = 1;
@@ -67,7 +67,7 @@ export const getSheetStart = async (sheetsToProcess: SheetToProcess[]) => {
     throw new Error('Invalid date cell value');
   }
 
-  const startDate = parseCellDate({
+  const startDate = parseCellBasedStartDate({
     lastEntryCellValue,
     startMonth: sheetStartDate.getUTCMonth(),
     startYear: sheetStartDate.getUTCFullYear(),

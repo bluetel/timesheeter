@@ -33,7 +33,7 @@ export const managementRouter = createTRPCRouter({
     if (input.memberships.length !== 1 || !input.memberships[0]) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'A workspace must have exactly 1 owner',
+        message: 'A new workspace must have exactly 1 owner',
       });
     }
 
@@ -47,7 +47,7 @@ export const managementRouter = createTRPCRouter({
     if (input.memberships[0].role !== 'owner') {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'The owner must have the role of owner',
+        message: 'The first user must have the role of owner',
       });
     }
 
@@ -139,10 +139,10 @@ export const managementRouter = createTRPCRouter({
       });
     }
 
-    if (memberships !== undefined && memberships.filter((membership) => membership.role === 'owner').length !== 1) {
+    if (memberships !== undefined && memberships.filter((membership) => membership.role === 'owner').length === 0) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'A workspace must have exactly 1 owner',
+        message: 'A workspace must have at least 1 owner',
       });
     }
 

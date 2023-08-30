@@ -18,11 +18,10 @@ export const Ecs = ({ stack }: StackContext) => {
     vpcSubnets: vpc.selectSubnets({ subnetType: ec2.SubnetType.PUBLIC }),
     instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.NANO),
     minCapacity: 1,
-    maxCapacity: 2,
+    maxCapacity: 1,
     machineImage: ecs.EcsOptimizedImage.amazonLinux2(),
     securityGroup: defaultLambdaSecurityGroup,
     desiredCapacity: 1,
-    healthCheck: autoscaling.HealthCheck.ec2({ grace: cdk.Duration.minutes(1) }),
   });
 
   const capacityProvider = new ecs.AsgCapacityProvider(stack, 'TimesheeterEcsCapacityProvider', {

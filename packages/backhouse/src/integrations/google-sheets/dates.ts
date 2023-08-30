@@ -53,7 +53,7 @@ export const monthYearToDate = (monthYear: string) => {
 };
 
 /** Helper function that deals with all the many date formats a user may enter */
-export const parseCellDate = ({
+export const parseCellBasedStartDate = ({
   lastEntryCellValue,
   startMonth,
   startYear,

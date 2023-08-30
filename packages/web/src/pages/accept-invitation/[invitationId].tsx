@@ -11,7 +11,6 @@ export const getServerSideProps = async ({ req, res, params }: GetServerSideProp
   if (!invitationId || typeof invitationId !== 'string') {
     return {
       props: {
-        success: false as const,
         message: 'invitationId is required',
       },
     };
@@ -26,7 +25,6 @@ export const getServerSideProps = async ({ req, res, params }: GetServerSideProp
   if (!invitation) {
     return {
       props: {
-        success: false as const,
         message: 'Invitation not found',
       },
     };
@@ -86,14 +84,14 @@ export const getServerSideProps = async ({ req, res, params }: GetServerSideProp
 };
 
 type AcceptInvitationProps = {
-  success: false;
   message: string;
 };
+
 const AcceptInvitation = ({ message }: AcceptInvitationProps) => (
   <div>
     <h1>Invitation acceptance failed</h1>
     <p>{message}</p>
   </div>
-)
+);
 
 export default AcceptInvitation;

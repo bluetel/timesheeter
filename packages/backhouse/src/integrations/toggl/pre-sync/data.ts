@@ -20,7 +20,8 @@ export const getPreSyncData = async ({ context }: { context: TogglIntegrationCon
         (timeEntry) => timeEntry.workspace_id === context.togglWorkspaceId && timeEntry.stop
       );
 
-      // Sort filtered entries so that those with taskId and projectId are first then those with projectId and no taskId second then those with no projectId and no taskId last
+      // Sort filtered entries so that those with taskId and projectId are first
+      // then those with projectId and no taskId second then those with no projectId and no taskId last
       return filteredEntries.sort((a, b) => {
         if (a.project_id && b.project_id) {
           if (a.task_id && b.task_id) {

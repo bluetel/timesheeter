@@ -27,7 +27,7 @@ export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext
     },
   });
 
-  //  Create new memberships for accepted invitations
+  // Create new memberships for accepted invitations
   const newMemberships = await Promise.all(
     acceptedInvitations.map(async (invitation) =>
       prisma.membership.create({

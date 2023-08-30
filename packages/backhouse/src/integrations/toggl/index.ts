@@ -24,7 +24,7 @@ export const handleTogglIntegration = async ({
   // that have been created in Toggl since the last time we synced
 
   // If we don't do this, then we will end up with time entries that don't have a task,
-  // timesheeter requires all time entries to have a task
+  // timesheeter requires all time entries to have a task, and all tasks to have a project
 
   await preSync({ context });
 

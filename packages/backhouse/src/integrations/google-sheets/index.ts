@@ -19,7 +19,7 @@ export const handleGoogleSheetsIntegration = async ({
   integration: GoogleSheetsIntegration;
 }) => {
   for (const timesheet of timesheets) {
-    // Run individually for rate limiting
+    // Run sequentially for rate limiting
     await outputToTimesheet({
       serviceAccountEmail,
       privateKey,
@@ -81,6 +81,7 @@ const outputToTimesheet = async ({
     return null;
   }
 
+  // We can't process entries before when we first started recording them
   if (databaseEntriesBasedStartDate > firstDayToProcess) {
     firstDayToProcess = databaseEntriesBasedStartDate;
   }

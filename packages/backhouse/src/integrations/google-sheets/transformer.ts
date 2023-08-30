@@ -9,7 +9,7 @@ export type TransformedData = {
 
 /** Transforms database entries into the format required for the Google Sheet */
 export const getTransformedSheetData = async ({
-  databaseEntries,
+  databaseEntries: { holidays, timesheetEntries },
   firstDayToProcess,
   lastDayToProcess,
 }: {
@@ -17,10 +17,10 @@ export const getTransformedSheetData = async ({
   firstDayToProcess: Date;
   lastDayToProcess: Date;
 }): Promise<TransformedData[]> => {
-  const { holidays, timesheetEntries } = databaseEntries;
-
   const sheetEntries: TransformedData[] = [];
+
   const bankHolidays = await getBankHolidayDates();
+
   const date = new Date(firstDayToProcess);
 
   while (date <= lastDayToProcess) {
@@ -55,26 +55,25 @@ export const getTransformedSheetData = async ({
 const findHoliday = (
   holidays: DatabaseEntries['holidays'],
   dateMidnight: Date
-): DatabaseEntries['holidays'][number] | null =>
+): DatabaseEntries['holidays'][number] | null => {
+  // Ensure holiday dates are at midnight
+  const holidaysCorrected = holidays.map((holiday) => {
+    const start = new Date(holiday.start);
+    start.setUTCHours(0, 0, 0, 0);
+
+    const end = new Date(holiday.end);
+    end.setUTCHours(0, 0, 0, 0);
+
+    return {
+      ...holiday,
+      start,
+      end,
+    };
+  });
+
   // On holiday if date is start <= date <= end
-  {
-    // Ensure holiday dates are at midnight
-    const holidaysCorrected = holidays.map((holiday) => {
-      const start = new Date(holiday.start);
-      start.setUTCHours(0, 0, 0, 0);
-
-      const end = new Date(holiday.end);
-      end.setUTCHours(0, 0, 0, 0);
-
-      return {
-        ...holiday,
-        start,
-        end,
-      };
-    });
-
-    return holidaysCorrected.find((holiday) => holiday.start <= dateMidnight && dateMidnight <= holiday.end) ?? null;
-  };
+  return holidaysCorrected.find((holiday) => holiday.start <= dateMidnight && dateMidnight <= holiday.end) ?? null;
+};
 
 const findTimesheetEntries = (
   timesheetEntries: DatabaseEntries['timesheetEntries'],

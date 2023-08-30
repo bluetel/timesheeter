@@ -22,7 +22,7 @@ export const getBankHolidayDates = async () => {
   const data = bankHolidayResponseSchema.parse(response.data);
 
   return data['england-and-wales'].events.map(({ date: dateString }) => {
-    const [day, month, year] = dateString.split('-');
+    const [year, month, day] = dateString.split('-');
 
     return new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
   });

@@ -37,6 +37,8 @@ export const preSync = async ({ context }: { context: TogglIntegrationContext })
     context,
   });
 
+  // We record all the entries, this way we know if they were deleted as we will
+  // have a synced record without an entry in the response from the Toggl API
   await createTogglSyncRecords({ preSyncData, context });
 
   let { togglTimeEntries, togglProjects, togglTasks, timesheeterProjects, uncategorizedTasksProject } = preSyncData;

@@ -1,4 +1,4 @@
-import TimesheeterInviteUserEmail, { TimesheeterInviteUserEmailProps } from "./emails/invite-to-timesheeter";
+import TimesheeterInviteUserEmail, { TimesheeterInviteUserEmailProps } from './emails/invite-to-timesheeter';
 import { render } from '@react-email/render';
 
 export const inviteEmail = (data: TimesheeterInviteUserEmailProps) => ({
@@ -9,4 +9,4 @@ export const inviteEmail = (data: TimesheeterInviteUserEmailProps) => ({
     plainText: true,
   }),
   title: `Invite to join ${data.workspaceName} on Timesheeter`,
-})
+});

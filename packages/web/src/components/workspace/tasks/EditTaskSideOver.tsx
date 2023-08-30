@@ -1,19 +1,15 @@
-import { useZodForm } from "@timesheeter/web/utils/zod-form";
-import {
-  createTaskSchema,
-  updateTaskSchema,
-  getDefaultTaskConfig,
-} from "@timesheeter/web/lib/workspace/tasks";
-import { api, type RouterOutputs } from "@timesheeter/web/utils/api";
-import { useEffect, useState } from "react";
-import { TASKS_HELP_TEXT } from "@timesheeter/web/lib/workspace/tasks";
-import { z } from "zod";
-import { SideOver } from "@timesheeter/web/components/ui/SideOver";
-import { BasicForm } from "@timesheeter/web/components/ui/forms/BasicForm/BasicForm";
-import { type BasicFormItemProps } from "@timesheeter/web/components/ui/forms/BasicForm/BasicFormItem";
-import { useNotifications } from "../../ui/notification/NotificationProvider";
-import { fromZodError } from "zod-validation-error";
-import { customJSONStringify } from "@timesheeter/web/lib";
+import { useZodForm } from '@timesheeter/web/utils/zod-form';
+import { createTaskSchema, updateTaskSchema, getDefaultTaskConfig } from '@timesheeter/web/lib/workspace/tasks';
+import { api, type RouterOutputs } from '@timesheeter/web/utils/api';
+import { useEffect, useState } from 'react';
+import { TASKS_HELP_TEXT } from '@timesheeter/web/lib/workspace/tasks';
+import { z } from 'zod';
+import { SideOver } from '@timesheeter/web/components/ui/SideOver';
+import { BasicForm } from '@timesheeter/web/components/ui/forms/BasicForm/BasicForm';
+import { type BasicFormItemProps } from '@timesheeter/web/components/ui/forms/BasicForm/BasicFormItem';
+import { useNotifications } from '../../ui/notification/NotificationProvider';
+import { fromZodError } from 'zod-validation-error';
+import { customJSONStringify } from '@timesheeter/web/lib';
 
 const mutationSchema = z.union([
   z.intersection(
@@ -35,15 +31,15 @@ type EditTaskSideOverProps = {
   show: boolean;
   onClose: () => void;
   data:
-  | {
-    new: true;
-  }
-  | {
-    new: false;
-    task: RouterOutputs["workspace"]["tasks"]["list"]["data"][number];
-  };
+    | {
+        new: true;
+      }
+    | {
+        new: false;
+        task: RouterOutputs['workspace']['tasks']['list']['data'][number];
+      };
   workspaceId: string;
-  projects: RouterOutputs["workspace"]["projects"]["listMinimal"];
+  projects: RouterOutputs['workspace']['projects']['listMinimal'];
 };
 
 export const EditTaskSideOver = ({
@@ -59,20 +55,20 @@ export const EditTaskSideOver = ({
   const getDefaultValues = () => {
     if (data.new) {
       if (!projects[0]) {
-        throw new Error("No projects available");
+        throw new Error('No projects available');
       }
 
       return {
         new: true as const,
         workspaceId,
-        name: "New task",
+        name: 'New task',
         taskPrefixId: null,
         projectId: projects[0].id,
         config: getDefaultTaskConfig(),
-      }
+      };
     }
 
-    const { project, ticketForTask, ...rest } = data.task
+    const { project, ticketForTask, ...rest } = data.task;
 
     return {
       new: false as const,
@@ -113,11 +109,9 @@ export const EditTaskSideOver = ({
     },
   };
 
-  const { mutate: createTask } =
-    api.workspace.tasks.create.useMutation(mutationArgs);
+  const { mutate: createTask } = api.workspace.tasks.create.useMutation(mutationArgs);
 
-  const { mutate: updateTask } =
-    api.workspace.tasks.update.useMutation(mutationArgs);
+  const { mutate: updateTask } = api.workspace.tasks.update.useMutation(mutationArgs);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -126,6 +120,16 @@ export const EditTaskSideOver = ({
 
     if (!values.projectId) {
       values.projectId = undefined;
+    }
+
+    // If name is empty string and no task prefix, then add error notification
+    if (!values.name && !values.taskPrefixId) {
+      addNotification({
+        variant: 'error',
+        primaryText: `Failed to ${data.new ? 'create' : 'update'} task`,
+        secondaryText: 'Task name cannot be empty if no task prefix is selected',
+      });
+      return;
     }
 
     // If just updating, filter out the values that are not changed
@@ -137,17 +141,14 @@ export const EditTaskSideOver = ({
         config: {
           ...(Object.fromEntries(
             Object.entries(values.config ?? {}).filter(
-              ([key, value]) =>
-                (task.config as Record<string, unknown>)[key] !== value
+              ([key, value]) => (task.config as Record<string, unknown>)[key] !== value
             )
-          ) as (typeof values)["config"]),
+          ) as (typeof values)['config']),
           type: values.config.type ?? task.config.type,
         },
       } as typeof values;
       // Filter out undefined values
-      values = Object.fromEntries(
-        Object.entries(values).filter(([, value]) => value !== undefined)
-      ) as typeof values;
+      values = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== undefined)) as typeof values;
 
       if (values.taskNumber === data.task.ticketForTask?.number.toString()) {
         delete values.taskNumber;
@@ -155,12 +156,12 @@ export const EditTaskSideOver = ({
     }
 
     // Validate form
-    const result = mutationSchema.safeParse(values)
+    const result = mutationSchema.safeParse(values);
 
     if (!result.success) {
       addNotification({
-        variant: "error",
-        primaryText: `Failed to ${data.new ? "create" : "update"} task`,
+        variant: 'error',
+        primaryText: `Failed to ${data.new ? 'create' : 'update'} task`,
         secondaryText: fromZodError(result.error).message,
       });
       return;
@@ -168,34 +169,34 @@ export const EditTaskSideOver = ({
 
     values.new
       ? createTask(values, {
-        onError: (error) => {
-          addNotification({
-            variant: "error",
-            primaryText: "Failed to create task",
-            secondaryText: error.message,
-          });
-        },
-      })
+          onError: (error) => {
+            addNotification({
+              variant: 'error',
+              primaryText: 'Failed to create task',
+              secondaryText: error.message,
+            });
+          },
+        })
       : updateTask(values, {
-        onError: (error) => {
-          addNotification({
-            variant: "error",
-            primaryText: "Failed to update task",
-            secondaryText: error.message,
-          });
-        },
-      });
+          onError: (error) => {
+            addNotification({
+              variant: 'error',
+              primaryText: 'Failed to update task',
+              secondaryText: error.message,
+            });
+          },
+        });
   };
 
   const fields = useTaskFields(methods, projects);
 
   return (
     <SideOver
-      title={data.new ? "Create Task" : "Edit Task"}
+      title={data.new ? 'Create Task' : 'Edit Task'}
       description={TASKS_HELP_TEXT}
       show={show}
       onClose={handleClose}
-      actionButtonLabel={data.new ? "Create" : "Update"}
+      actionButtonLabel={data.new ? 'Create' : 'Update'}
       onFormSubmit={handleSubmit}
       tabs={{
         multiple: false,
@@ -207,38 +208,38 @@ export const EditTaskSideOver = ({
 
 const useTaskFields = (
   methods: ReturnType<typeof useZodForm<typeof mutationSchema>>,
-  projects: RouterOutputs["workspace"]["projects"]["listMinimal"]
+  projects: RouterOutputs['workspace']['projects']['listMinimal']
 ) => {
   if (!projects[0]) {
-    throw new Error("No projects available");
+    throw new Error('No projects available');
   }
 
   const projectIdFormItem: BasicFormItemProps<true> = {
     required: true,
     label: {
-      title: "Project",
-      description: "The project that this task belongs to",
+      title: 'Project',
+      description: 'The project that this task belongs to',
     },
     field: {
-      variant: "select",
+      variant: 'select',
       error: methods.formState.errors.projectId,
       select: {
         options: projects.map(({ id, name }) => ({
           value: id,
-          label: name ?? "Unnamed project",
+          label: name ?? 'Unnamed project',
         })),
         onChange: async (value) => {
-          methods.setValue("taskPrefixId", null);
+          methods.setValue('taskPrefixId', null);
 
-          methods.setValue("taskNumber", null);
+          methods.setValue('taskNumber', null);
 
-          methods.setValue("projectId", value)
+          methods.setValue('projectId', value);
 
-          await methods.trigger("taskPrefixId")
-          await methods.trigger("taskNumber")
-          await methods.trigger("projectId")
+          await methods.trigger('taskPrefixId');
+          await methods.trigger('taskNumber');
+          await methods.trigger('projectId');
         },
-        active: methods.getValues("projectId") ?? projects[0].id,
+        active: methods.getValues('projectId') ?? projects[0].id,
       },
     },
   };
@@ -248,48 +249,49 @@ const useTaskFields = (
     {
       required: false,
       label: {
-        title: "Task name",
+        title: 'Task name',
         description: `Descriptive name for the task, e.g. "Fix paywall issues"`,
       },
       field: {
-        variant: "text",
-        register: methods.register("name"),
+        variant: 'text',
+        register: methods.register('name'),
         error: methods.formState.errors.name,
       },
     },
     {
       required: false,
       label: {
-        title: "Task Prefix",
+        title: 'Task Prefix',
         description: `The prefix for the task, e.g. "AC"`,
       },
       field: {
-        variant: "select",
+        variant: 'select',
         select: {
-          options: projects.find(
-            ({ id }) => id === methods.getValues("projectId")
-          )?.taskPrefixes.map(({ id, prefix }) => ({
-            value: id,
-            label: prefix
-          })) ?? [],
-          active: methods.getValues("taskPrefixId") ?? null,
+          options:
+            projects
+              .find(({ id }) => id === methods.getValues('projectId'))
+              ?.taskPrefixes.map(({ id, prefix }) => ({
+                value: id,
+                label: prefix,
+              })) ?? [],
+          active: methods.getValues('taskPrefixId') ?? null,
           onChange: (value) => {
-            methods.setValue("taskPrefixId", value, {
+            methods.setValue('taskPrefixId', value, {
               shouldValidate: true,
             });
-          }
-        }
+          },
+        },
       },
     },
     {
       required: false,
       label: {
-        title: "Task number",
-        description: "The task number, excluding the workspace prefix",
+        title: 'Task number',
+        description: 'The task number, excluding the workspace prefix',
       },
       field: {
-        variant: methods.getValues("projectId") ? "number" : "hidden",
-        register: methods.register("taskNumber"),
+        variant: methods.getValues('projectId') ? 'number' : 'hidden',
+        register: methods.register('taskNumber'),
         // @ts-expect-error - variant type based on projectId
         error: methods.formState.errors.taskNumber,
       },
