@@ -27,7 +27,10 @@ const sstEnvSchema = z.object({
 
   HOSTED_ZONE: z.string().min(1),
 
-  NEXT_PUBLIC_DEV_TOOLS_ENABLED: z.boolean().default(false),
+  NEXT_PUBLIC_DEV_TOOLS_ENABLED: z
+    .string()
+    .default('false')
+    .transform((s) => s === 'true'),
 });
 
 export const sstEnv = sstEnvSchema.parse(process.env);
