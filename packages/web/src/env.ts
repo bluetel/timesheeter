@@ -1,16 +1,3 @@
-import fs from 'fs';
-
-// See what file exists at ../../.env.* and load it, local, staging, or production
-const envPath = fs.existsSync('../../.env.local')
-  ? '../../.env.local'
-  : fs.existsSync('../../.env.staging')
-  ? '../../.env.staging'
-  : '../../.env.production';
-
-import { config as dotenvConfig } from 'dotenv';
-
-dotenvConfig({ path: envPath });
-
 import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
 
@@ -127,7 +114,7 @@ export const env = createEnv({
     NEXT_PUBLIC_URL: z.string().url(),
     NEXT_PUBLIC_DEV_TOOLS_ENABLED: z
       .string()
-      .default('true')
+      .default('false')
       .transform((s) => s === 'true'),
   },
   runtimeEnv: {

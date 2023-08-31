@@ -1,4 +1,5 @@
 // import { env } from '../env';
+import { env } from '../env';
 import { api } from '../utils/api';
 
 type DevToolsProps = {
@@ -14,8 +15,8 @@ export const DevTools = ({ workspaceId }: DevToolsProps) => {
 
   const { mutate: deleteTogglSyncRecords } = api.devTools.deleteTogglSyncRecords.useMutation();
 
-  // if (!env.NEXT_PUBLIC_DEV_TOOLS_ENABLED) return <></>;
-  return <></>;
+  if (!env.NEXT_PUBLIC_DEV_TOOLS_ENABLED) return <></>;
+
   return (
     <div className="fixed bottom-0 left-0 z-50">
       <div className="flex flex-row items-end gap-2 p-2">
