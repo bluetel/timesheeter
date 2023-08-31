@@ -14,6 +14,7 @@ import { ProjectIcon, TaskIcon } from '@timesheeter/web/lib';
 import { SimpleEmptyState } from '@timesheeter/web/components/ui/SimpleEmptyState';
 import { SelectableList } from '@timesheeter/web/components/ui/SelectableList';
 import { useRouter } from 'next/router';
+import { ListFilter } from '@timesheeter/web/components/ui/ListFilter';
 
 type GetServerSidePropsResult =
   | {
@@ -119,20 +120,25 @@ const Tasks = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
 
   const taskItems = useMemo(
     () =>
-      tasks.map((task) => ({
-        id: task.id,
-        label: task.name,
-        subLabel: task.ticketForTask
+      tasks.map((task) => {
+        const taskNumber = task.ticketForTask
           ? `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}`
-          : undefined,
-        icon: TaskIcon,
-        onClick: () =>
-          setSelectedTask({
-            id: task.id,
-            index: tasks.findIndex((i) => i.id === task.id),
-          }),
-        selected: selectedTask?.id === task.id,
-      })),
+          : undefined;
+
+        return {
+          id: task.id,
+          label: task.name ?? undefined,
+          subLabel: task.project.name,
+          thirdLabel: taskNumber,
+          icon: TaskIcon,
+          onClick: () =>
+            setSelectedTask({
+              id: task.id,
+              index: tasks.findIndex((i) => i.id === task.id),
+            }),
+          selected: selectedTask?.id === task.id,
+        };
+      }),
     [tasks, selectedTask]
   );
 
@@ -159,6 +165,8 @@ const Tasks = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
   }, [tasks, selectedTask]);
 
   const { push } = useRouter();
+
+  const taskFilters = useTaskFilters({ projects: projects ?? [] });
 
   if (!projects?.[0]) {
     return (
@@ -217,9 +225,12 @@ const Tasks = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
       <WorkspaceLayout
         workspaceInfo={workspaceInfo}
         secondAside={
-          <nav className="h-full overflow-y-auto">
-            <SelectableList items={taskItems} loadMore={taskData?.next ? fetchNextPage : undefined} />
-          </nav>
+          <div className="flex h-full flex-col">
+            <ListFilter filters={taskFilters} />
+            <nav className="h-full overflow-y-auto">
+              <SelectableList items={taskItems} loadMore={taskData?.next ? fetchNextPage : undefined} />
+            </nav>
+          </div>
         }
       >
         {tasks.map((task) => (
@@ -238,3 +249,28 @@ const Tasks = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
 };
 
 export default Tasks;
+
+const useTaskFilters = ({ projects }: { projects: RouterOutputs['workspace']['projects']['listMinimal'] }) => {
+  const filters: ListFilter[] = [];
+
+  if (projects) {
+    filters.push({
+      variant: 'select-group-filter',
+      label: 'Projects',
+      groups: [
+        {
+          items: projects.map((project) => ({
+            label: project.name,
+            onClick: () => {
+              console.log('click');
+            },
+            icon: ProjectIcon,
+            active: true,
+          })),
+        },
+      ],
+    });
+  }
+
+  return filters;
+};

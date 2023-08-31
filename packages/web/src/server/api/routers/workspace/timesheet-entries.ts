@@ -23,6 +23,8 @@ export const timesheetEntriesRouter = createTRPCRouter({
         page: z.number().int().positive().default(1),
         // Temporary fix to deal with data not loading on the client afer refresh
         fetchAllToPage: z.boolean().default(true),
+        projectId: z.string().optional(),
+        taskId: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -38,6 +40,10 @@ export const timesheetEntriesRouter = createTRPCRouter({
           workspaceId: input.workspaceId,
           userId: ctx.session.user.id,
           deleted: false,
+          task: {
+            id: input.taskId,
+            projectId: input.projectId,
+          },
         },
       });
 
@@ -47,6 +53,10 @@ export const timesheetEntriesRouter = createTRPCRouter({
             workspaceId: input.workspaceId,
             userId: ctx.session.user.id,
             deleted: false,
+            task: {
+              id: input.taskId,
+              projectId: input.projectId,
+            },
           },
           include: {
             task: {

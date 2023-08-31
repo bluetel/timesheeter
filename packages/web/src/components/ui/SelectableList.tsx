@@ -4,6 +4,7 @@ export type SelectableListProps = {
   items: {
     label: string;
     subLabel?: string;
+    thirdLabel?: string;
     icon?: IconType;
     onClick?: () => unknown;
     selected?: boolean;
@@ -29,11 +30,12 @@ export const SelectableList = ({ items, loadMore }: SelectableListProps) => (
             {item.icon && <item.icon className="mr-1 h-6 w-6 text-gray-400" aria-hidden="true" viewBox="0 0 24 24" />}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center space-x-6">
-              <div>
-                <span className="absolute inset-0" aria-hidden="true" />
-                <p className="text-sm font-medium text-gray-900">{item.label}</p>
-                <p className="truncate text-sm text-gray-500">{item.subLabel}</p>
+            <div className="flex items-center space-x-6 overflow-hidden">
+              <div className="overflow-hidden">
+                <span className="absolute inset-0 overflow-hidden" aria-hidden="true" />
+                <p className="h-5 truncate text-sm font-medium text-gray-900">{item.label}</p>
+                <p className="h-5 truncate text-sm text-gray-800">{item.subLabel}</p>
+                {item.thirdLabel && <p className="truncate text-sm text-gray-500">{item.thirdLabel}</p>}
               </div>
             </div>
           </div>
