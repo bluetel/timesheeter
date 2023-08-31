@@ -7,12 +7,13 @@ import { togglProjectSyncRecordType, togglSyncRecordSelectQuery } from '../sync-
 export type PreSyncData = Awaited<ReturnType<typeof getPreSyncData>>;
 
 export const getPreSyncData = async ({ context }: { context: TogglIntegrationContext }) => {
-  const togglTimeEntriesPromise = toggl.timeEntries
-    .get({
+  const togglTimeEntriesPromise = toggl.reports.search
+    .timeEntries({
       axiosClient: context.axiosClient,
-      params: {
-        start_date: context.startDate,
-        end_date: context.endDate,
+      path: { workspace_id: context.togglWorkspaceId },
+      query: {
+        start_date: context.startDate.toISOString(),
+        end_date: context.endDate.toISOString(),
       },
     })
     .then((timeEntries) => {

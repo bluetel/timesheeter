@@ -125,6 +125,10 @@ export const env = createEnv({
   },
   client: {
     NEXT_PUBLIC_URL: z.string().url(),
+    NEXT_PUBLIC_DEV_TOOLS_ENABLED: z
+      .string()
+      .default('true')
+      .transform((s) => s === 'true'),
   },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
@@ -140,5 +144,6 @@ export const env = createEnv({
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
     NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
+    NEXT_PUBLIC_DEV_TOOLS_ENABLED: process.env.NEXT_PUBLIC_DEV_TOOLS_ENABLED,
   },
 });

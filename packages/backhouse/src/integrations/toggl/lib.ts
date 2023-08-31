@@ -85,9 +85,11 @@ export const createTogglIntegrationContext = async ({
   }, {} as Record<string, string>);
 
   const endDate = new Date();
+  endDate.setUTCHours(23, 59, 59, 999);
 
   const startDate = new Date(endDate);
   startDate.setUTCDate(startDate.getUTCDate() - scanPeriod);
+  startDate.setUTCHours(0, 0, 0, 0);
 
   return {
     axiosClient,

@@ -26,6 +26,8 @@ const sstEnvSchema = z.object({
   RESEND_API_KEY: z.string().min(1),
 
   HOSTED_ZONE: z.string().min(1),
+
+  NEXT_PUBLIC_DEV_TOOLS_ENABLED: z.boolean().default(false),
 });
 
 export const sstEnv = sstEnvSchema.parse(process.env);

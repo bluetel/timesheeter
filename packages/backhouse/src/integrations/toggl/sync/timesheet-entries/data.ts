@@ -17,8 +17,12 @@ const getTimesheetEntryData = async ({
 }: {
   context: TogglIntegrationContext;
 }) => {
-  const togglTimeEntriesPromise = toggl.timeEntries
-    .get({ axiosClient, params: { start_date: startDate, end_date: endDate } })
+  const togglTimeEntriesPromise = toggl.reports.search
+    .timeEntries({
+      axiosClient,
+      path: { workspace_id: togglWorkspaceId },
+      query: { start_date: startDate.toISOString(), end_date: endDate.toISOString() },
+    })
     .then((timeEntries) =>
       timeEntries.filter((timeEntry) => timeEntry.workspace_id === togglWorkspaceId && timeEntry.stop)
     ) as Promise<

@@ -6,8 +6,6 @@ import { INTEGRATIONS_HELP_TEXT } from '@timesheeter/web/lib/workspace/integrati
 import { getPrismaClient } from '@timesheeter/web/server/db';
 import { getWorkspaceInfo } from '@timesheeter/web/server/lib/workspace-info';
 import {
-  HOLIDAYS_HELP_TEXT,
-  HolidayIcon,
   INVITATIONS_HELP_TEXT,
   IntegrationIcon,
   MEMBERSHIPS_HELP_TEXT,
@@ -32,7 +30,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { redirect: workspaceInfo.redirect };
   }
 
-  const [integrationsCount, projectsCount, tasksCount, timesheetEntriesCount, holidaysCount] = await Promise.all([
+  const [integrationsCount, projectsCount, tasksCount, timesheetEntriesCount] = await Promise.all([
     prisma.integration.count({
       where: {
         workspaceId: workspaceInfo.props.workspace.id,
@@ -65,12 +63,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         deleted: false,
       },
     }),
-    prisma.holiday.count({
-      where: {
-        workspaceId: workspaceInfo.props.workspace.id,
-        userId: workspaceInfo.props.membership.user.id,
-      },
-    }),
+    // prisma.holidays.count({
+    //   where: {
+    //     workspaceId: workspaceInfo.props.workspace.id,
+    //     userId: workspaceInfo.props.membership.user.id,
+    //   },
+    // }),
   ]);
 
   return {
@@ -80,7 +78,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       projectsCount,
       tasksCount,
       timesheetEntriesCount,
-      holidaysCount,
     },
   };
 };
@@ -91,7 +88,6 @@ const Dashboard = ({
   projectsCount,
   tasksCount,
   timesheetEntriesCount,
-  holidaysCount,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { push } = useRouter();
 
@@ -168,17 +164,17 @@ const Dashboard = ({
                   label: timesheetEntriesCount === 1 ? 'Timesheet Entry' : 'Timesheet Entries',
                 },
               },
-              {
-                title: 'Declare a new holiday',
-                description: HOLIDAYS_HELP_TEXT,
-                icon: HolidayIcon,
-                background: 'bg-yellow-500',
-                onClick: () => push(`/workspace/${workspaceInfo.workspace.id}/holidays?create=true`),
-                countDetail: {
-                  count: holidaysCount,
-                  label: holidaysCount === 1 ? 'Holiday' : 'Holidays',
-                },
-              },
+              // {
+              //   title: 'Log a new time off',
+              //   description: TIME_OFF_HELP_TEXT,
+              //   icon: TimeOffIcon,
+              //   background: 'bg-yellow-500',
+              //   onClick: () => push(`/workspace/${workspaceInfo.workspace.id}/times-off?create=true`),
+              //   countDetail: {
+              //     count: timeOffCount,
+              //     label: timeOffCount === 1 ? 'Time Off' : 'Times Off',
+              //   },
+              // },
             ]}
           />
           <div className="mt-6 grid grid-cols-1 gap-6 py-6 sm:grid-cols-2">
