@@ -112,7 +112,7 @@ export class PrismaLayer extends LayerVersion {
     const bundleCommandDigest = bundleCommandHash.digest('hex');
 
     // bundle
-    const code = Code.fromAsset('/tmp', {
+    const code = Code.fromAsset(layerDir, {
       // don't send all our files to docker (slow)
       ignoreMode: IgnoreMode.GLOB,
       exclude: ['*'],
