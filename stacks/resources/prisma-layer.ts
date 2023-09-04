@@ -112,10 +112,10 @@ export class PrismaLayer extends LayerVersion {
     const bundleCommandDigest = bundleCommandHash.digest('hex');
 
     // bundle
-    const code = Code.fromAsset(layerDir, {
+    const code = Code.fromAsset('/tmp', {
       // don't send all our files to docker (slow)
-      //ignoreMode: IgnoreMode.GLOB,
-      // exclude: ['*'],
+      // ignoreMode: IgnoreMode.GLOB,
+      //  exclude: ['*'],
 
       // if our bundle commands (basically our "dockerfile") changes then rebuild the image
       assetHashType: AssetHashType.CUSTOM,
