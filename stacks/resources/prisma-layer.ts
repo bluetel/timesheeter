@@ -79,6 +79,9 @@ export class PrismaLayer extends LayerVersion {
       'bash',
       '-c',
       [
+        // Set home as a new variable called old home
+        'export OLD_HOME=$HOME',
+
         `echo "Installing ${modulesToInstallArgs}"`,
         'mkdir -p /tmp/npm && pushd /tmp/npm && HOME=/tmp npm i --no-save --no-package-lock npm@latest && popd',
         `mkdir -p ${layerDir}`,
@@ -100,14 +103,22 @@ export class PrismaLayer extends LayerVersion {
         `rm -rf ${nm}/@types`,
         `rm -rf ${nm}/.prisma`,
         'ls -lh ${layerDir}',
-        // copy to home dir asset output
-        'mkdir -p /var/task/asset-output',
+
         // go to root dir and list all folders
         'cd / && ls -lh',
         // list how many files in asset output recursively
         'ls -lhR /var/task/asset-output | wc -l',
 
-        // Copy /asset-output recursively to /home/asset-output
+        // Add asset output to a new compressed zip file
+        'apt-get update && apt-get install -y zip && zip -r /var/task/asset-output.zip /var/task/asset-output',
+
+        // allow all access to the zip file
+        'chmod -R 777 /var/task/asset-output.zip',
+
+        // Copy to the old home
+        'cp /var/task/asset-output.zip $OLD_HOME/asset-output.zip',
+
+        'chmod -R 777 $OLD_HOME/asset-output.zip',
       ].join(' && '),
     ];
 
@@ -117,7 +128,7 @@ export class PrismaLayer extends LayerVersion {
     const bundleCommandDigest = bundleCommandHash.digest('hex');
 
     // bundle
-    const code = Code.fromAsset('.', {
+    const code = Code.fromAsset('asset-output.zip', {
       // don't send all our files to docker (slow)
       // ignoreMode: IgnoreMode.GLOB,
       // exclude: ['*'],
