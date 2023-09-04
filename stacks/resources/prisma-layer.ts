@@ -128,7 +128,7 @@ export class PrismaLayer extends LayerVersion {
     const bundleCommandDigest = bundleCommandHash.digest('hex');
 
     // bundle
-    const code = Code.fromAsset('asset-output.zip', {
+    const code = Code.fromAsset('.', {
       // don't send all our files to docker (slow)
       // ignoreMode: IgnoreMode.GLOB,
       // exclude: ['*'],
