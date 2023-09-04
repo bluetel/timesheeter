@@ -20,7 +20,7 @@ jobs:
 
       - aws-cli/setup:
           role_arn: $AWS_OIDC_ROLE_ARN
-          role_session_name: "CCI-${CIRCLE_WORKFLOW_JOB_ID}-$(cat /dev/urandom | tr -dc '[:alpha:]' | fold -w ${1:-5} | head -n 1)"
+          role_session_name: "Timesheeter-${CIRCLE_WORKFLOW_JOB_ID}"
 
       # Install the latest npm - the node Orb takes care of it
       - node/install
