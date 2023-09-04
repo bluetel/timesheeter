@@ -79,9 +79,6 @@ export class PrismaLayer extends LayerVersion {
       'bash',
       '-c',
       [
-        // Set home as a new variable called old home
-        'export OLD_HOME=$HOME',
-
         `echo "Installing ${modulesToInstallArgs}"`,
         'mkdir -p /tmp/npm && pushd /tmp/npm && HOME=/tmp npm i --no-save --no-package-lock npm@latest && popd',
         `mkdir -p ${layerDir}`,
@@ -102,17 +99,6 @@ export class PrismaLayer extends LayerVersion {
         `rm -rf ${nm}/prisma/prisma-client/generator-build`,
         `rm -rf ${nm}/@types`,
         `rm -rf ${nm}/.prisma`,
-        'ls -lh ${layerDir}',
-
-        // go to root dir and list all folders
-        'cd / && ls -lh',
-        // list how many files in asset output recursively
-        'ls -lhR /asset-output | wc -l',
-
-        // Copy to the old home folder
-        'cp -r /asset-output $OLD_HOME',
-
-        'chmod -R 777 $OLD_HOME/asset-output',
       ].join(' && '),
     ];
 
@@ -124,8 +110,8 @@ export class PrismaLayer extends LayerVersion {
     // bundle
     const code = Code.fromAsset('.', {
       // don't send all our files to docker (slow)
-      // ignoreMode: IgnoreMode.GLOB,
-      // exclude: ['*'],
+      ignoreMode: IgnoreMode.GLOB,
+      exclude: ['*'],
 
       // if our bundle commands (basically our "dockerfile") changes then rebuild the image
       assetHashType: AssetHashType.CUSTOM,
@@ -134,7 +120,8 @@ export class PrismaLayer extends LayerVersion {
       bundling: {
         image: RUNTIME.bundlingImage,
         command: createBundleCommand,
-        user: 'root',
+        // This is required for the bundling to work
+        // https://stackoverflow.com/questions/75714508/aws-cdk-gitlab-ci-runtimeerror-bundling-did-not-produce-any-output-check-tha
         bundlingFileAccess: BundlingFileAccess.VOLUME_COPY,
       },
     });
