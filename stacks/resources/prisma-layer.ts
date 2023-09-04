@@ -99,6 +99,7 @@ export class PrismaLayer extends LayerVersion {
         `rm -rf ${nm}/prisma/prisma-client/generator-build`,
         `rm -rf ${nm}/@types`,
         `rm -rf ${nm}/.prisma`,
+        'ls -lh ${layerDir}',
       ].join(' && '),
     ];
 
@@ -110,17 +111,17 @@ export class PrismaLayer extends LayerVersion {
     // bundle
     const code = Code.fromAsset('.', {
       // don't send all our files to docker (slow)
-      ignoreMode: IgnoreMode.GLOB,
-      exclude: ['*'],
+      // ignoreMode: IgnoreMode.GLOB,
+      // exclude: ['*'],
 
       // if our bundle commands (basically our "dockerfile") changes then rebuild the image
       assetHashType: AssetHashType.CUSTOM,
       assetHash: bundleCommandDigest,
 
       bundling: {
-        user: 'root',
         image: RUNTIME.bundlingImage,
         command: createBundleCommand,
+        user: 'root',
       },
     });
 
