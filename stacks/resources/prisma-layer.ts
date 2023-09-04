@@ -82,14 +82,18 @@ export class PrismaLayer extends LayerVersion {
         `echo "Installing ${modulesToInstallArgs}"`,
         'mkdir -p /tmp/npm && pushd /tmp/npm && HOME=/tmp npm i --no-save --no-package-lock npm@latest && popd',
         `mkdir -p ${layerDir}`,
+
         // install PRISMA_DEPS
         `cd ${layerDir} && HOME=/tmp /tmp/npm/node_modules/.bin/npm install --omit dev --omit peer --omit optional ${modulesToInstallArgs}`,
+
         // delete unneeded engines
         ...deleteEngineCmds,
+
         // internals sux
         `rm -f ${internalsDir}/dist/libquery_engine*`,
         `rm -f ${internalsDir}/dist/get-generators/libquery_engine*`,
         `rm -rf ${internalsDir}/dist/get-generators/engines`,
+
         // get rid of some junk
         `rm -rf ${engineDir}/download`,
         `rm -rf ${clientDir}/generator-build`,
@@ -108,7 +112,7 @@ export class PrismaLayer extends LayerVersion {
     const bundleCommandDigest = bundleCommandHash.digest('hex');
 
     // bundle
-    const code = Code.fromAsset('.', {
+    const code = Code.fromAsset(layerDir, {
       // don't send all our files to docker (slow)
       ignoreMode: IgnoreMode.GLOB,
       exclude: ['*'],
