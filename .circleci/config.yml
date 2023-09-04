@@ -42,9 +42,9 @@ jobs:
           role_arn: $AWS_OIDC_PRODUCTION_ROLE_ARN
           role_session_name: "CCI-${CIRCLE_WORKFLOW_JOB_ID}-$(cat /dev/urandom | tr -dc '[:alpha:]' | fold -w ${1:-5} | head -n 1)"
 
-      # Run the aws_env.sh script to set the AWS environment variables
-      - run: chmod u+x ./.circleci/aws_env.sh
-      - run: ./.circleci/aws_env.sh
+      # Run the timesheeter-env.sh script to set the AWS environment variables
+      - run: chmod u+x ./.circleci/timesheeter-env.sh
+      - run: ./.circleci/timesheeter-env.sh
 
       - run:
           name: Deploy
