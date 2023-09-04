@@ -40,6 +40,9 @@ jobs:
           cache-path: node_modules
           override-ci-command: pnpm install
 
+      # Make everything un the projects folder have 777 permissions
+      - run: chmod -R 777 .
+
       # Run the timesheeter-env.sh script to set the AWS environment variables
       - run: chmod u+x ./.circleci/timesheeter-env.sh
       - run: ./.circleci/timesheeter-env.sh
