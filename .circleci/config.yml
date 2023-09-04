@@ -19,7 +19,7 @@ jobs:
       - checkout
 
       - aws-cli/setup:
-          role_arn: $AWS_OIDC_PRODUCTION_ROLE_ARN
+          role_arn: $AWS_OIDC_ROLE_ARN
           role_session_name: "CCI-${CIRCLE_WORKFLOW_JOB_ID}-$(cat /dev/urandom | tr -dc '[:alpha:]' | fold -w ${1:-5} | head -n 1)"
 
       # Install the latest npm - the node Orb takes care of it
