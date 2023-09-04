@@ -5,11 +5,23 @@ orbs:
   aws-cli: circleci/aws-cli@4.1.0
 
 jobs:
-  install:
+  sst_deploy:
     # Reuse Docker container specification given by the node Orb
     executor: node/default
+    parameters:
+      stage:
+        type: enum
+        enum:
+          - staging
+          - production
+
     steps:
       - checkout
+
+      - aws-cli/setup:
+          role_arn: $AWS_OIDC_PRODUCTION_ROLE_ARN
+          role_session_name: "CCI-${CIRCLE_WORKFLOW_JOB_ID}-$(cat /dev/urandom | tr -dc '[:alpha:]' | fold -w ${1:-5} | head -n 1)"
+
       # Install the latest npm - the node Orb takes care of it
       - node/install
       # Install pnpm
@@ -20,27 +32,6 @@ jobs:
       - node/install-packages:
           cache-path: node_modules
           override-ci-command: pnpm install
-      # Save workspace for subsequent jobs
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
-  sst_deploy:
-    # pass paramters to the job
-    parameters:
-      stage:
-        type: enum
-        enum:
-          - staging
-          - production
-    executor: node/default
-    steps:
-      - attach_workspace:
-          at: .
-
-      - aws-cli/setup:
-          role_arn: $AWS_OIDC_PRODUCTION_ROLE_ARN
-          role_session_name: "CCI-${CIRCLE_WORKFLOW_JOB_ID}-$(cat /dev/urandom | tr -dc '[:alpha:]' | fold -w ${1:-5} | head -n 1)"
 
       # Run the timesheeter-env.sh script to set the AWS environment variables
       - run: chmod u+x ./.circleci/timesheeter-env.sh
@@ -54,7 +45,6 @@ jobs:
 workflows:
   build_and_deploy:
     jobs:
-      - install
       # On staging branch, deploy to staging
       - sst_deploy:
           stage: staging
