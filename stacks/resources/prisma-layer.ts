@@ -100,6 +100,8 @@ export class PrismaLayer extends LayerVersion {
         `rm -rf ${nm}/@types`,
         `rm -rf ${nm}/.prisma`,
         'ls -lh ${layerDir}',
+        // copy to home dir
+        `cp -r ${layerDir}/* /var/task`,
       ].join(' && '),
     ];
 
@@ -109,7 +111,7 @@ export class PrismaLayer extends LayerVersion {
     const bundleCommandDigest = bundleCommandHash.digest('hex');
 
     // bundle
-    const code = Code.fromAsset('/asset-output', {
+    const code = Code.fromAsset('.', {
       // don't send all our files to docker (slow)
       // ignoreMode: IgnoreMode.GLOB,
       // exclude: ['*'],
