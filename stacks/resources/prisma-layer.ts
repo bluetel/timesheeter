@@ -100,8 +100,9 @@ export class PrismaLayer extends LayerVersion {
         `rm -rf ${nm}/@types`,
         `rm -rf ${nm}/.prisma`,
         'ls -lh ${layerDir}',
-        // copy to home dir
-        `cp -r ${layerDir}/* /var/task`,
+        // copy to home dir asset output
+        'mkdir -p /var/task/asset-output',
+        `cp -r ${layerDir} /var/task/asset-output`,
       ].join(' && '),
     ];
 
