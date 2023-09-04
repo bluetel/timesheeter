@@ -34,6 +34,8 @@ const minimalTimeEntryQuerySchema = z.object({
   hide_rates: z.boolean().optional(),
 });
 
+const pageSize = 1000;
+
 const formatDate = (date: Date) => {
   // Add one more day to the end date so we get all time entries for the end date
   const year = date.getUTCFullYear();
@@ -57,9 +59,11 @@ const reportTimeEntryQuerySchema = minimalTimeEntryQuerySchema.transform((data) 
     hide_rates: data.hide_rates ?? true,
     order_by: 'date',
     order_desc: 'asc',
+    page_size: pageSize,
   };
 });
 
+/** https://developers.track.toggl.com/docs/reports/detailed_reports/index.html */
 export const reportTimeEntries = async ({
   axiosClient,
   path,
@@ -95,9 +99,9 @@ export const reportTimeEntries = async ({
     const reportTimeEntries = reportTimeEntryArraySchema.parse(response.data);
 
     // If results count is 50 throw an error
-    if (reportTimeEntries.length === 50) {
+    if (reportTimeEntries.length === pageSize) {
       throw new Error(
-        `Toggl API returned 50 time entries for the date range ${currentQuery.start_date} - ${currentQuery.end_date}. This is the maximum number of time entries that can be returned. Please narrow down the date range.`
+        `Toggl API returned ${pageSize} time entries for the date range ${currentQuery.start_date} - ${currentQuery.end_date}. This is the maximum number of time entries that can be returned. Please narrow down the date range.`
       );
     }
 
