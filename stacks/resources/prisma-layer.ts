@@ -53,7 +53,7 @@ export class PrismaLayer extends LayerVersion {
     const { prismaVersion, prismaModules, ...rest } = props;
     const nodeModules = props.nodeModules || [];
 
-    const layerDir = '/tmp/layer';
+    const layerDir = '/tmp/asset-output';
     const nm = `${layerDir}/node_modules`;
     const engineDir = `${nm}/@prisma/engines`;
     const internalsDir = `${nm}/@prisma/internals`;
@@ -112,7 +112,7 @@ export class PrismaLayer extends LayerVersion {
     const bundleCommandDigest = bundleCommandHash.digest('hex');
 
     // bundle
-    const code = Code.fromAsset(layerDir, {
+    const code = Code.fromAsset("/tmp" {
       // don't send all our files to docker (slow)
       ignoreMode: IgnoreMode.GLOB,
       exclude: ['*'],
