@@ -53,11 +53,11 @@ export class PrismaLayer extends LayerVersion {
     const { prismaVersion, prismaModules, ...rest } = props;
     const nodeModules = props.nodeModules || [];
 
-    const layerDir = '/tmp/asset-output';
-    const nm = `${layerDir}/node_modules` as const;
-    const engineDir = `${nm}/@prisma/engines` as const;
-    const internalsDir = `${nm}/@prisma/internals` as const;
-    const clientDir = `${nm}/@prisma/client` as const;
+    const layerDir = '/asset-output/nodejs';
+    const nm = `${layerDir}/node_modules`;
+    const engineDir = `${nm}/@prisma/engines`;
+    const internalsDir = `${nm}/@prisma/internals`;
+    const clientDir = `${nm}/@prisma/client`;
 
     // what are we asking npm to install?
     // deps to npm install to the layer
@@ -80,20 +80,16 @@ export class PrismaLayer extends LayerVersion {
       '-c',
       [
         `echo "Installing ${modulesToInstallArgs}"`,
-        'mkdir -p /tmp/npm && pushd /tmp/npm && npm i --no-save --no-package-lock npm@latest && popd',
-        `mkdir -p ${layerDir}`,
-
+        'mkdir -p /tmp/npm && pushd /tmp/npm && HOME=/tmp npm i --no-save --no-package-lock npm@latest && popd',
+        `sudo mkdir -p ${layerDir} && sudo chmod 777 ${layerDir}`,
         // install PRISMA_DEPS
-        `cd ${layerDir} && /tmp/npm/node_modules/.bin/npm install --omit dev --omit peer --omit optional ${modulesToInstallArgs}`,
-
+        `cd ${layerDir} && HOME=/tmp /tmp/npm/node_modules/.bin/npm install --omit dev --omit peer --omit optional ${modulesToInstallArgs}`,
         // delete unneeded engines
         ...deleteEngineCmds,
-
         // internals sux
         `rm -f ${internalsDir}/dist/libquery_engine*`,
         `rm -f ${internalsDir}/dist/get-generators/libquery_engine*`,
         `rm -rf ${internalsDir}/dist/get-generators/engines`,
-
         // get rid of some junk
         `rm -rf ${engineDir}/download`,
         `rm -rf ${clientDir}/generator-build`,
@@ -112,10 +108,10 @@ export class PrismaLayer extends LayerVersion {
     const bundleCommandDigest = bundleCommandHash.digest('hex');
 
     // bundle
-    const code = Code.fromAsset('/tmp', {
+    const code = Code.fromAsset('.', {
       // don't send all our files to docker (slow)
-      // ignoreMode: IgnoreMode.GLOB,
-      //  exclude: ['*'],
+      ignoreMode: IgnoreMode.GLOB,
+      exclude: ['*'],
 
       // if our bundle commands (basically our "dockerfile") changes then rebuild the image
       assetHashType: AssetHashType.CUSTOM,
