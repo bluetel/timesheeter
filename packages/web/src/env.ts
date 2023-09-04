@@ -28,6 +28,11 @@ export const env = createEnv({
         const { APP_DB_USER, APP_DB_PASSWORD, APP_DB_HOST, APP_DB_PORT, APP_DB_NAME } = process.env;
 
         if (!APP_DB_USER || !APP_DB_PASSWORD || !APP_DB_HOST || !APP_DB_PORT || !APP_DB_NAME) {
+          // If running in circleci, pass some dummy values
+          if (!!process.env.CIRCLE_JOB) {
+            return 'postgresql://postgres:postgres@localhost:5432/postgres?schema=public&connection_limit=1';
+          }
+
           throw new Error(
             'DATABASE_URL is not set and individual components are not set. Please set DATABASE_URL or APP_DB_USER, APP_DB_PASSWORD, APP_DB_HOST, APP_DB_PORT, and APP_DB_NAME.'
           );
@@ -65,8 +70,9 @@ export const env = createEnv({
         sFormatted = undefined;
       }
 
-      if (!sFormatted) {
-        sFormatted = '127.0.0.1';
+      // If unset and running in circleci, pass some dummy values
+      if (!sFormatted && !!process.env.CIRCLE_JOB) {
+        return '127.0.0.1';
       }
 
       if (typeof sFormatted !== 'string') {
