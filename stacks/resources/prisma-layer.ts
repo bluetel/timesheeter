@@ -53,7 +53,7 @@ export class PrismaLayer extends LayerVersion {
     const { prismaVersion, prismaModules, ...rest } = props;
     const nodeModules = props.nodeModules || [];
 
-    const layerDir = '/asset-output/nodejs';
+    const layerDir = './asset-output/nodejs';
     const nm = `${layerDir}/node_modules`;
     const engineDir = `${nm}/@prisma/engines`;
     const internalsDir = `${nm}/@prisma/internals`;
