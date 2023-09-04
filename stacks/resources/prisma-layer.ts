@@ -54,10 +54,10 @@ export class PrismaLayer extends LayerVersion {
     const nodeModules = props.nodeModules || [];
 
     const layerDir = '/tmp/asset-output';
-    const nm = `${layerDir}/node_modules`;
-    const engineDir = `${nm}/@prisma/engines`;
-    const internalsDir = `${nm}/@prisma/internals`;
-    const clientDir = `${nm}/@prisma/client`;
+    const nm = `${layerDir}/node_modules` as const;
+    const engineDir = `${nm}/@prisma/engines` as const;
+    const internalsDir = `${nm}/@prisma/internals` as const;
+    const clientDir = `${nm}/@prisma/client` as const;
 
     // what are we asking npm to install?
     // deps to npm install to the layer
@@ -114,8 +114,8 @@ export class PrismaLayer extends LayerVersion {
     // bundle
     const code = Code.fromAsset(layerDir, {
       // don't send all our files to docker (slow)
-      ignoreMode: IgnoreMode.GLOB,
-      exclude: ['*'],
+      //ignoreMode: IgnoreMode.GLOB,
+      // exclude: ['*'],
 
       // if our bundle commands (basically our "dockerfile") changes then rebuild the image
       assetHashType: AssetHashType.CUSTOM,
