@@ -1,4 +1,4 @@
-import { AssetHashType, IgnoreMode } from 'aws-cdk-lib';
+import { AssetHashType, BundlingFileAccess, IgnoreMode } from 'aws-cdk-lib';
 import { Code, LayerVersion, LayerVersionProps } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import crypto from 'crypto';
@@ -135,6 +135,7 @@ export class PrismaLayer extends LayerVersion {
         image: RUNTIME.bundlingImage,
         command: createBundleCommand,
         user: 'root',
+        bundlingFileAccess: BundlingFileAccess.VOLUME_COPY,
       },
     });
 
