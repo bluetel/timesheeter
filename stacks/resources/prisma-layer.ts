@@ -80,11 +80,11 @@ export class PrismaLayer extends LayerVersion {
       '-c',
       [
         `echo "Installing ${modulesToInstallArgs}"`,
-        'mkdir -p /tmp/npm && pushd /tmp/npm && HOME=/tmp npm i --no-save --no-package-lock npm@latest && popd',
+        'mkdir -p /tmp/npm && pushd /tmp/npm && npm i --no-save --no-package-lock npm@latest && popd',
         `mkdir -p ${layerDir}`,
 
         // install PRISMA_DEPS
-        `cd ${layerDir} && HOME=/tmp /tmp/npm/node_modules/.bin/npm install --omit dev --omit peer --omit optional ${modulesToInstallArgs}`,
+        `cd ${layerDir} && /tmp/npm/node_modules/.bin/npm install --omit dev --omit peer --omit optional ${modulesToInstallArgs}`,
 
         // delete unneeded engines
         ...deleteEngineCmds,
