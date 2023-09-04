@@ -17,6 +17,9 @@ jobs:
     docker:
       - image: cimg/base:2022.06
     steps:
+      - attach_workspace:
+          at: ~/project
+
       - checkout
 
       - setup_remote_docker:
@@ -40,9 +43,6 @@ jobs:
       # Run the timesheeter-env.sh script to set the AWS environment variables
       - run: chmod u+x ./.circleci/timesheeter-env.sh
       - run: ./.circleci/timesheeter-env.sh
-
-      # Make folder called asset-output with permisisons to allow everyone to read and write
-      - run: sudo mkdir asset-output && sudo chmod 777 asset-output
 
       - run:
           name: Deploy
