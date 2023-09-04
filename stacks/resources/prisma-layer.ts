@@ -107,10 +107,10 @@ export class PrismaLayer extends LayerVersion {
         // go to root dir and list all folders
         'cd / && ls -lh',
         // list how many files in asset output recursively
-        'ls -lhR /var/task/asset-output | wc -l',
+        'ls -lhR /asset-output | wc -l',
 
         // Copy to the old home folder
-        'cp -r /var/task/asset-output $OLD_HOME',
+        'cp -r /asset-output $OLD_HOME',
 
         'chmod -R 777 $OLD_HOME/asset-output',
       ].join(' && '),
