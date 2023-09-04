@@ -109,16 +109,10 @@ export class PrismaLayer extends LayerVersion {
         // list how many files in asset output recursively
         'ls -lhR /var/task/asset-output | wc -l',
 
-        // Add asset output to a new compressed zip file
-        'apt-get update && apt-get install -y zip && zip -r /var/task/asset-output.zip /var/task/asset-output',
+        // Copy to the old home folder
+        'cp -r /var/task/asset-output $OLD_HOME',
 
-        // allow all access to the zip file
-        'chmod -R 777 /var/task/asset-output.zip',
-
-        // Copy to the old home
-        'cp /var/task/asset-output.zip $OLD_HOME/asset-output.zip',
-
-        'chmod -R 777 $OLD_HOME/asset-output.zip',
+        'chmod -R 777 $OLD_HOME/asset-output',
       ].join(' && '),
     ];
 
