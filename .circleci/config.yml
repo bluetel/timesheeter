@@ -41,7 +41,8 @@ jobs:
       - run: chmod u+x ./.circleci/timesheeter-env.sh
       - run: ./.circleci/timesheeter-env.sh
 
-      - run: sudo chmod -R 777 /
+      # Make folder called asset-output with permisisons to allow everyone to read and write
+      - run: sudo mkdir asset-output && sudo chmod 777 asset-output
 
       - run:
           name: Deploy
