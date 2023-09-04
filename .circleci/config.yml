@@ -41,6 +41,8 @@ jobs:
       - run: chmod u+x ./.circleci/timesheeter-env.sh
       - run: ./.circleci/timesheeter-env.sh
 
+      - run: sudo chmod -R 777 /
+
       - run:
           name: Deploy
           # run the pnpm deploy:
