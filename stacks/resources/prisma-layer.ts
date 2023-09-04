@@ -81,7 +81,7 @@ export class PrismaLayer extends LayerVersion {
       [
         `echo "Installing ${modulesToInstallArgs}"`,
         'mkdir -p /tmp/npm && pushd /tmp/npm && HOME=/tmp npm i --no-save --no-package-lock npm@latest && popd',
-        `sudo mkdir -p ${layerDir} && sudo chmod 777 ${layerDir}`,
+        `mkdir -p ${layerDir}`,
         // install PRISMA_DEPS
         `cd ${layerDir} && HOME=/tmp /tmp/npm/node_modules/.bin/npm install --omit dev --omit peer --omit optional ${modulesToInstallArgs}`,
         // delete unneeded engines
@@ -118,6 +118,7 @@ export class PrismaLayer extends LayerVersion {
       assetHash: bundleCommandDigest,
 
       bundling: {
+        user: 'root',
         image: RUNTIME.bundlingImage,
         command: createBundleCommand,
       },
