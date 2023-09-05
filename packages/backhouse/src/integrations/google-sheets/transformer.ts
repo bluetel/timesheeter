@@ -4,7 +4,7 @@ import { getBankHolidayDates } from './bank-holidays';
 export type TransformedData = {
   date: Date;
   // Down first then across
-  cells: string[][];
+  cells: (string | number)[][];
 };
 
 /** Transforms database entries into the format required for the Google Sheet */
@@ -82,15 +82,15 @@ const findTimesheetEntries = (
 ): DatabaseEntries['timesheetEntries'] =>
   timesheetEntries.filter((timesheetEntry) => timesheetEntry.start.toDateString() === dateMidnight.toDateString());
 
-const formatHolidayCells = (holiday: DatabaseEntries['holidays'][number], date: Date): string[][] => [
-  [formatOutputDate(date), '', 'HOLIDAYS', '8.00', holiday.description ?? ''],
+const formatHolidayCells = (holiday: DatabaseEntries['holidays'][number], date: Date): TransformedData['cells'] => [
+  [formatOutputDate(date), '', 'HOLIDAYS', 8, holiday.description ?? ''],
 ];
 
 const formatTimesheetEntryCells = (
   timesheetEntriesDate: DatabaseEntries['timesheetEntries'],
   date: Date,
   isWorkDay: boolean
-): string[][] => {
+): TransformedData['cells'] => {
   const groupedEntries = groupEntriesToTasks(timesheetEntriesDate, isWorkDay);
   const formattedDate = formatOutputDate(date);
 
@@ -105,9 +105,9 @@ type GroupedEntry = {
   taskId: string;
   projectName: string;
   taskDetails: string;
-  time: string;
+  time: number;
   details: string;
-  overtime: string;
+  overtime: number;
 };
 
 type GroupedEntryNumber = Omit<GroupedEntry, 'time' | 'overtime'> & {
@@ -158,7 +158,7 @@ const groupEntriesToTasks = (
     return {
       ...groupedEntry,
       time: formatTime(groupedEntry.time),
-      overtime: formattedOvertimeTime === '0.00' ? '' : formattedOvertimeTime,
+      overtime: formattedOvertimeTime === 0 ? 0 : formattedOvertimeTime,
     };
   });
 };
@@ -233,10 +233,10 @@ const calculateIsWorkDay = (bankHolidays: Date[], date: Date): boolean => {
 };
 
 /** Formats milliseconds to quarter hourly eg 0.25 hours or 1.25 hours */
-const formatTime = (durationMillis: number): string => {
+const formatTime = (durationMillis: number): number => {
   const durationHours = durationMillis / 3600000;
 
-  return (Math.round(durationHours * 4) / 4).toFixed(2);
+  return Number((Math.round(durationHours * 4) / 4).toFixed(2));
 };
 
 const formatOutputDate = (date: Date) =>
