@@ -24,6 +24,7 @@ export const handleJiraIntegration = async ({ integration }: { integration: Jira
     prisma,
     privateUserId: integration.privateUserId,
     workspaceId: integration.workspaceId,
+    taskPrefixes: integration.config.taskPrefixes,
   });
 
   return Promise.all(
@@ -73,10 +74,12 @@ const getTasksToFetchIssues = async ({
   prisma,
   privateUserId,
   workspaceId,
+  taskPrefixes,
 }: {
   prisma: PrismaClient;
   privateUserId: string | null;
   workspaceId: string;
+  taskPrefixes: string[];
 }) => {
   // only get tasks with no jira ticket id
   const tasks = await prisma.task.findMany({
@@ -84,6 +87,7 @@ const getTasksToFetchIssues = async ({
       workspaceId,
       ticketForTask: {
         jiraTicketId: null,
+        taskPrefix: taskPrefixes.length > 0 ? { prefix: { in: taskPrefixes } } : undefined,
       },
       deleted: false,
       // if privateUserId is not null, only get tasks where that user has worked
