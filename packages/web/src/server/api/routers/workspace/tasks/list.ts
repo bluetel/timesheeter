@@ -6,10 +6,11 @@ import { authorize, parseTask } from './lib';
 export const listTasksProcedure = protectedProcedure
   .input(
     z.object({
-      workspaceId: z.string(),
+      workspaceId: z.string().cuid2(),
       page: z.number().int().positive().default(1),
       // Temporary fix to deal with data not loading on the client afer refresh
       fetchAllToPage: z.boolean().default(true),
+      projectId: z.string().cuid2().optional(),
     })
   )
   .query(async ({ ctx, input }) => {
@@ -24,6 +25,7 @@ export const listTasksProcedure = protectedProcedure
       where: {
         workspaceId: input.workspaceId,
         deleted: false,
+        projectId: input.projectId,
         OR: [
           {
             scopedUserId: null,
@@ -40,6 +42,7 @@ export const listTasksProcedure = protectedProcedure
         where: {
           workspaceId: input.workspaceId,
           deleted: false,
+          projectId: input.projectId,
           OR: [
             {
               scopedUserId: null,

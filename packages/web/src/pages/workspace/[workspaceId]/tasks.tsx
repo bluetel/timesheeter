@@ -12,8 +12,12 @@ import { TaskPanel } from '@timesheeter/web/components/workspace/tasks/TaskPanel
 import { TASKS_HELP_TEXT } from '@timesheeter/web/lib/workspace/tasks';
 import { ProjectIcon, TaskIcon } from '@timesheeter/web/lib';
 import { SimpleEmptyState } from '@timesheeter/web/components/ui/SimpleEmptyState';
-import { SelectableList } from '@timesheeter/web/components/ui/SelectableList';
 import { useRouter } from 'next/router';
+import { TaskSecondAside } from '@timesheeter/web/components/workspace/tasks/TaskSecondAside';
+import {
+  TaskFilterPreferencesProvider,
+  useTaskFilterPreferences,
+} from '@timesheeter/web/contexts/workspace/task-filter-preferences';
 
 type GetServerSidePropsResult =
   | {
@@ -72,17 +76,26 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
   };
 };
 
+const Tasks = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => (
+  <TaskFilterPreferencesProvider workspaceId={props.workspaceInfo.workspace.id}>
+    <TasksPage {...props} />
+  </TaskFilterPreferencesProvider>
+);
+
 // Disables pagination for now due to issues
 const fetchAllToPage = true;
 
-const Tasks = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const TasksPage = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const [pageCount, setPageCount] = useState(1);
+
+  const { taskFilterPreferences } = useTaskFilterPreferences();
 
   const { refetch: refetchTasks, data: taskData } = api.workspace.tasks.list.useQuery(
     {
       workspaceId: workspaceInfo.workspace.id,
       page: pageCount,
       fetchAllToPage,
+      projectId: taskFilterPreferences.projectId,
     },
     {
       onSuccess: ({ data: newTasks }) => {
@@ -119,20 +132,25 @@ const Tasks = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
 
   const taskItems = useMemo(
     () =>
-      tasks.map((task) => ({
-        id: task.id,
-        label: task.name,
-        subLabel: task.ticketForTask
+      tasks.map((task) => {
+        const taskNumber = task.ticketForTask
           ? `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}`
-          : undefined,
-        icon: TaskIcon,
-        onClick: () =>
-          setSelectedTask({
-            id: task.id,
-            index: tasks.findIndex((i) => i.id === task.id),
-          }),
-        selected: selectedTask?.id === task.id,
-      })),
+          : undefined;
+
+        return {
+          id: task.id,
+          label: task.name ?? undefined,
+          subLabel: task.project.name,
+          thirdLabel: taskNumber,
+          icon: TaskIcon,
+          onClick: () =>
+            setSelectedTask({
+              id: task.id,
+              index: tasks.findIndex((i) => i.id === task.id),
+            }),
+          selected: selectedTask?.id === task.id,
+        };
+      }),
     [tasks, selectedTask]
   );
 
@@ -176,34 +194,6 @@ const Tasks = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
     );
   }
 
-  if (!tasks || taskItems.length === 0) {
-    return (
-      <>
-        <EditTaskSideOver
-          show={showNewTaskSideOver}
-          onClose={() => setShowNewTaskSideOver(false)}
-          refetchTasks={refetchTasks}
-          data={{
-            new: true,
-          }}
-          workspaceId={workspaceInfo.workspace.id}
-          projects={projects ?? []}
-        />
-        <WorkspaceLayout workspaceInfo={workspaceInfo}>
-          <SimpleEmptyState
-            title="No Tasks"
-            helpText={TASKS_HELP_TEXT}
-            button={{
-              label: 'New task',
-              onClick: () => setShowNewTaskSideOver(true),
-            }}
-            icon={TaskIcon}
-          />
-        </WorkspaceLayout>
-      </>
-    );
-  }
-
   return (
     <>
       <EditTaskSideOver
@@ -217,21 +207,35 @@ const Tasks = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
       <WorkspaceLayout
         workspaceInfo={workspaceInfo}
         secondAside={
-          <nav className="h-full overflow-y-auto">
-            <SelectableList items={taskItems} loadMore={taskData?.next ? fetchNextPage : undefined} />
-          </nav>
+          <TaskSecondAside
+            taskItems={taskItems}
+            projects={projects}
+            loadMoreCallback={taskData?.next ? fetchNextPage : undefined}
+          />
         }
       >
-        {tasks.map((task) => (
-          <div key={task.id} className={task.id === selectedTask?.id ? '' : 'hidden'}>
-            <TaskPanel
-              task={task}
-              refetchTasks={refetchTasks}
-              onNewTaskClick={() => setShowNewTaskSideOver(true)}
-              projects={projects ?? []}
-            />
-          </div>
-        ))}
+        {tasks?.length > 0 ? (
+          tasks.map((task) => (
+            <div key={task.id} className={task.id === selectedTask?.id ? '' : 'hidden'}>
+              <TaskPanel
+                task={task}
+                refetchTasks={refetchTasks}
+                onNewTaskClick={() => setShowNewTaskSideOver(true)}
+                projects={projects ?? []}
+              />
+            </div>
+          ))
+        ) : (
+          <SimpleEmptyState
+            title="No Tasks"
+            helpText={TASKS_HELP_TEXT}
+            button={{
+              label: 'New task',
+              onClick: () => setShowNewTaskSideOver(true),
+            }}
+            icon={TaskIcon}
+          />
+        )}
       </WorkspaceLayout>
     </>
   );

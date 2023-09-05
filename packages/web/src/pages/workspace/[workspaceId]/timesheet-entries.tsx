@@ -124,19 +124,22 @@ const TimesheetEntries = ({ workspaceInfo }: InferGetServerSidePropsType<typeof 
   const timesheetEntryItems = useMemo(
     () =>
       timesheetEntries.map((timesheetEntry) => {
-        const getSubDescription = () => {
+        const getTaskName = () => {
           if (timesheetEntry.task.ticketForTask) {
-            return `${timesheetEntry.task.ticketForTask.taskPrefix.prefix}-${timesheetEntry.task.ticketForTask.number}`;
+            const ticketNumber = `${timesheetEntry.task.ticketForTask.taskPrefix.prefix}-${timesheetEntry.task.ticketForTask.number}`;
+
+            return timesheetEntry.task.name ? `${ticketNumber}: ${timesheetEntry.task.name}` : ticketNumber;
           }
 
           return timesheetEntry.task.name;
         };
 
-        const subDescription = getSubDescription();
-
         return {
-          label: timesheetEntry.description ?? subDescription ?? 'Unnamed entry',
-          subLabel: timesheetEntry.description ? subDescription : undefined,
+          label: getTaskName(),
+          subLabel: `${timesheetEntry.start.toLocaleDateString('en-GB')}: ${timesheetEntry.start.toLocaleTimeString(
+            'en-GB'
+          )} - ${timesheetEntry.end.toLocaleTimeString('en-GB')}`,
+          thirdLabel: timesheetEntry.description ?? undefined,
           icon: TimesheetEntryIcon,
           onClick: () =>
             setSelectedTask({
