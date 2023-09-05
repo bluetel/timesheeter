@@ -1,4 +1,4 @@
-import { HolidayIcon, IntegrationIcon, ProjectIcon, TaskIcon, TimesheetEntryIcon } from '@timesheeter/web/lib';
+import { IntegrationIcon, ProjectIcon, TaskIcon, TimesheetEntryIcon } from '@timesheeter/web/lib';
 import { HomeIcon } from '@heroicons/react/24/outline';
 
 type NavigationItem = {
@@ -17,5 +17,5 @@ export const navigation = [
     path: '/timesheet-entries',
     icon: TimesheetEntryIcon,
   },
-  { name: 'Holidays', path: '/holidays', icon: HolidayIcon },
+  // { name: 'Holidays', path: '/holidays', icon: HolidayIcon },
 ] as NavigationItem[];

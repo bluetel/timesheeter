@@ -11,6 +11,7 @@ import { toggl } from '../../../api';
 import { TogglIntegrationContext } from '../../../lib';
 import { TaskPair, TimesheeterTask, TogglTask, timesheeterTaskSelectQuery } from '../data';
 import { togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../../sync-records';
+import { TogglProject } from '../../projects';
 
 export const updateTimesheeterTask = async ({
   context: { prisma },
@@ -156,11 +157,13 @@ export const createTimesheeterTask = async ({
 export const createTogglTask = async ({
   context: { axiosClient, prisma, togglWorkspaceId, workspaceId },
   timesheeterTask,
-  togglProjectId,
+  togglProject,
 }: {
   context: TogglIntegrationContext;
   timesheeterTask: TimesheeterTask;
-  togglProjectId: number;
+  togglProject: TogglProject & {
+    deleted: false;
+  };
 }): Promise<TaskPair> => {
   // We need to get the ticket number if there is one, as that is what will be used
   // as the task name in Toggl
@@ -171,13 +174,13 @@ export const createTogglTask = async ({
 
   const togglTask = await toggl.tasks.post({
     axiosClient: axiosClient,
-    path: { workspace_id: togglWorkspaceId, project_id: togglProjectId },
+    path: { workspace_id: togglWorkspaceId, project_id: togglProject.id },
     body: {
       name: togglTaskName,
       active: true,
       estimated_seconds: 0,
       workspace_id: togglWorkspaceId,
-      project_id: togglProjectId,
+      project_id: togglProject.id,
       user_id: null,
     },
   });

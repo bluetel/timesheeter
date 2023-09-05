@@ -1,4 +1,4 @@
-import { AssetHashType, IgnoreMode } from 'aws-cdk-lib';
+import { AssetHashType, BundlingFileAccess, IgnoreMode } from 'aws-cdk-lib';
 import { Code, LayerVersion, LayerVersionProps } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import crypto from 'crypto';
@@ -120,6 +120,9 @@ export class PrismaLayer extends LayerVersion {
       bundling: {
         image: RUNTIME.bundlingImage,
         command: createBundleCommand,
+        // This is required for the bundling to work in CircleCI
+        // https://stackoverflow.com/questions/75714508/aws-cdk-gitlab-ci-runtimeerror-bundling-did-not-produce-any-output-check-tha
+        bundlingFileAccess: BundlingFileAccess.VOLUME_COPY,
       },
     });
 

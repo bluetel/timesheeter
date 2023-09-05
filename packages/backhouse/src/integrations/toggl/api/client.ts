@@ -17,9 +17,15 @@ export const getAxiosClient = ({ apiKey }: { apiKey: string }) => {
 
   // This is useful for debugging
   axiosClient.interceptors.request.use((request) => {
+    // stop deletes for now
+    if (request.method === 'delete') {
+      console.log('Skipping Request delete', request.method, request.url);
+      return Promise.reject(new Error('Skipping Request'));
+    }
+
     console.log('Starting Request', request.method, request.url);
     if (request.method === 'post' || request.method === 'put') {
-      console.log('Request Data', request.data);
+      // console.log('Request Data', request.data);
     }
     return request;
   });

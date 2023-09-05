@@ -71,7 +71,7 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
 import { type GetServerSidePropsContext } from 'next';
-import { devToolsEnabled } from '@timesheeter/web/lib';
+import { env } from '@timesheeter/web/env';
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
@@ -138,7 +138,7 @@ export const devToolsEnabledProcedure = t.procedure.use(
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
 
-    if (!devToolsEnabled()) {
+    if (!env.NEXT_PUBLIC_DEV_TOOLS_ENABLED) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
 

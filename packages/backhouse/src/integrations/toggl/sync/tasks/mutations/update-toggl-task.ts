@@ -92,12 +92,15 @@ const handleRecreateTogglTask = async ({
   maxPeriodStartDate.setUTCDate(maxPeriodStartDate.getUTCDate() - togglMaxScanPeriod);
 
   // Transfer all time entries to the new task
-  const togglTimeEntries = await toggl.timeEntries
-    .get({
+  const togglTimeEntries = await toggl.reports.search
+    .timeEntries({
       axiosClient: context.axiosClient,
-      params: {
-        start_date: maxPeriodStartDate,
-        end_date: context.endDate,
+      path: {
+        workspace_id: context.togglWorkspaceId,
+      },
+      query: {
+        start_date: maxPeriodStartDate.toISOString(),
+        end_date: context.endDate.toISOString(),
       },
     })
     .then((timeEntries) =>
@@ -124,8 +127,7 @@ const handleRecreateTogglTask = async ({
           tag_action: 'add',
           description: timeEntry.description ?? '',
           project_id: updatedTogglProjectId,
-          tag_ids: timeEntry.tag_ids ?? [],
-          billable: timeEntry.billable,
+          tag_ids: [],
           start: timeEntry.start,
           stop: timeEntry.stop,
           user_id: timeEntry.user_id,

@@ -13,8 +13,6 @@ const togglTimeEntrySchema = z
     start: z.string(),
     /** stop time in UTC, can be null if it's still running or created with "duration" and "duronly" fields */
     stop: z.string().nullable(),
-    tag_ids: z.array(z.number().int().positive()).nullable(),
-    tags: z.array(z.string()).nullable(),
     task_id: z.number().int().positive().nullable(),
     workspace_id: z.number().int().positive(),
     user_id: z.number().int().positive(),
@@ -26,37 +24,13 @@ const togglTimeEntrySchema = z
 
 export type RawTogglTimeEntry = z.infer<typeof togglTimeEntrySchema>;
 
-const togglTimeEntryArraySchema = togglTimeEntrySchema.array();
-
-export const timeEntriesGet = async ({
-  axiosClient,
-  params,
-}: {
-  axiosClient: RateLimitedAxiosClient;
-  params: {
-    start_date: Date;
-    end_date: Date;
-  };
-}) => {
-  const response = await axiosClient.get(`${API_BASE_URL}/api/v9/me/time_entries`, {
-    params: {
-      start_date: params.start_date.toISOString(),
-      end_date: params.end_date.toISOString(),
-      user_agent: 'timesheeter',
-    },
-  });
-
-  return togglTimeEntryArraySchema.parse(response.data);
-};
-
 const togglTimeEntryMutationSchema = z.object({
-  billable: z.boolean().default(false),
   created_with: z.string().default('Timesheeter'),
   description: z.string(),
   start: z.string().regex(isoStringRegex),
   stop: z.string().regex(isoStringRegex).nullable(),
   tag_action: z.enum(['add', 'delete']).default('add'),
-  tag_ids: z.array(z.number().int().positive()).optional(),
+  tag_ids: z.array(z.number().int().positive()).default([]),
   task_id: z.number().int().positive().optional(),
   user_id: z.number().int().positive(),
   workspace_id: z.number().int().positive(),

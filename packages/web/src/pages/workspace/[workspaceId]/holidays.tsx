@@ -1,43 +1,39 @@
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import type {
-  GetServerSidePropsContext,
-  InferGetServerSidePropsType,
-} from "next";
-import superjson from "superjson";
-import { WorkspaceLayout } from "@timesheeter/web/components/workspace/WorkspaceLayout";
-import { appRouter } from "@timesheeter/web/server/api/root";
-import { createTRPCContext } from "@timesheeter/web/server/api/trpc";
-import { api } from "@timesheeter/web/utils/api";
-import { type WorkspaceInfo, getWorkspaceInfoDiscrete } from "@timesheeter/web/server/lib/workspace-info";
-import { useEffect, useMemo, useState } from "react";
-import { EditHolidaySideOver } from "@timesheeter/web/components/workspace/holidays/EditHolidaySideOver";
-import { HolidayPanel } from "@timesheeter/web/components/workspace/holidays/HolidayPanel";
-import { HOLIDAYS_HELP_TEXT } from "@timesheeter/web/lib/workspace/holidays";
-import { HolidayIcon } from "@timesheeter/web/lib";
-import { SimpleEmptyState } from "@timesheeter/web/components/ui/SimpleEmptyState";
-import { SelectableList } from "@timesheeter/web/components/ui/SelectableList";
-import { useRouter } from "next/router";
+// import { createServerSideHelpers } from '@trpc/react-query/server';
+import type { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
+// import superjson from 'superjson';
+import { WorkspaceLayout } from '@timesheeter/web/components/workspace/WorkspaceLayout';
+// import { appRouter } from '@timesheeter/web/server/api/root';
+// import { createTRPCContext } from '@timesheeter/web/server/api/trpc';
+import { api } from '@timesheeter/web/utils/api';
+import { type WorkspaceInfo, getWorkspaceInfoDiscrete } from '@timesheeter/web/server/lib/workspace-info';
+import { useEffect, useMemo, useState } from 'react';
+import { EditHolidaySideOver } from '@timesheeter/web/components/workspace/holidays/EditHolidaySideOver';
+import { HolidayPanel } from '@timesheeter/web/components/workspace/holidays/HolidayPanel';
+import { HOLIDAYS_HELP_TEXT } from '@timesheeter/web/lib/workspace/holidays';
+import { HolidayIcon } from '@timesheeter/web/lib';
+import { SimpleEmptyState } from '@timesheeter/web/components/ui/SimpleEmptyState';
+import { SelectableList } from '@timesheeter/web/components/ui/SelectableList';
+import { useRouter } from 'next/router';
 
-type GetServerSidePropsResult = {
-  redirect: {
-    destination: string;
-    permanent: boolean;
-  }
-} | {
-  props: {
-    workspaceInfo: WorkspaceInfo
-    trpcState: unknown
-  };
-} | {
-  notFound: true
-}
+type GetServerSidePropsResult =
+  | {
+      redirect: {
+        destination: string;
+        permanent: boolean;
+      };
+    }
+  | {
+      props: {
+        workspaceInfo: WorkspaceInfo;
+        trpcState: unknown;
+      };
+    }
+  | {
+      notFound: true;
+    };
 
-export const getServerSideProps = async (
-  context: GetServerSidePropsContext
-): Promise<GetServerSidePropsResult> => {
-  const { redirect, props: workspaceInfo } = await getWorkspaceInfoDiscrete(
-    context
-  );
+export const getServerSideProps = async (context: GetServerSidePropsContext): Promise<GetServerSidePropsResult> => {
+  const { redirect, props: workspaceInfo } = await getWorkspaceInfoDiscrete(context);
 
   if (redirect) {
     return { redirect };
@@ -49,6 +45,12 @@ export const getServerSideProps = async (
     };
   }
 
+  // Holidays are currently disabled
+  return {
+    notFound: true,
+  };
+
+  /*
   const helpers = createServerSideHelpers({
     router: appRouter,
     ctx: await createTRPCContext({
@@ -67,16 +69,13 @@ export const getServerSideProps = async (
       workspaceInfo,
       trpcState: helpers.dehydrate(),
     },
-  };
+  };*/
 };
 
-const Holidays = ({
-  workspaceInfo,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const { data: holidays, refetch: refetchHolidays } =
-    api.workspace.holidays.list.useQuery({
-      workspaceId: workspaceInfo.workspace.id,
-    });
+const Holidays = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  const { data: holidays, refetch: refetchHolidays } = api.workspace.holidays.list.useQuery({
+    workspaceId: workspaceInfo.workspace.id,
+  });
 
   const [showNewHolidaySideOver, setShowNewHolidaySideOver] = useState(false);
 
@@ -102,10 +101,7 @@ const Holidays = ({
       setSelectedHoliday(null);
     }
 
-    if (
-      selectedHoliday !== null &&
-      !holidays?.find((i) => i.id === selectedHoliday.id)
-    ) {
+    if (selectedHoliday !== null && !holidays?.find((i) => i.id === selectedHoliday.id)) {
       setSelectedHoliday(null);
     }
   }, [holidays, selectedHoliday]);
@@ -113,9 +109,9 @@ const Holidays = ({
   const holidayItems = useMemo(
     () =>
       holidays?.map((holiday) => {
-        const displayPeriod = `${holiday.start.toLocaleDateString(
-          "en-GB"
-        )} - ${holiday.end.toLocaleDateString("en-GB")}`;
+        const displayPeriod = `${holiday.start.toLocaleDateString('en-GB')} - ${holiday.end.toLocaleDateString(
+          'en-GB'
+        )}`;
 
         return {
           label: holiday.description ?? displayPeriod,
@@ -149,7 +145,7 @@ const Holidays = ({
             title="No Holidays"
             helpText={HOLIDAYS_HELP_TEXT}
             button={{
-              label: "New holiday",
+              label: 'New holiday',
               onClick: () => setShowNewHolidaySideOver(true),
             }}
             icon={HolidayIcon}
@@ -177,10 +173,7 @@ const Holidays = ({
         }
       >
         {holidays.map((holiday) => (
-          <div
-            key={holiday.id}
-            className={holiday.id === selectedHoliday?.id ? "" : "hidden"}
-          >
+          <div key={holiday.id} className={holiday.id === selectedHoliday?.id ? '' : 'hidden'}>
             <HolidayPanel
               holiday={holiday}
               refetchHolidays={refetchHolidays}

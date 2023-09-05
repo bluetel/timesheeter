@@ -108,17 +108,23 @@ export const syncTasks = async ({
 
     // If only the timesheeter task exists, create a new toggl task
     if (!togglTask && timesheeterTask && !timesheeterTask.deleted) {
-      const togglProjectId = syncedProjectPairs.find(
+      const togglProject = syncedProjectPairs.find(
         (projectPair) => projectPair.timesheeterProject?.id === timesheeterTask.projectId
-      )?.togglProject.id;
+      )?.togglProject;
 
-      if (!togglProjectId) {
+      if (!togglProject) {
         throw new Error(
           `createTogglTask error - could not find toggl project for timesheeter project ${timesheeterTask.projectId}`
         );
       }
 
-      updatedTaskPairs.push(await createTogglTask({ context, timesheeterTask, togglProjectId }));
+      if (togglProject.deleted) {
+        throw new Error(
+          `createTogglTask error - could not create toggl task for timesheeter project ${timesheeterTask.projectId} as the toggl project is marked as deleted`
+        );
+      }
+
+      updatedTaskPairs.push(await createTogglTask({ context, timesheeterTask, togglProject }));
       continue;
     }
 

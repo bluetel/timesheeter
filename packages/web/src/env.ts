@@ -1,16 +1,3 @@
-import fs from 'fs';
-
-// See what file exists at ../../.env.* and load it, local, staging, or production
-const envPath = fs.existsSync('../../.env.local')
-  ? '../../.env.local'
-  : fs.existsSync('../../.env.staging')
-  ? '../../.env.staging'
-  : '../../.env.production';
-
-import { config as dotenvConfig } from 'dotenv';
-
-dotenvConfig({ path: envPath });
-
 import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
 
@@ -41,6 +28,11 @@ export const env = createEnv({
         const { APP_DB_USER, APP_DB_PASSWORD, APP_DB_HOST, APP_DB_PORT, APP_DB_NAME } = process.env;
 
         if (!APP_DB_USER || !APP_DB_PASSWORD || !APP_DB_HOST || !APP_DB_PORT || !APP_DB_NAME) {
+          // If running in circleci, pass some dummy values
+          if (!!process.env.CIRCLE_JOB) {
+            return 'postgresql://postgres:postgres@localhost:5432/postgres?schema=public&connection_limit=1';
+          }
+
           throw new Error(
             'DATABASE_URL is not set and individual components are not set. Please set DATABASE_URL or APP_DB_USER, APP_DB_PASSWORD, APP_DB_HOST, APP_DB_PORT, and APP_DB_NAME.'
           );
@@ -78,8 +70,9 @@ export const env = createEnv({
         sFormatted = undefined;
       }
 
-      if (!sFormatted) {
-        sFormatted = '127.0.0.1';
+      // If unset and running in circleci, pass some dummy values
+      if (!sFormatted && !!process.env.CIRCLE_JOB) {
+        return '127.0.0.1';
       }
 
       if (typeof sFormatted !== 'string') {
@@ -125,6 +118,10 @@ export const env = createEnv({
   },
   client: {
     NEXT_PUBLIC_URL: z.string().url(),
+    NEXT_PUBLIC_DEV_TOOLS_ENABLED: z
+      .string()
+      .default('false')
+      .transform((s) => s === 'true'),
   },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
@@ -140,5 +137,6 @@ export const env = createEnv({
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
     NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
+    NEXT_PUBLIC_DEV_TOOLS_ENABLED: process.env.NEXT_PUBLIC_DEV_TOOLS_ENABLED,
   },
 });

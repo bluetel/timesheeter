@@ -31,8 +31,7 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "tsconfig.json",
-    "scripts/run-migrations.js" // "**/*.cjs",
-    // "**/*.mjs"
+    "scripts/run-migrations.js"
   ],
-  "exclude": ["../../node_modules", "**/*.cjs", "**/*.mjs", "src/sst/*"]
+  "exclude": ["../../node_modules", "src/sst/*"]
 }
