@@ -32,6 +32,14 @@ export const integrationsRouter = createTRPCRouter({
         .findMany({
           where: {
             workspaceId: input.workspaceId,
+            OR: [
+              {
+                privateUserId: null,
+              },
+              {
+                privateUserId: ctx.session.user.id,
+              },
+            ],
           },
           orderBy: {
             createdAt: 'desc',
@@ -48,6 +56,14 @@ export const integrationsRouter = createTRPCRouter({
     });
 
     const { config, ...rest } = input;
+
+    // Ensure integration privateuserid is set to the current user
+    if (!!rest.privateUserId && rest.privateUserId !== ctx.session.user.id) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Private user id must be the current user',
+      });
+    }
 
     const createdIntegration = await ctx.prisma.integration
       .create({
@@ -94,6 +110,14 @@ export const integrationsRouter = createTRPCRouter({
     });
 
     const { config: updatedConfigValues, ...rest } = input;
+
+    // Ensure integration privateuserid is set to the current user
+    if (!!rest.privateUserId && rest.privateUserId !== ctx.session.user.id) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Private user id must be the current user',
+      });
+    }
 
     // Config is a single field, so we need to merge it manually
     const updatedConfig = {
@@ -248,6 +272,13 @@ const authorize = async <IntegrationId extends string | null>({
   }
 
   if (integration.workspaceId !== workspaceId) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Integration not found',
+    });
+  }
+
+  if (!!integration.privateUserId && integration.privateUserId !== userId) {
     throw new TRPCError({
       code: 'NOT_FOUND',
       message: 'Integration not found',

@@ -14,12 +14,14 @@ import { timesheetDescription } from '@timesheeter/web/lib/workspace/integration
 import { SelectableList } from '../../ui/SelectableList';
 import { SimpleEmptyState } from '../../ui/SimpleEmptyState';
 import { TogglEmailMapIcon, emailMapDescription } from '@timesheeter/web/lib/workspace/integrations/toggl';
+import { jiraTaskPrefixesDescription } from '@timesheeter/web/lib/workspace/integrations/jira';
 
 type IntegrationPanelProps = {
   integration: ParsedIntegration;
   refetchIntegrations: () => unknown;
   onNewIntegrationClick: () => void;
   memberships: WorkspaceInfo['memberships'];
+  userId: string;
 };
 
 export const IntegrationPanel = ({
@@ -27,6 +29,7 @@ export const IntegrationPanel = ({
   refetchIntegrations,
   onNewIntegrationClick,
   memberships,
+  userId,
 }: IntegrationPanelProps) => {
   const [showEditIntegrationSideOver, setShowEditIntegrationSideOver] = useState(false);
   const [showDeleteIntegrationModal, setShowDeleteIntegrationModal] = useState(false);
@@ -155,6 +158,7 @@ export const IntegrationPanel = ({
         }}
         workspaceId={integration.workspaceId}
         memberships={memberships}
+        userId={userId}
       />
       <DetailPanel
         header={{
@@ -207,6 +211,16 @@ const useBasicDetails = (
         value: integration.name,
       },
     },
+    {
+      label: {
+        title: 'Private Integration',
+        description: 'Whether this integration is private to you or can be used by other members of the workspace',
+      },
+      field: {
+        variant: 'text',
+        value: integration.privateUserId ? 'Yes' : 'No',
+      },
+    },
   ];
 
   integrationDetail.fields.forEach((field) => {
@@ -227,6 +241,19 @@ const useBasicDetails = (
       },
     });
   });
+
+  if (integration.config.type === 'JiraIntegration') {
+    details.push({
+      label: {
+        title: 'Task Prefixes',
+        description: jiraTaskPrefixesDescription,
+      },
+      field: {
+        variant: 'text',
+        value: integration.config.taskPrefixes.join(', '),
+      },
+    });
+  }
 
   return details;
 };
