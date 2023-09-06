@@ -41,6 +41,7 @@ export const getDefaultIntegrationConfig = (type: IntegrationType = 'TogglIntegr
 export const createIntegrationSchema = z.object({
   workspaceId: z.string().cuid2(),
   name: z.string().min(1).max(100),
+  privateUserId: z.string().cuid2().nullable(),
   config: integrationConfigSchema,
 });
 
@@ -48,6 +49,7 @@ export const updateIntegrationSchema = z.object({
   id: z.string().cuid2(),
   workspaceId: z.string().cuid2(),
   name: z.string().min(1).max(100).optional(),
+  privateUserId: z.string().cuid2().nullable().optional(),
   config: updateIntegrationConfigSchema,
 });
 

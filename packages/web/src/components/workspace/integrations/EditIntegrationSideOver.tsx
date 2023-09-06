@@ -19,9 +19,20 @@ import { ConfigIcon } from '@timesheeter/web/lib/icons';
 import { SiGooglesheets } from 'react-icons/si';
 import { SelectAndTextForm } from '../../ui/SelectAndTextForm';
 import { type WorkspaceInfo } from '@timesheeter/web/server';
-import { type Timesheet, timesheetSchema, timesheetDescription } from '@timesheeter/web/lib/workspace/integrations/google-sheets';
-import { customJSONStringify } from '@timesheeter/web/lib';
-import { type EmailMapEntry, emailMapDescription, emailMapEntrySchema, TogglEmailMapIcon } from '@timesheeter/web/lib/workspace/integrations/toggl';
+import {
+  type Timesheet,
+  timesheetSchema,
+  timesheetDescription,
+} from '@timesheeter/web/lib/workspace/integrations/google-sheets';
+import { TaskIcon, customJSONStringify, taskPrefixRegex } from '@timesheeter/web/lib';
+import {
+  type EmailMapEntry,
+  emailMapDescription,
+  emailMapEntrySchema,
+  TogglEmailMapIcon,
+} from '@timesheeter/web/lib/workspace/integrations/toggl';
+import { ListableForm } from '../../ui/forms/BasicForm/ListableForm';
+import { jiraTaskPrefixesDescription } from '@timesheeter/web/lib/workspace/integrations/jira';
 
 const mutationSchema = z.union([
   createIntegrationSchema.extend({
@@ -37,14 +48,15 @@ type EditIntegrationSideOverProps = {
   show: boolean;
   onClose: () => void;
   data:
-  | {
-    new: true;
-  }
-  | {
-    new: false;
-    integration: RouterOutputs['workspace']['integrations']['list'][0];
-  };
+    | {
+        new: true;
+      }
+    | {
+        new: false;
+        integration: RouterOutputs['workspace']['integrations']['list'][0];
+      };
   workspaceId: string;
+  userId: string;
   memberships: WorkspaceInfo['memberships'];
 };
 
@@ -54,6 +66,7 @@ export const EditIntegrationSideOver = ({
   onClose,
   data,
   workspaceId,
+  userId,
   memberships,
 }: EditIntegrationSideOverProps) => {
   const { addNotification } = useNotifications();
@@ -61,15 +74,16 @@ export const EditIntegrationSideOver = ({
   const getDefaultValues = () =>
     data.new
       ? {
-        new: true as const,
-        workspaceId,
-        name: 'New integration',
-        config: getDefaultIntegrationConfig(),
-      }
+          new: true as const,
+          workspaceId,
+          name: 'New integration',
+          config: getDefaultIntegrationConfig(),
+          privateUserId: null,
+        }
       : {
-        new: false as const,
-        ...data.integration,
-      };
+          new: false as const,
+          ...data.integration,
+        };
 
   const methods = useZodForm({
     schema: mutationSchema,
@@ -144,26 +158,36 @@ export const EditIntegrationSideOver = ({
 
     values.new
       ? createIntegration(values, {
-        onError: (error) => {
-          addNotification({
-            variant: 'error',
-            primaryText: 'Failed to create integration',
-            secondaryText: error.message,
-          });
-        },
-      })
+          onError: (error) => {
+            addNotification({
+              variant: 'error',
+              primaryText: 'Failed to create integration',
+              secondaryText: error.message,
+            });
+          },
+        })
       : updateIntegration(values, {
-        onError: (error) => {
-          addNotification({
-            variant: 'error',
-            primaryText: 'Failed to update integration',
-            secondaryText: error.message,
-          });
-        },
-      });
+          onError: (error) => {
+            addNotification({
+              variant: 'error',
+              primaryText: 'Failed to update integration',
+              secondaryText: error.message,
+            });
+          },
+        });
   };
 
-  const fields = useIntegrationFields(methods);
+  const fields = useIntegrationFields({ methods, userId });
+
+  const getTaskPrefixes = () => {
+    const taskPrefixes = [...(methods.getValues('config.taskPrefixes') ?? [])];
+
+    if (taskPrefixes.length === 0) {
+      taskPrefixes.push('');
+    }
+
+    return taskPrefixes;
+  };
 
   const getTabs = (): SideOverProps['tabs'] => {
     const config = methods.getValues('config');
@@ -172,7 +196,7 @@ export const EditIntegrationSideOver = ({
     const integrationDefinition = INTEGRATION_DEFINITIONS[integrationType];
 
     if (integrationType === 'GoogleSheetsIntegration') {
-      const timesheets = [...(config.timesheets ?? ([] as { userId: string | null; sheetId: string }[]))]
+      const timesheets = [...(config.timesheets ?? ([] as { userId: string | null; sheetId: string }[]))];
 
       if (timesheets.length === 0) {
         timesheets.push({
@@ -210,35 +234,34 @@ export const EditIntegrationSideOver = ({
                 values={values}
                 selectOptions={selectOptions}
                 onChange={(newValues) => {
-                  const filteredValues = newValues.map(({ selectValue, text }) => ({
-                    userId: selectValue,
-                    sheetId: text,
-                  })).map((value) => {
-                    const result = timesheetSchema.safeParse(value);
-                    if (!result.success) return null;
+                  const filteredValues = newValues
+                    .map(({ selectValue, text }) => ({
+                      userId: selectValue,
+                      sheetId: text,
+                    }))
+                    .map((value) => {
+                      const result = timesheetSchema.safeParse(value);
+                      if (!result.success) return null;
 
-                    return result.data;
-                  }).filter((value): value is Timesheet => value !== null);
+                      return result.data;
+                    })
+                    .filter((value): value is Timesheet => value !== null);
 
-                  methods.setValue(
-                    'config.timesheets',
-                    filteredValues,
-                    {
-                      shouldValidate: true,
-                    }
-                  );
+                  methods.setValue('config.timesheets', filteredValues, {
+                    shouldValidate: true,
+                  });
                 }}
                 nullable
               />
             ),
-            subDescription: timesheetDescription
+            subDescription: timesheetDescription,
           },
         ],
       };
     }
 
     if (integrationType === 'TogglIntegration') {
-      const emailMap = [...(config.emailMap ?? ([] as { userId: string | null; togglEmail: string }[]))]
+      const emailMap = [...(config.emailMap ?? ([] as { userId: string | null; togglEmail: string }[]))];
 
       if (emailMap.length === 0) {
         emailMap.push({
@@ -276,28 +299,61 @@ export const EditIntegrationSideOver = ({
                 values={values}
                 selectOptions={selectOptions}
                 onChange={(newValues) => {
-                  const filteredValues = newValues.map(({ selectValue, text }) => ({
-                    userId: selectValue,
-                    togglEmail: text,
-                  })).map((value) => {
-                    const result = emailMapEntrySchema.safeParse(value);
-                    if (!result.success) return null;
+                  const filteredValues = newValues
+                    .map(({ selectValue, text }) => ({
+                      userId: selectValue,
+                      togglEmail: text,
+                    }))
+                    .map((value) => {
+                      const result = emailMapEntrySchema.safeParse(value);
+                      if (!result.success) return null;
 
-                    return result.data;
-                  }).filter((value): value is EmailMapEntry => value !== null);
+                      return result.data;
+                    })
+                    .filter((value): value is EmailMapEntry => value !== null);
 
-                  methods.setValue(
-                    'config.emailMap',
-                    filteredValues,
-                    {
-                      shouldValidate: true,
-                    }
-                  );
+                  methods.setValue('config.emailMap', filteredValues, {
+                    shouldValidate: true,
+                  });
                 }}
                 nullable
               />
             ),
-            subDescription: emailMapDescription
+            subDescription: emailMapDescription,
+          },
+        ],
+      };
+    }
+
+    if (integrationType === 'JiraIntegration') {
+      return {
+        multiple: true as const,
+        bodies: [
+          {
+            icon: ConfigIcon,
+            label: 'Configuration',
+            body: <BasicForm items={fields} />,
+            subDescription: integrationDefinition.description,
+          },
+          {
+            icon: TaskIcon,
+            label: 'Task Prefixes',
+            body: (
+              <ListableForm
+                minRows={0}
+                placeholder="E.g. TS"
+                values={getTaskPrefixes()}
+                onChange={(newValues) => {
+                  // Filter out task prefixes that are invalid i.e. blank ones
+                  const filteredValues = newValues.filter((value) => taskPrefixRegex.test(value));
+
+                  methods.setValue('config.taskPrefixes', filteredValues, {
+                    shouldValidate: true,
+                  });
+                }}
+              />
+            ),
+            subDescription: jiraTaskPrefixesDescription,
           },
         ],
       };
@@ -323,7 +379,13 @@ export const EditIntegrationSideOver = ({
   );
 };
 
-const useIntegrationFields = (methods: ReturnType<typeof useZodForm<typeof mutationSchema>>) => {
+const useIntegrationFields = ({
+  methods,
+  userId,
+}: {
+  methods: ReturnType<typeof useZodForm<typeof mutationSchema>>;
+  userId: string;
+}) => {
   const fields: BasicFormItemProps[] = [
     {
       required: true,
@@ -355,6 +417,26 @@ const useIntegrationFields = (methods: ReturnType<typeof useZodForm<typeof mutat
         variant: 'text',
         register: methods.register('name'),
         error: methods.formState.errors.name,
+      },
+    },
+    {
+      required: true,
+      label: {
+        title: 'Private Integration',
+        description: 'Whether this integration is private to you or can be used by other members of the workspace',
+      },
+      field: {
+        variant: 'checkbox',
+        checked: !!methods.getValues('privateUserId'),
+        onChange: (isPrivate) =>
+          isPrivate
+            ? methods.setValue('privateUserId', userId, {
+                shouldValidate: true,
+              })
+            : methods.setValue('privateUserId', null, {
+                shouldValidate: true,
+              }),
+        error: methods.formState.errors.privateUserId,
       },
     },
   ];

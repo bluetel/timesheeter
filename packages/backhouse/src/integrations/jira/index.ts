@@ -1,4 +1,4 @@
-import { getPrismaClient, ParsedIntegration } from '@timesheeter/web';
+import { getPrismaClient, ParsedIntegration, PrismaClient } from '@timesheeter/web';
 import { ThrottledJiraClient } from './throttled-client';
 import { z } from 'zod';
 
@@ -20,29 +20,11 @@ export const handleJiraIntegration = async ({ integration }: { integration: Jira
     strictSSL: true,
   });
 
-  // only get tasks with no jira ticket id
-  const tasks = await prisma.task.findMany({
-    where: {
-      workspaceId: integration.workspaceId,
-      ticketForTask: {
-        jiraTicketId: null,
-      },
-      deleted: false,
-    },
-    select: {
-      id: true,
-      ticketForTask: {
-        select: {
-          number: true,
-          jiraTicketId: true,
-          taskPrefix: {
-            select: {
-              prefix: true,
-            },
-          },
-        },
-      },
-    },
+  const tasks = await getTasksToFetchIssues({
+    prisma,
+    privateUserId: integration.privateUserId,
+    workspaceId: integration.workspaceId,
+    taskPrefixes: integration.config.taskPrefixes,
   });
 
   return Promise.all(
@@ -87,3 +69,53 @@ const jiraIssueSchema = z.object({
     summary: z.string(),
   }),
 });
+
+const getTasksToFetchIssues = async ({
+  prisma,
+  privateUserId,
+  workspaceId,
+  taskPrefixes,
+}: {
+  prisma: PrismaClient;
+  privateUserId: string | null;
+  workspaceId: string;
+  taskPrefixes: string[];
+}) => {
+  // only get tasks with no jira ticket id
+  const tasks = await prisma.task.findMany({
+    where: {
+      workspaceId,
+      ticketForTask: {
+        jiraTicketId: null,
+        taskPrefix: taskPrefixes.length > 0 ? { prefix: { in: taskPrefixes } } : undefined,
+      },
+      deleted: false,
+      // if privateUserId is not null, only get tasks where that user has worked
+      // on time entries
+      timesheetEntries: privateUserId
+        ? {
+            some: {
+              userId: privateUserId,
+              deleted: false,
+            },
+          }
+        : undefined,
+    },
+    select: {
+      id: true,
+      ticketForTask: {
+        select: {
+          number: true,
+          jiraTicketId: true,
+          taskPrefix: {
+            select: {
+              prefix: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return tasks;
+};

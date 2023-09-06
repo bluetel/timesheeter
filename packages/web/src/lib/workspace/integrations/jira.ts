@@ -1,10 +1,13 @@
 import { z } from 'zod';
 import { SiJira } from 'react-icons/si';
-import { chronRegex, hostnameRegex } from '@timesheeter/web/lib/regex';
+import { chronRegex, hostnameRegex, taskPrefixRegex } from '@timesheeter/web/lib/regex';
+
+export const jiraTaskPrefixesDescription = 'Task prefixes to search for in Jira, if empty will search for all tasks';
 
 export const JiraIntegration = {
   name: 'Jira',
-  description: 'Connects to Jira to pull in task details',
+  description:
+    'Connects to Jira to pull in task details, if private, will only scan for tasks you have timesheet entries for',
   icon: SiJira,
   fields: [
     {
@@ -39,6 +42,14 @@ export const JiraIntegration = {
       protectCount: 0,
       description: 'Chron Expression for when to pull data from Jira',
     },
+    {
+      accessor: 'taskPrefixes',
+      name: 'Task Prefixes',
+      type: 'hidden',
+      required: false,
+      protectCount: 0,
+      description: jiraTaskPrefixesDescription,
+    },
   ],
   configSchema: z.object({
     type: z.literal('JiraIntegration'),
@@ -46,6 +57,8 @@ export const JiraIntegration = {
     username: z.string().min(1),
     host: z.string().regex(hostnameRegex, 'Please enter a valid hostname'),
     chronExpression: z.string().regex(chronRegex),
+    // Newer field, need to default to empty array
+    taskPrefixes: z.array(z.string().regex(taskPrefixRegex)).default([]),
   }),
   updateIntegrationSchema: z.object({
     type: z.literal('JiraIntegration'),
@@ -53,6 +66,8 @@ export const JiraIntegration = {
     username: z.string().min(1).optional(),
     host: z.string().regex(hostnameRegex, 'Please enter a valid hostname').optional(),
     chronExpression: z.string().regex(chronRegex).optional(),
+    // Newer field, need to default to empty array
+    taskPrefixes: z.array(z.string().regex(taskPrefixRegex)).default([]).optional(),
   }),
   defaultConfig: {
     type: 'JiraIntegration',
@@ -61,5 +76,6 @@ export const JiraIntegration = {
     host: '',
     // Default to every 15 minutes
     chronExpression: '*/15 * * * *',
+    taskPrefixes: [] as string[],
   },
 } as const;

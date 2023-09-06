@@ -1,46 +1,39 @@
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import type {
-  GetServerSidePropsContext,
-  InferGetServerSidePropsType,
-} from "next";
-import superjson from "superjson";
-import { WorkspaceLayout } from "@timesheeter/web/components/workspace/WorkspaceLayout";
-import { appRouter } from "@timesheeter/web/server/api/root";
-import { createTRPCContext } from "@timesheeter/web/server/api/trpc";
-import { api } from "@timesheeter/web/utils/api";
-import { type WorkspaceInfo, getWorkspaceInfoDiscrete } from "@timesheeter/web/server/lib/workspace-info";
-import { useEffect, useMemo, useState } from "react";
-import { EditIntegrationSideOver } from "@timesheeter/web/components/workspace/integrations/EditIntegrationSideOver";
-import { IntegrationPanel } from "@timesheeter/web/components/workspace/integrations/IntegrationPanel";
-import {
-  INTEGRATIONS_HELP_TEXT,
-  INTEGRATION_DEFINITIONS,
-} from "@timesheeter/web/lib/workspace/integrations";
-import { IntegrationIcon } from "@timesheeter/web/lib";
-import { SimpleEmptyState } from "@timesheeter/web/components/ui/SimpleEmptyState";
-import { SelectableList } from "@timesheeter/web/components/ui/SelectableList";
-import { useRouter } from "next/router";
+import { createServerSideHelpers } from '@trpc/react-query/server';
+import type { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
+import superjson from 'superjson';
+import { WorkspaceLayout } from '@timesheeter/web/components/workspace/WorkspaceLayout';
+import { appRouter } from '@timesheeter/web/server/api/root';
+import { createTRPCContext } from '@timesheeter/web/server/api/trpc';
+import { api } from '@timesheeter/web/utils/api';
+import { type WorkspaceInfo, getWorkspaceInfoDiscrete } from '@timesheeter/web/server/lib/workspace-info';
+import { useEffect, useMemo, useState } from 'react';
+import { EditIntegrationSideOver } from '@timesheeter/web/components/workspace/integrations/EditIntegrationSideOver';
+import { IntegrationPanel } from '@timesheeter/web/components/workspace/integrations/IntegrationPanel';
+import { INTEGRATIONS_HELP_TEXT, INTEGRATION_DEFINITIONS } from '@timesheeter/web/lib/workspace/integrations';
+import { IntegrationIcon } from '@timesheeter/web/lib';
+import { SimpleEmptyState } from '@timesheeter/web/components/ui/SimpleEmptyState';
+import { SelectableList } from '@timesheeter/web/components/ui/SelectableList';
+import { useRouter } from 'next/router';
 
-type GetServerSidePropsResult = {
-  redirect: {
-    destination: string;
-    permanent: boolean;
-  }
-} | {
-  props: {
-    workspaceInfo: WorkspaceInfo
-    trpcState: unknown
-  };
-} | {
-  notFound: true
-}
+type GetServerSidePropsResult =
+  | {
+      redirect: {
+        destination: string;
+        permanent: boolean;
+      };
+    }
+  | {
+      props: {
+        workspaceInfo: WorkspaceInfo;
+        trpcState: unknown;
+      };
+    }
+  | {
+      notFound: true;
+    };
 
-export const getServerSideProps = async (
-  context: GetServerSidePropsContext
-): Promise<GetServerSidePropsResult> => {
-  const { redirect, props: workspaceInfo } = await getWorkspaceInfoDiscrete(
-    context
-  );
+export const getServerSideProps = async (context: GetServerSidePropsContext): Promise<GetServerSidePropsResult> => {
+  const { redirect, props: workspaceInfo } = await getWorkspaceInfoDiscrete(context);
 
   if (redirect) {
     return { redirect };
@@ -73,16 +66,12 @@ export const getServerSideProps = async (
   };
 };
 
-const Integrations = ({
-  workspaceInfo,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const { data: integrations, refetch: refetchIntegrations } =
-    api.workspace.integrations.list.useQuery({
-      workspaceId: workspaceInfo.workspace.id,
-    });
+const Integrations = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  const { data: integrations, refetch: refetchIntegrations } = api.workspace.integrations.list.useQuery({
+    workspaceId: workspaceInfo.workspace.id,
+  });
 
-  const [showNewIntegrationSideOver, setShowNewIntegrationSideOver] =
-    useState(false);
+  const [showNewIntegrationSideOver, setShowNewIntegrationSideOver] = useState(false);
 
   const [selectedIntegration, setSelectedIntegration] = useState<{
     id: string;
@@ -106,10 +95,7 @@ const Integrations = ({
       setSelectedIntegration(null);
     }
 
-    if (
-      selectedIntegration !== null &&
-      !integrations?.find((i) => i.id === selectedIntegration.id)
-    ) {
+    if (selectedIntegration !== null && !integrations?.find((i) => i.id === selectedIntegration.id)) {
       setSelectedIntegration(null);
     }
   }, [integrations, selectedIntegration]);
@@ -117,8 +103,7 @@ const Integrations = ({
   const integrationItems = useMemo(
     () =>
       integrations?.map((integration) => {
-        const integrationDefinition =
-          INTEGRATION_DEFINITIONS[integration.config.type];
+        const integrationDefinition = INTEGRATION_DEFINITIONS[integration.config.type];
 
         return {
           label: integration.name,
@@ -147,13 +132,14 @@ const Integrations = ({
           }}
           workspaceId={workspaceInfo.workspace.id}
           memberships={workspaceInfo.memberships}
+          userId={workspaceInfo.membership.user.id}
         />
         <WorkspaceLayout workspaceInfo={workspaceInfo}>
           <SimpleEmptyState
             title="No Integrations"
             helpText={INTEGRATIONS_HELP_TEXT}
             button={{
-              label: "New integration",
+              label: 'New integration',
               onClick: () => setShowNewIntegrationSideOver(true),
             }}
             icon={IntegrationIcon}
@@ -172,6 +158,7 @@ const Integrations = ({
         data={{ new: true }}
         workspaceId={workspaceInfo.workspace.id}
         memberships={workspaceInfo.memberships}
+        userId={workspaceInfo.membership.user.id}
       />
       <WorkspaceLayout
         workspaceInfo={workspaceInfo}
@@ -182,17 +169,13 @@ const Integrations = ({
         }
       >
         {integrations.map((integration) => (
-          <div
-            key={integration.id}
-            className={
-              integration.id === selectedIntegration?.id ? "" : "hidden"
-            }
-          >
+          <div key={integration.id} className={integration.id === selectedIntegration?.id ? '' : 'hidden'}>
             <IntegrationPanel
               integration={integration}
               refetchIntegrations={refetchIntegrations}
               onNewIntegrationClick={() => setShowNewIntegrationSideOver(true)}
               memberships={workspaceInfo.memberships}
+              userId={workspaceInfo.membership.user.id}
             />
           </div>
         ))}
