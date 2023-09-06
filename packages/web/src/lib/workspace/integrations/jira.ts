@@ -6,7 +6,8 @@ export const jiraTaskPrefixesDescription = 'Task prefixes to search for in Jira,
 
 export const JiraIntegration = {
   name: 'Jira',
-  description: 'Connects to Jira to pull in task details',
+  description:
+    'Connects to Jira to pull in task details, if private, will only scan for tasks you have timesheet entries for',
   icon: SiJira,
   fields: [
     {
