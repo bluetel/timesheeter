@@ -55,29 +55,65 @@ export const monthYearToDate = (monthYear: string) => {
 /** Helper function that deals with all the many date formats a user may enter */
 export const parseCellBasedStartDate = ({
   lastEntryCellValue,
-  startMonth,
+  startMonthIndex,
   startYear,
 }: {
-  lastEntryCellValue: string;
-  startMonth: number;
+  lastEntryCellValue: string | number;
+  startMonthIndex: number;
   startYear: number;
 }): Date => {
-  // Extract the day from the cell value
-  let lastEntryDay = parseInt(lastEntryCellValue.toLowerCase().split(' ')[0]);
+  // Type 1 - Date formatted as number (e.g., 44205)
+  if (typeof lastEntryCellValue === 'number') {
+    // Google Sheets serial numbers use 1/1/1900 as the base date
+    const baseDate = new Date(1900, 0, 1); // January is 0-based
+    const daysSinceBaseDate = lastEntryCellValue - 1; // Subtract 1 to account for the base date
 
-  // Check if the first part is not a number (e.g., "Wednesday 26"), then try the second part
-  if (isNaN(lastEntryDay)) {
-    lastEntryDay = parseInt(lastEntryCellValue.split(' ')[1]);
+    // Calculate the timestamp in milliseconds
+    const timestamp = baseDate.getTime() + daysSinceBaseDate * 24 * 60 * 60 * 1000;
+
+    // Return the date (adding one day to account for the base date)
+    const date = new Date(timestamp);
+
+    console.log('Parsed date from serial number', date.toDateString());
+
+    return date;
   }
 
+  const formattedCellValue = lastEntryCellValue.toLowerCase().trim();
+
+  // Type 2 - Date formatted as month date (e.g., "January 1")
+  // If formattedCellValue starts with a month, try and parse it as a month/year
+  if (MONTHS.some((month) => formattedCellValue.startsWith(month))) {
+    const [_, date] = formattedCellValue.split(' ');
+
+    const startDate = new Date(Date.UTC(startYear, startMonthIndex, parseInt(date) + 1, 0, 0, 0, 0));
+
+    if (isNaN(startDate.getTime())) {
+      throw new Error('Invalid start date');
+    }
+
+    return startDate;
+  }
+
+  // Type 3 eg "26 Friday"
+  // Extract the day from the cell value
+  let lastEntryDay = parseInt(formattedCellValue.split(' ')[0]);
+
+  // Type 4 eg "Wednesday 26"
+  // Check if the first part is not a number (e.g., "Wednesday 26"), then try the second part
+  if (isNaN(lastEntryDay)) {
+    lastEntryDay = parseInt(formattedCellValue.split(' ')[1]);
+  }
+
+  // Type 5 eg "26/01/2021" - this is the new format
   // If the date is in the format dd/mm/yyyy, parse it accordingly
-  if (lastEntryCellValue.includes('/')) {
-    const [day] = lastEntryCellValue.split('/').map(Number);
-    return new Date(Date.UTC(startYear, startMonth, day + 1, 0, 0, 0, 0));
+  if (formattedCellValue.includes('/')) {
+    const [date] = formattedCellValue.split('/').map(Number);
+    return new Date(Date.UTC(startYear, startMonthIndex, date + 1, 0, 0, 0, 0));
   }
 
   // Construct a date, using the month and year from the provided startMonth and startYear
-  const startDate = new Date(Date.UTC(startYear, startMonth, lastEntryDay + 1, 0, 0, 0, 0));
+  const startDate = new Date(Date.UTC(startYear, startMonthIndex, lastEntryDay + 1, 0, 0, 0, 0));
 
   // Ensure the date is valid
   if (isNaN(startDate.getTime())) {
