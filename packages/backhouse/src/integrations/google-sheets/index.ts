@@ -20,14 +20,19 @@ export const handleGoogleSheetsIntegration = async ({
 }) => {
   for (const timesheet of timesheets) {
     // Run sequentially for rate limiting
-    await outputToTimesheet({
-      serviceAccountEmail,
-      privateKey,
-      commitDelayDays,
-      sheetId: timesheet.sheetId,
-      userId: timesheet.userId,
-      workspaceId,
-    });
+    // We also want to catch any errors in a single sheet and continue processing the rest
+    try {
+      await outputToTimesheet({
+        serviceAccountEmail,
+        privateKey,
+        commitDelayDays,
+        sheetId: timesheet.sheetId,
+        userId: timesheet.userId,
+        workspaceId,
+      });
+    } catch (e) {
+      console.error(e);
+    }
   }
 };
 

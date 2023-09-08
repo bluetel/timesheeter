@@ -63,13 +63,13 @@ export const getSheetStart = async (sheetsToProcess: SheetToProcess[]) => {
   // The dates are in the format "26 Friday" so we need to extract the date
   const lastEntryCellValue = sheet.getCell(lastDateEntryRow, DATE_COLUMN).value;
 
-  if (typeof lastEntryCellValue !== 'string') {
-    throw new Error('Invalid date cell value');
+  if (typeof lastEntryCellValue !== 'string' && typeof lastEntryCellValue !== 'number') {
+    throw new Error(`Invalid date cell value, expected string or number, got ${typeof lastEntryCellValue}`);
   }
 
   const startDate = parseCellBasedStartDate({
     lastEntryCellValue,
-    startMonth: sheetStartDate.getUTCMonth(),
+    startMonthIndex: sheetStartDate.getUTCMonth(),
     startYear: sheetStartDate.getUTCFullYear(),
   });
 
