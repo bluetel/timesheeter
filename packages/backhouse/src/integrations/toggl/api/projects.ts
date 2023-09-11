@@ -7,6 +7,7 @@ const togglProjectSchema = z
     workspace_id: z.number().int().positive(),
     name: z.string(),
     at: z.string(),
+    billable: z.boolean().nullable(),
   })
   .transform((data) => ({
     ...data,

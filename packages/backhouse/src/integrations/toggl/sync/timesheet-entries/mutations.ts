@@ -5,7 +5,7 @@ import {
   matchTaskRegex,
   parseTimesheetEntry,
 } from '@timesheeter/web';
-import { toggl } from '../../api';
+import { RawTogglProject, toggl } from '../../api';
 import { TogglIntegrationContext } from '../../lib';
 import {
   TimesheetEntryPair,
@@ -96,6 +96,7 @@ export const updateTogglTimeEntry = async ({
       tag_action: 'add',
       user_id: updatedTogglUserId,
       project_id: Number(timesheeterTimesheetEntry.task.project.togglProjectId),
+      billable: togglTimeEntry.billable,
     },
   });
 
@@ -186,6 +187,23 @@ export const createTogglTimeEntry = async ({
     );
   }
 
+  const togglProject = await toggl.projects
+    .get({
+      axiosClient,
+      path: {
+        workspace_id: togglWorkspaceId,
+      },
+    })
+    .then((projects) =>
+      projects.find((project) => project.id === Number(timesheeterTimesheetEntry.task.project.togglProjectId))
+    );
+
+  if (!togglProject) {
+    throw new Error(
+      `Timesheeter task does not have a toggl project id, this should have been set in the sync projects step, task id: ${timesheeterTimesheetEntry.task.id}`
+    );
+  }
+
   const togglTimeEntry = await toggl.timeEntries.post({
     axiosClient,
     path: { workspace_id: togglWorkspaceId },
@@ -200,6 +218,7 @@ export const createTogglTimeEntry = async ({
       tag_action: 'add',
       user_id: togglUserId,
       project_id: Number(timesheeterTimesheetEntry.task.project.togglProjectId),
+      billable: togglProject.billable ?? true,
     },
   });
 

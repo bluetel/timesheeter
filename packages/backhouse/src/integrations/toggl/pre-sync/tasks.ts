@@ -56,6 +56,7 @@ export const matchTimeEntryToTask = async ({
         stop: timeEntry.stop,
         project_id: matchedProject.id,
         user_id: timeEntry.user_id,
+        billable: matchedProject.billable ?? true,
       },
     });
 
@@ -90,6 +91,7 @@ export const matchTimeEntryToTask = async ({
       stop: timeEntry.stop,
       project_id: matchedProject.id,
       user_id: timeEntry.user_id,
+      billable: matchedProject.billable ?? true,
     },
   });
 

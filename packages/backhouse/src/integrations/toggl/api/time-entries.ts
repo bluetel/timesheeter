@@ -35,6 +35,7 @@ const togglTimeEntryMutationSchema = z.object({
   user_id: z.number().int().positive(),
   workspace_id: z.number().int().positive(),
   project_id: z.number().int().positive(),
+  billable: z.boolean().default(true),
 });
 
 export type TogglTimeEntryMutation = z.infer<typeof togglTimeEntryMutationSchema>;
