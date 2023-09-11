@@ -132,6 +132,7 @@ const handleRecreateTogglTask = async ({
           stop: timeEntry.stop,
           user_id: timeEntry.user_id,
           workspace_id: timeEntry.workspace_id,
+          billable: timeEntry.billable,
         },
       });
     })

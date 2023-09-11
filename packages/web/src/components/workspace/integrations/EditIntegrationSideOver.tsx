@@ -229,7 +229,7 @@ export const EditIntegrationSideOver = ({
             label: 'Timesheets',
             body: (
               <SelectAndTextForm
-                minRows={1}
+                minRows={0}
                 placeholder="Sheet ID"
                 values={values}
                 selectOptions={selectOptions}
@@ -294,7 +294,7 @@ export const EditIntegrationSideOver = ({
             label: 'Toggl Email Map',
             body: (
               <SelectAndTextForm
-                minRows={1}
+                minRows={0}
                 placeholder="Toggl user email"
                 values={values}
                 selectOptions={selectOptions}

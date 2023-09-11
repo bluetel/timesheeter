@@ -23,17 +23,17 @@ export const getAxiosClient = ({ apiKey }: { apiKey: string }) => {
       return Promise.reject(new Error('Skipping Request'));
     }
 
-    console.log('Starting Request', request.method, request.url);
-    if (request.method === 'post' || request.method === 'put') {
-      // console.log('Request Data', request.data);
-    }
+    // console.log('Starting Request', request.method, request.url);
+    // if (request.method === 'post' || request.method === 'put') {
+    //   console.log('Request Data', request.data);
+    // }
     return request;
   });
 
   axiosClient.interceptors.response.use((response) => {
     // If not ok, throw an error
     if (response.status !== 200) {
-      console.error('Response Error', response.data, response.status, response.statusText);
+      console.log('Response Error', response.data, response.status, response.statusText);
       throw new Error(response.statusText);
     }
 
