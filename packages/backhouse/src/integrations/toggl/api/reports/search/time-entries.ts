@@ -47,7 +47,7 @@ const formatDate = (date: Date) => {
 
 // add default grouped and hide_amounts
 const reportTimeEntryQuerySchema = minimalTimeEntryQuerySchema.transform((data) => {
-  const startDate = new Date(data.end_date);
+  const startDate = new Date(data.start_date);
   const endDate = new Date(data.end_date);
 
   return {
@@ -76,6 +76,7 @@ export const reportTimeEntries = async ({
   query: z.infer<typeof minimalTimeEntryQuerySchema>;
 }) => {
   let rawTogglTimeEntries: RawTogglTimeEntry[] = [];
+
   let startDate = new Date(query.start_date);
   const endDate = new Date(query.end_date);
 

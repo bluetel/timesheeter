@@ -58,6 +58,12 @@ const getTimesheetEntryData = async ({
     timesheeterTimesheetEntriesPromise,
   ]);
 
+  // sort timesheeter timesheet entries by start date, earliest first
+  timesheeterTimesheetEntries.sort((a, b) => a.start.getTime() - b.start.getTime());
+
+  // sort toggl time entries by start date, earliest first
+  togglTimeEntries.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
   return {
     togglTimeEntries,
     togglTimeEntrySyncRecords,
