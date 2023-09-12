@@ -74,8 +74,6 @@ export const parseCellBasedStartDate = ({
     // Return the date (adding one day to account for the base date)
     const date = new Date(timestamp);
 
-    console.log('Parsed date from serial number', date.toDateString());
-
     return date;
   }
 
