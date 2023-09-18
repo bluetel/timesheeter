@@ -36,7 +36,7 @@ export const handleJiraIntegration = async ({ integration }: { integration: Jira
       const issueNumber = `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}`;
 
       const jiraTicket = await jiraClient.findIssue(issueNumber).catch((error) => {
-        console.log('Error fetching jira ticket', error);
+        console.log(`Error fetching jira ticket ${issueNumber}`, error);
         return null;
       });
 
