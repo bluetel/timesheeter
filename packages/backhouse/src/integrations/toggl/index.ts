@@ -25,15 +25,17 @@ export const handleTogglIntegration = async ({
 
   // If we don't do this, then we will end up with time entries that don't have a task,
   // timesheeter requires all time entries to have a task, and all tasks to have a project
-
+  console.log('toggl - Performing Pre Sync');
   await preSync({ context });
 
   // Now we can sync projects, then tasks, then time entries
-
+  console.log('toggl - Syncing Projects');
   const syncedProjectPairs = await syncProjects({ context });
 
+  console.log('toggl - Syncing Tasks');
   const syncedTaskPairs = await syncTasks({ context, syncedProjectPairs });
 
+  console.log('toggl - Syncing Entries');
   const syncedTimesheetEntryPairs = await syncTimesheetEntries({
     context,
     syncedTaskPairs,
