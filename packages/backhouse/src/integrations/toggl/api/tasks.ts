@@ -105,6 +105,9 @@ export const tasksDelete = async ({
     task_id: number;
   };
 }) => {
+  console.log('Skipping tasksDelete', path);
+  // Get the project, see if the task
+
   // Temporarily disable deletes
   // axiosClient.delete(
   // `${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/projects/${path.project_id}/tasks/${path.task_id}`

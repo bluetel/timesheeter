@@ -86,6 +86,7 @@ export const projectsDelete = async ({
     project_id: number;
   };
 }) => {
+  console.log('Skipping projectsDelete', path);
   // Temporarily disable deletes
   // axiosClient.delete(`${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/projects/${path.project_id}`);
 };
