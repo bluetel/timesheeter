@@ -28,6 +28,7 @@ export function Database({ stack, app }: StackContext) {
       version: rds.PostgresEngineVersion.VER_15,
     }),
     vpc,
+    publiclyAccessible: true,
     securityGroups: [databaseSecurityGroup],
     instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE4_GRAVITON, ec2.InstanceSize.MICRO),
     multiAz: false,
