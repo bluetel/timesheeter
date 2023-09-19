@@ -77,7 +77,8 @@ export const syncTimesheetEntries = async ({
         return timesheetEntryPair as EvaluatedTimesheetEntryPair;
       }
 
-      console.log('Toggl - Sync Timesheet Pair Filtered as invalid', timesheetEntryPair);
+      // Don't think we need this
+      // console.log('Toggl - Sync Timesheet Pair Filtered as invalid', timesheetEntryPair);
       return null;
     })
     .filter((timesheetEntryPair): timesheetEntryPair is EvaluatedTimesheetEntryPair => !!timesheetEntryPair);
