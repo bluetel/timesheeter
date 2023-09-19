@@ -64,6 +64,8 @@ const getTimesheetEntryData = async ({
   // sort toggl time entries by start date, earliest first
   togglTimeEntries.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
+  console.log('togglTimeEntries retrieved', startDate, endDate, togglTimeEntries.length);
+
   return {
     togglTimeEntries,
     togglTimeEntrySyncRecords,
