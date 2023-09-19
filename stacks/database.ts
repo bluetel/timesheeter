@@ -18,9 +18,17 @@ export function Database({ stack, app }: StackContext) {
   });
 
   databaseSecurityGroup.addIngressRule(
-    ec2.Peer.ipv4(vpc.vpcCidrBlock),
+    // Allow all traffic
+    ec2.Peer.anyIpv4(),
     ec2.Port.allTraffic(),
-    'allow all traffic from vpc'
+    'allow all traffic'
+  );
+
+  databaseSecurityGroup.addIngressRule(
+    // Allow all traffic
+    ec2.Peer.anyIpv6(),
+    ec2.Port.allTraffic(),
+    'allow all traffic'
   );
 
   const database = new rds.DatabaseInstance(stack, 'main', {
@@ -29,6 +37,11 @@ export function Database({ stack, app }: StackContext) {
     }),
     vpc,
     publiclyAccessible: true,
+    subnetGroup: new rds.SubnetGroup(stack, 'database-subnet-group', {
+      vpc,
+      description: 'database subnet group',
+      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+    }),
     securityGroups: [databaseSecurityGroup],
     instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE4_GRAVITON, ec2.InstanceSize.MICRO),
     multiAz: false,
