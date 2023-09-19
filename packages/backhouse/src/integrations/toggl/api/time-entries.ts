@@ -85,4 +85,7 @@ export const timeEntriesDelete = async ({
     workspace_id: number;
     time_entry_id: number;
   };
-}) => axiosClient.delete(`${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/time_entries/${path.time_entry_id}`);
+}) => {
+  // Temporarily disable deletes
+  // axiosClient.delete(`${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/time_entries/${path.time_entry_id}`)
+};

@@ -104,7 +104,9 @@ export const tasksDelete = async ({
     project_id: number;
     task_id: number;
   };
-}) =>
-  axiosClient.delete(
-    `${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/projects/${path.project_id}/tasks/${path.task_id}`
-  );
+}) => {
+  // Temporarily disable deletes
+  // axiosClient.delete(
+  // `${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/projects/${path.project_id}/tasks/${path.task_id}`
+  // );
+};
