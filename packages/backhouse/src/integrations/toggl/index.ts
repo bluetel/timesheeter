@@ -41,6 +41,8 @@ export const handleTogglIntegration = async ({
     syncedTaskPairs,
   });
 
+  console.log('toggl - Applying Task Descriptions & Cleaning Up Deleted Objects');
+
   // We can handle these concurrently to speed things up
   await Promise.all([
     applyTaskDescriptions({ context, syncedTaskPairs }),

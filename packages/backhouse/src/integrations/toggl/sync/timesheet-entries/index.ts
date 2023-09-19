@@ -13,6 +13,8 @@ export const syncTimesheetEntries = async ({
 }): Promise<EvaluatedTimesheetEntryPair[]> => {
   const timesheetEntryPairs = await createTimesheetEntryPairs({ context });
 
+  console.log('timesheetEntryPairs', timesheetEntryPairs.slice(0, 15));
+
   // As we update the timesheeter timesheet entries in the loop, we need to store the updated imesheet entries
   const updatedTimesheetEntryPairs = [] as TimesheetEntryPair[];
 
