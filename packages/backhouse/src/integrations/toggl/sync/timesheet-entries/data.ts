@@ -189,5 +189,7 @@ export const createTimesheetEntryPairs = async ({
     }
   });
 
+  console.log('Created timesheetEntryPairs', timesheetEntryPairs.length);
+
   return timesheetEntryPairs;
 };
