@@ -5,6 +5,14 @@ import { handleJiraIntegration } from './jira';
 import { handleGoogleSheetsIntegration } from './google-sheets';
 
 export const handleIntegrationsJob = async (job: Job<IntegrationJob>) => {
+  try {
+    await handleIntegrationsJobThrowable(job);
+  } catch (error) {
+    console.error('Error in handleIntegrationsJob', error);
+  }
+};
+
+const handleIntegrationsJobThrowable = async (job: Job<IntegrationJob>) => {
   const { integrationId } = job.data;
 
   console.log('Processing integration', integrationId);
