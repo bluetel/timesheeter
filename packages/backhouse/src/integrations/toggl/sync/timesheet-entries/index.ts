@@ -13,8 +13,6 @@ export const syncTimesheetEntries = async ({
 }): Promise<EvaluatedTimesheetEntryPair[]> => {
   const timesheetEntryPairs = await createTimesheetEntryPairs({ context });
 
-  console.log('timesheetEntryPairs', timesheetEntryPairs.slice(0, 15));
-
   // As we update the timesheeter timesheet entries in the loop, we need to store the updated imesheet entries
   const updatedTimesheetEntryPairs = [] as TimesheetEntryPair[];
 
@@ -31,6 +29,7 @@ export const syncTimesheetEntries = async ({
 
       // If both imesheet entries exist and not deleted, determine which one is newer and update the older one with the newer one
       if (!togglTimeEntry.deleted && !timesheeterTimesheetEntry.deleted) {
+        console.log('handleTwoWayUpdates');
         updatedTimesheetEntryPairs.push(
           await handleTwoWayUpdates({ context, togglTimeEntry, timesheeterTimesheetEntry, syncedTaskPairs })
         );
@@ -39,12 +38,14 @@ export const syncTimesheetEntries = async ({
 
       // If the toggl project is deleted, delete the timesheeter project
       if (togglTimeEntry.deleted && !timesheeterTimesheetEntry.deleted) {
+        console.log('deleteTimesheeterTimesheetEntry');
         updatedTimesheetEntryPairs.push(await deleteTimesheeterTimesheetEntry({ context, togglTimeEntry }));
         continue;
       }
 
       // If the timesheeter project is deleted, delete the toggl project
       if (!togglTimeEntry.deleted && timesheeterTimesheetEntry.deleted) {
+        console.log('deleteTogglTimeEntry');
         updatedTimesheetEntryPairs.push(await deleteTogglTimeEntry({ context, togglTimeEntry }));
         continue;
       }
@@ -52,12 +53,14 @@ export const syncTimesheetEntries = async ({
 
     // If only the toggl time entry exists and not deleted, create a new timesheeter timesheet entry
     if (togglTimeEntry && !togglTimeEntry.deleted && !timesheeterTimesheetEntry) {
+      console.log('handleCreateTimesheeterEntry');
       updatedTimesheetEntryPairs.push(await handleCreateTimesheeterEntry({ context, togglTimeEntry, syncedTaskPairs }));
       continue;
     }
 
     // If only the timesheeter timesheet entry exists, create a new toggl time entry
     if (!togglTimeEntry && timesheeterTimesheetEntry && !timesheeterTimesheetEntry.deleted) {
+      console.log('handleCreateTogglEntry');
       updatedTimesheetEntryPairs.push(await handleCreateTogglEntry({ context, timesheeterTimesheetEntry }));
       continue;
     }
