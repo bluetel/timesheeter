@@ -104,17 +104,21 @@ export function Database({ stack, app }: StackContext) {
 /**
  * Generate a database connection string (DSN).
  */
-export function makeDatabaseUrl() {
+export function makeDatabaseUrl({
+  connectionLimit,
+}: {
+  connectionLimit?: number;
+} = {}) {
   if (sstEnv.IS_LOCAL) {
     return process.env.DATABASE_URL as string;
   }
-
-  const prismaConnectionLimit = process.env.PRISMA_CONNECTION_LIMIT ?? 1;
 
   const { database, databaseName } = use(Database);
 
   const dbUsername = database.secret?.secretValueFromJson('username');
   const dbPassword = database.secret?.secretValueFromJson('password');
 
-  return `postgresql://${dbUsername}:${dbPassword}@${database.dbInstanceEndpointAddress}:${database.dbInstanceEndpointPort}/${databaseName}?connection_limit=${prismaConnectionLimit}`;
+  return `postgresql://${dbUsername}:${dbPassword}@${database.dbInstanceEndpointAddress}:${
+    database.dbInstanceEndpointPort
+  }/${databaseName}?connection_limit=${connectionLimit ?? 1}&pool_timeout=60`;
 }
