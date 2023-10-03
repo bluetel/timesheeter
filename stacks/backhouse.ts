@@ -53,8 +53,6 @@ export const Backhouse = ({ stack }: StackContext) => {
     },
   });
 
-  const rawDatabaseUrl = makeDatabaseUrl();
-
   // A tarballed image exists at dist/backhouse.tar.gz
   taskDefinition.addContainer('BackhouseContainer', {
     image: ecs.ContainerImage.fromDockerImageAsset(dockerImageAsset),
@@ -63,7 +61,9 @@ export const Backhouse = ({ stack }: StackContext) => {
       streamPrefix: 'BackhouseEcsContainer',
     }),
     environment: {
-      DATABASE_URL: rawDatabaseUrl,
+      DATABASE_URL: makeDatabaseUrl({
+        connectionLimit: 10,
+      }),
       NEXTAUTH_URL: sstEnv.NEXTAUTH_URL,
       NEXTAUTH_SECRET: sstEnv.NEXTAUTH_SECRET,
       CONFIG_SECRET_KEY: sstEnv.CONFIG_SECRET_KEY,
