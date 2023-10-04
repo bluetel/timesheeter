@@ -38,7 +38,7 @@ export const handleCreateTimesheeterEntry = async ({
 
   if (!togglTimeEntry.task_id) {
     console.warn(
-      `The toggl time entry with id ${togglTimeEntry.id} does not have a task id, this may occasionaly happen if an entry was created after pre-sync but before sync. This could alternatively be a bug, but it resolves itself on the next sync.`
+      `The toggl time entry with id ${togglTimeEntry.id} does not have a task id, this may occasionaly happen if an entry was created after pre-sync but before sync. This could alternatively be a task without a task prefix`
     );
 
     return { togglTimeEntry, timesheeterTimesheetEntry: null };
