@@ -50,15 +50,21 @@ export const preSync = async ({ context }: { context: TogglIntegrationContext })
   }
 
   for (const timeEntry of togglTimeEntriesWithoutTask) {
+    const searchMatch = await matchTimeEntryToProject({
+      context,
+      timeEntry,
+      togglProjects,
+      timesheeterProjects,
+      uncategorizedTasksProject,
+      togglTasks,
+    });
+
+    if (!searchMatch) {
+      continue;
+    }
+
     const { matchedProject, updatedTogglProjects, updatedTimesheeterProjects, taskName, autoAssignTrimmedDescription } =
-      await matchTimeEntryToProject({
-        context,
-        timeEntry,
-        togglProjects,
-        timesheeterProjects,
-        uncategorizedTasksProject,
-        togglTasks,
-      });
+      searchMatch;
 
     togglProjects = updatedTogglProjects;
     timesheeterProjects = updatedTimesheeterProjects;

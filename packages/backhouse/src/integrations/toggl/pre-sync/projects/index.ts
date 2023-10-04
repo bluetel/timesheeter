@@ -4,7 +4,6 @@ import { TimesheeterProject } from '../../sync';
 import { RawTogglProject, RawTogglTask, RawTogglTimeEntry, toggl } from '../../api';
 import { handleTaskPrefixMatch } from './handle-task-prefix-match';
 import { findAutoAssignMatch, handleAutoAssign } from './handle-auto-assign';
-import { handleNoDescription } from './handle-no-description';
 
 export const matchTimeEntryToProject = async ({
   context,
