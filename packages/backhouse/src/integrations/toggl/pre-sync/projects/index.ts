@@ -2,7 +2,6 @@ import { matchTaskRegex } from '@timesheeter/web';
 import { TogglIntegrationContext } from '../../lib';
 import { TimesheeterProject } from '../../sync';
 import { RawTogglProject, RawTogglTask, RawTogglTimeEntry, toggl } from '../../api';
-import { handleNoTaskPrefixMatch } from './handle-no-task-prefix-match';
 import { handleTaskPrefixMatch } from './handle-task-prefix-match';
 import { findAutoAssignMatch, handleAutoAssign } from './handle-auto-assign';
 import { handleNoDescription } from './handle-no-description';
@@ -12,7 +11,6 @@ export const matchTimeEntryToProject = async ({
   timeEntry,
   togglProjects,
   timesheeterProjects,
-  uncategorizedTasksProject,
   togglTasks,
 }: {
   context: TogglIntegrationContext;
@@ -24,12 +22,14 @@ export const matchTimeEntryToProject = async ({
 }) => {
   // Edge case where user sets a project but nothing more
   if (!timeEntry.description && !timeEntry.task_id && !!timeEntry.project_id) {
-    return handleNoDescription({
-      timeEntry,
-      togglProjects,
-      timesheeterProjects,
-      uncategorizedTasksProject,
-    });
+    // We are ignoring entries with no description for now
+    return null;
+    // return handleNoDescription({
+    //   timeEntry,
+    //   togglProjects,
+    //   timesheeterProjects,
+    //   uncategorizedTasksProject,
+    // });
   }
 
   // We match auto assign project regardless of user project selection
@@ -70,13 +70,15 @@ export const matchTimeEntryToProject = async ({
       });
     }
 
-    return {
-      matchedProject: togglProject,
-      updatedTogglProjects: togglProjects,
-      updatedTimesheeterProjects: timesheeterProjects,
-      taskName: matchResult.description,
-      autoAssignTrimmedDescription: null,
-    };
+    // We are ignoring entries with no task prefix match for now
+    return null;
+    // return {
+    //   matchedProject: togglProject,
+    //   updatedTogglProjects: togglProjects,
+    //   updatedTimesheeterProjects: timesheeterProjects,
+    //   taskName: matchResult.description,
+    //   autoAssignTrimmedDescription: null,
+    // };
   }
 
   const parentTask = togglTasks.find((task) => task.id === timeEntry.task_id);
@@ -100,13 +102,15 @@ export const matchTimeEntryToProject = async ({
   const description = timeEntry.description;
 
   if (!description) {
-    return {
-      matchedProject: uncategorizedTasksProject,
-      updatedTogglProjects: togglProjects,
-      updatedTimesheeterProjects: timesheeterProjects,
-      taskName: `Auto created by Timesheeter for time entry ${timeEntry.id}`,
-      autoAssignTrimmedDescription: null,
-    };
+    // We are ignoring entries with no description for now
+    return null;
+    // return {
+    //   matchedProject: uncategorizedTasksProject,
+    //   updatedTogglProjects: togglProjects,
+    //   updatedTimesheeterProjects: timesheeterProjects,
+    //   taskName: `Auto created by Timesheeter for time entry ${timeEntry.id}`,
+    //   autoAssignTrimmedDescription: null,
+    // };
   }
 
   const matchResult = matchTaskRegex(description);
@@ -121,11 +125,13 @@ export const matchTimeEntryToProject = async ({
     });
   }
 
-  return handleNoTaskPrefixMatch({
-    description,
-    togglProjects,
-    timesheeterProjects,
-    uncategorizedTasksProject,
-    togglTasks,
-  });
+  // We are ignoring entries with no task prefix match for now
+  return null;
+  // return handleNoTaskPrefixMatch({
+  //   description,
+  //   togglProjects,
+  //   timesheeterProjects,
+  //   uncategorizedTasksProject,
+  //   togglTasks,
+  // });
 };
