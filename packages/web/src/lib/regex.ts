@@ -9,7 +9,7 @@ export const taskPrefixRegex = /^[A-Z]{1,8}$/;
 export const taskRegex = /^([A-Za-z]{1,8})\s*-\s*([0-9]+)(?:\s*[-:]?\s*(.+))?$/;
 
 export const monthYearRegex =
-  /^(?:january|february|march|april|may|june|july|august|september|ictober|november|december)\s\d{4}$/i;
+  /^(?:january|february|march|april|may|june|july|august|september|october|november|december)\s\d{2,4}$/i;
 
 export const ukDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
