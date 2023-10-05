@@ -19,6 +19,12 @@ export const createBlankSheet = async ({ startDate, doc }: { startDate: Date; do
   });
 
   // Add default data to the sheet using cell api
+  await addDefaultHeadings({ sheet });
+
+  return sheet;
+};
+
+export const addDefaultHeadings = async ({ sheet }: { sheet: GoogleSpreadsheet['sheetsByTitle'][number] }) => {
   await sheet.loadCells();
 
   for (const [rowIndex, row] of defaultData.entries()) {
@@ -35,6 +41,4 @@ export const createBlankSheet = async ({ startDate, doc }: { startDate: Date; do
   }
 
   await sheet.saveUpdatedCells();
-
-  return sheet;
 };
