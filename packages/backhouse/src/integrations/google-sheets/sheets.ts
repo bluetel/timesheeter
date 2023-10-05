@@ -2,7 +2,7 @@ import { monthYearRegex } from '@timesheeter/web';
 import { GoogleSpreadsheet, type GoogleSpreadsheetWorksheet } from 'google-spreadsheet';
 import { monthYearToDate, parseCellBasedStartDate } from './dates';
 import { TransformedData } from './transformer';
-import { createBlankSheet } from './blank-sheet';
+import { createBlankSheet, addDefaultHeadings } from './blank-sheet';
 
 const HEADER_ROW = 0;
 
@@ -238,6 +238,15 @@ const updateCursor = async ({
       currentSheet: sheet,
       currentRow: DEFAULT_FIRST_ENTRY_ROW,
     };
+  }
+
+  // If top row is empty, write the column headings
+  const topRow = currentSheet.getCell(HEADER_ROW, DATE_COLUMN);
+
+  const topRowEmpty = !topRow.value;
+
+  if (topRowEmpty) {
+    await addDefaultHeadings({ sheet: currentSheet });
   }
 
   return {
