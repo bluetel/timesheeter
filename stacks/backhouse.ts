@@ -56,7 +56,7 @@ export const Backhouse = ({ stack }: StackContext) => {
   // A tarballed image exists at dist/backhouse.tar.gz
   taskDefinition.addContainer('BackhouseContainer', {
     image: ecs.ContainerImage.fromDockerImageAsset(dockerImageAsset),
-    memoryLimitMiB: 1000,
+    memoryLimitMiB: 200,
     logging: new ecs.AwsLogDriver({
       streamPrefix: 'BackhouseEcsContainer',
     }),
