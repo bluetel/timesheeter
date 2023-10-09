@@ -3,7 +3,6 @@ import { type TogglIntegrationContext } from '../../lib';
 import { type TimesheeterProject } from '../../sync';
 import { type RawTogglProject, type RawTogglTask, type RawTogglTimeEntry } from '../../api';
 import { handleTaskPrefixMatch } from './handle-task-prefix-match';
-import { findAutoAssignMatch, handleAutoAssign } from './handle-auto-assign';
 
 export const matchTimeEntryToProject = async ({
   context,
@@ -29,22 +28,6 @@ export const matchTimeEntryToProject = async ({
     //   timesheeterProjects,
     //   uncategorizedTasksProject,
     // });
-  }
-
-  // We match auto assign project regardless of user project selection
-  const autoAssign = findAutoAssignMatch({ timeEntry, timesheeterProjects });
-
-  if (autoAssign.match) {
-    // We don't need to handle creating projects in timesheeter as we know that
-    // they must exist
-    return handleAutoAssign({
-      context,
-      autoAssignTimesheeterProject: autoAssign.timesheeterProject,
-      autoAssignPrefix: autoAssign.autoAssignPrefix,
-      togglProjects,
-      timesheeterProjects,
-      trimmedDescription: autoAssign.trimmedDescription,
-    });
   }
 
   // The parent task may already be in a project, if so set the timesheeterProject to that project

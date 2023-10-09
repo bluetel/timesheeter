@@ -12,22 +12,10 @@ export const ProjectIcon = FolderIcon as IconType;
 
 export const taskPrefixesHelpText = `Jira prefixes that will be auto-assigned to this project and contain tracked task numbers (e.g. "AC" in "AC-1234")`;
 
-export const autoAssignTasksHelpText = `Entries that start with these names will automatically be assigned to this project and task (e.g. "INTERNAL-HIRING - New hire onboarding")`;
-
-export const autoAssignTaskSchema = z.string().min(1);
-
 export const PROJECT_DEFINITIONS = {
   DefaultProject: {
     name: 'Project',
     fields: [
-      {
-        accessor: 'autoAssignTasks',
-        name: 'Auto-assign tasks',
-        type: 'string_list',
-        required: false,
-        protectCount: 0,
-        description: autoAssignTasksHelpText,
-      },
       {
         accessor: 'taskPrefixes',
         name: 'Task prefixes',
@@ -39,17 +27,14 @@ export const PROJECT_DEFINITIONS = {
     ],
     configSchema: z.object({
       type: z.literal('DefaultProject'),
-      autoAssignTasks: z.array(autoAssignTaskSchema).default([]),
       taskPrefixes: z.array(z.string().regex(taskPrefixRegex)).default([]),
     }),
     updateProjectSchema: z.object({
       type: z.literal('DefaultProject'),
-      autoAssignTasks: z.array(autoAssignTaskSchema).default([]).optional(),
       taskPrefixes: z.array(z.string().regex(taskPrefixRegex)).default([]).optional(),
     }),
     defaultConfig: {
       type: 'DefaultProject',
-      autoAssignTasks: [] as string[],
       taskPrefixes: [] as string[],
     },
   },

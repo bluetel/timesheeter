@@ -1,4 +1,4 @@
-import { ProjectIcon, autoAssignTasksHelpText } from '@timesheeter/web/lib/workspace/projects';
+import { ProjectIcon } from '@timesheeter/web/lib/workspace/projects';
 import type { ParsedProject } from '@timesheeter/web/server/api/routers/workspace/projects';
 import { EditProjectSideOver } from './EditProjectSideOver';
 import { useState } from 'react';
@@ -7,11 +7,6 @@ import { DeleteProjectModal } from './DeleteProjectModal';
 import { PROJECTS_HELP_TEXT } from '@timesheeter/web/lib/workspace/projects';
 import { type RouterOutputs } from '@timesheeter/web/utils/api';
 import { BasicDetailList, type BasicDetailListItem } from '@timesheeter/web/components/ui/DetailPanel/BasicDetailList';
-import { ArrowPathRoundedSquareIcon } from '@heroicons/react/24/outline';
-import { type IconType } from 'react-icons';
-import { SelectableList } from '../../ui/SelectableList';
-import { SimpleEmptyState } from '../../ui/SimpleEmptyState';
-import { ConfigIcon } from '@timesheeter/web/lib/icons';
 import { type Project } from '@prisma/client';
 
 type ProjectPanelProps = {
@@ -69,39 +64,8 @@ export const ProjectPanel = ({ project, refetchProjects, onNewProjectClick }: Pr
           },
         }}
         tabs={{
-          multiple: true,
-          bodies: [
-            {
-              icon: ConfigIcon,
-              label: 'Config',
-              body: <BasicDetailList items={basicDetails} />,
-            },
-            {
-              icon: ArrowPathRoundedSquareIcon as IconType,
-              label: 'Auto Assign Tasks',
-              subDescription: autoAssignTasksHelpText,
-              body:
-                project.config.autoAssignTasks.length > 0 ? (
-                  <SelectableList
-                    items={project.config.autoAssignTasks.map((taskName) => ({
-                      label: taskName,
-                      subLabel: `e.g. ${taskName} - New feature discussion`,
-                    }))}
-                  />
-                ) : (
-                  <SimpleEmptyState
-                    title="No auto assign tasks"
-                    helpText="Edit the project to add auto assign tasks"
-                    icon={ProjectIcon}
-                    button={{
-                      label: 'Edit project',
-                      onClick: () => setShowEditProjectSideOver(true),
-                    }}
-                    shrink
-                  />
-                ),
-            },
-          ],
+          multiple: false,
+          body: <BasicDetailList items={basicDetails} />,
         }}
       />
     </>
