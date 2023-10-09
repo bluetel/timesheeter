@@ -1,6 +1,6 @@
-import { ParsedIntegration, PrismaClient, getPrismaClient } from '@timesheeter/web';
-import { RateLimitedAxiosClient, TogglUser, getAxiosClient, toggl } from './api';
-import { EmailMapEntry } from '@timesheeter/web';
+import { type ParsedIntegration, type PrismaClient, getPrismaClient } from '@timesheeter/web';
+import { type RateLimitedAxiosClient, type TogglUser, getAxiosClient, toggl } from './api';
+import { type EmailMapEntry } from '@timesheeter/web';
 
 export type TogglIntegration = ParsedIntegration & {
   config: {

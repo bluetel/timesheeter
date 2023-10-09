@@ -1,4 +1,4 @@
-import { getPrismaClient, ParsedIntegration, PrismaClient } from '@timesheeter/web';
+import { getPrismaClient, type ParsedIntegration, type PrismaClient } from '@timesheeter/web';
 import { ThrottledJiraClient } from './throttled-client';
 import { z } from 'zod';
 

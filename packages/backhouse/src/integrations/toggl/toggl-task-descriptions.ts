@@ -1,7 +1,7 @@
 import { matchTaskRegex } from '@timesheeter/web';
-import { EvaluatedTaskPair } from './sync';
+import { type EvaluatedTaskPair } from './sync';
 import { toggl } from './api';
-import { TogglIntegrationContext } from './lib';
+import { type TogglIntegrationContext } from './lib';
 
 /**
  * Toggl Task Names can be in the following form:

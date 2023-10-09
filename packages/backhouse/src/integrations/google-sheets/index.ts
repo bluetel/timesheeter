@@ -1,4 +1,4 @@
-import { ParsedIntegration } from '@timesheeter/web';
+import { type ParsedIntegration } from '@timesheeter/web';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { applyTransforms, filterExistingSheets, getSheetStart } from './sheets';
 import { getDatabaseEntries, getDatabaseEntriesStartDate } from './database-entries';
@@ -57,7 +57,7 @@ const outputToTimesheet = async ({
     privateKey: privateKey,
   });
 
-  const sheetsToProcess = await filterExistingSheets(doc.sheetsByIndex);
+  const sheetsToProcess = filterExistingSheets(doc.sheetsByIndex);
 
   // Last day to file is commitDelayDays ago
   const lastDayToProcess = new Date();
@@ -97,7 +97,7 @@ const outputToTimesheet = async ({
     lastDayToProcess,
   });
 
-  applyTransforms({
+  await applyTransforms({
     transformedData,
     sheetStart,
     doc,

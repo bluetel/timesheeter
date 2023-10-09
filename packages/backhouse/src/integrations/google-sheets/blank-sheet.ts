@@ -1,4 +1,4 @@
-import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { type GoogleSpreadsheet } from 'google-spreadsheet';
 import { dateToMonthYear } from './dates';
 
 const defaultData = [['Date', 'Project / Customer', 'JIRA Task', 'Time', 'Details', 'Overtime']] as const;

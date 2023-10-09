@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const defaultTheme = require("tailwindcss/defaultTheme");
 
 /** @type {import('tailwindcss').Config} */
@@ -10,7 +11,8 @@ const config = {
       },
     },
   },
-
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // @ts-expect-error - no types
   plugins: [require("tw-elements/dist/plugin.cjs")]
 };
 

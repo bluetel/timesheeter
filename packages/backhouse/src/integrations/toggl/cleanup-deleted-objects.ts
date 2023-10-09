@@ -1,7 +1,7 @@
-import { TogglIntegrationContext } from './lib';
-import { EvaluatedProjectPair, EvaluatedTaskPair } from './sync';
+import { type TogglIntegrationContext } from './lib';
+import { type EvaluatedProjectPair, type EvaluatedTaskPair } from './sync';
 import { togglProjectSyncRecordType, togglTaskSyncRecordType, togglTimeEntrySyncRecordType } from './sync-records';
-import { EvaluatedTimesheetEntryPair } from './sync/timesheet-entries/data';
+import { type EvaluatedTimesheetEntryPair } from './sync/timesheet-entries/data';
 
 /**
  * Cleans up objects marked as deleted in Timesheeter that are no longer present in Toggl.

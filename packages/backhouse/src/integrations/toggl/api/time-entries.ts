@@ -77,7 +77,6 @@ export const timeEntriesPut = async ({
 };
 
 export const timeEntriesDelete = async ({
-  axiosClient,
   path,
 }: {
   axiosClient: RateLimitedAxiosClient;

@@ -1,6 +1,6 @@
-import { TogglIntegrationContext } from '../../lib';
-import { EvaluatedTaskPair } from '../tasks';
-import { EvaluatedTimesheetEntryPair, TimesheetEntryPair, createTimesheetEntryPairs } from './data';
+import { type TogglIntegrationContext } from '../../lib';
+import { type EvaluatedTaskPair } from '../tasks';
+import { type EvaluatedTimesheetEntryPair, type TimesheetEntryPair, createTimesheetEntryPairs } from './data';
 import { deleteTimesheeterTimesheetEntry, deleteTogglTimeEntry } from './mutations';
 import { handleTwoWayUpdates, handleCreateTimesheeterEntry, handleCreateTogglEntry } from './pair-handlers';
 

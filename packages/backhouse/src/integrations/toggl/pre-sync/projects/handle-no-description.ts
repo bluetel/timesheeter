@@ -1,6 +1,5 @@
-import { TogglIntegrationContext } from '../../lib';
-import { RawTogglProject, RawTogglTask, RawTogglTimeEntry, toggl } from '../../api';
-import { TimesheeterProject } from '../../sync';
+import { type RawTogglProject, type RawTogglTimeEntry } from '../../api';
+import { type TimesheeterProject } from '../../sync';
 
 export const handleNoDescription = async ({
   togglProjects,

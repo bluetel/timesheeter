@@ -95,7 +95,6 @@ export const tasksPut = async ({
 };
 
 export const tasksDelete = async ({
-  axiosClient,
   path,
 }: {
   axiosClient: RateLimitedAxiosClient;

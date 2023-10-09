@@ -4,5 +4,5 @@
     "module": "esnext",
     "outDir": "./dist"
   },
-  "include": ["stacks"]
+  "include": ["stacks", ".eslintrc.cjs", "tsconfig.json", "packages/**/*"]
 }

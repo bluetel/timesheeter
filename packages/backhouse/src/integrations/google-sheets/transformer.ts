@@ -1,4 +1,4 @@
-import { DatabaseEntries } from './database-entries';
+import { type DatabaseEntries } from './database-entries';
 import { getBankHolidayDates } from './bank-holidays';
 
 export type TransformedData = {
@@ -259,7 +259,7 @@ const formatTaskDetails = ({
   task: DatabaseEntries['timesheetEntries'][number]['task'];
 }) => {
   if (taskNumber) {
-    return !!task.name ? `${taskNumber}: ${task.name}` : taskNumber;
+    return task.name ? `${taskNumber}: ${task.name}` : taskNumber;
   }
 
   return task.name;

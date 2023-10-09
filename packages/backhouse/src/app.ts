@@ -11,7 +11,7 @@ import { config as dotenvConfig } from 'dotenv';
 
 dotenvConfig({ path: envPath });
 
-import { type IntegrationJob, connectionConfig, env } from '@timesheeter/web';
+import { type IntegrationJob, connectionConfig } from '@timesheeter/web';
 import { Worker } from 'bullmq';
 import { handleIntegrationsJob } from '@timesheeter/backhouse/integrations';
 import { checkSchedule } from './check-schedule';
@@ -19,7 +19,10 @@ import { checkSchedule } from './check-schedule';
 console.log('Starting Backhouse Worker');
 
 // Ensure valid integrations are in the schedule, Elasticache is not persistent
-checkSchedule();
+checkSchedule().catch((error) => {
+  console.error('Error in checkSchedule', error);
+  throw new Error('Error in checkSchedule, exiting');
+});
 
 const worker = new Worker<IntegrationJob>('integrations', handleIntegrationsJob, {
   connection: connectionConfig,

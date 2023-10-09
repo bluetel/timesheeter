@@ -20,6 +20,6 @@
       "@timesheeter/web": ["../web/src/index.ts"]
     }
   },
-  "include": ["test/**/*.spec.ts", "src/**/*.ts"],
+  "include": ["test/**/*.spec.ts", "src/**/*.ts", ".eslintrc.cjs", "tsconfig.json"],
   "exclude": ["node_modules"]
 }

@@ -1,5 +1,5 @@
 import { cleanupDeletedObjects } from './cleanup-deleted-objects';
-import { createTogglIntegrationContext, TogglIntegration } from './lib';
+import { createTogglIntegrationContext, type TogglIntegration } from './lib';
 import { preSync } from './pre-sync';
 import { syncProjects, syncTasks, syncTimesheetEntries } from './sync';
 import { applyTaskDescriptions } from './toggl-task-descriptions';

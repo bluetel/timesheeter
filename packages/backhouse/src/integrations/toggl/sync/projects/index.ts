@@ -1,6 +1,6 @@
-import { RawTogglProject } from '../../api';
-import { TogglIntegrationContext } from '../../lib';
-import { EvaluatedProjectPair, ProjectPair, TimesheeterProject, TogglProject, createProjectPairs } from './data';
+import { type RawTogglProject } from '../../api';
+import { type TogglIntegrationContext } from '../../lib';
+import { type EvaluatedProjectPair, type ProjectPair, type TimesheeterProject, createProjectPairs } from './data';
 import {
   createTimesheeterProject,
   createTogglProject,

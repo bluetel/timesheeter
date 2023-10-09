@@ -1,5 +1,5 @@
-import { TogglIntegrationContext } from './lib';
-import { PreSyncData } from './pre-sync/data';
+import { type TogglIntegrationContext } from './lib';
+import { type PreSyncData } from './pre-sync/data';
 
 export const togglProjectSyncRecordType = 'Project';
 export const togglTaskSyncRecordType = 'Task';

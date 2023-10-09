@@ -1,7 +1,7 @@
 import { parseTask, togglMaxScanPeriod } from '@timesheeter/web';
 import { toggl } from '../../../api';
-import { TogglIntegrationContext } from '../../../lib';
-import { TaskPair, TimesheeterTask, TogglTask, timesheeterTaskSelectQuery } from '../data';
+import { type TogglIntegrationContext } from '../../../lib';
+import { type TaskPair, type TimesheeterTask, type TogglTask, timesheeterTaskSelectQuery } from '../data';
 import { togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../../sync-records';
 
 export const updateTogglTask = async ({
@@ -35,7 +35,7 @@ export const updateTogglTask = async ({
     },
     body: {
       // Toggl Tasks must have a name
-      name: !!timesheeterTask.name ? timesheeterTask.name : 'Unnamed task',
+      name: timesheeterTask.name ? timesheeterTask.name : 'Unnamed task',
       active: true,
       estimated_seconds: 0,
       workspace_id: context.togglWorkspaceId,
