@@ -1,4 +1,4 @@
-import { StackContext } from 'sst/constructs';
+import { type StackContext } from 'sst/constructs';
 import { RemovalPolicy } from 'aws-cdk-lib';
 import { ESM_REQUIRE_SHIM } from 'stacks';
 import { PrismaLayer } from './resources/prisma-layer';

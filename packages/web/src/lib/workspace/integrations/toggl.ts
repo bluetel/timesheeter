@@ -84,13 +84,13 @@ export const TogglIntegration = {
     apiKey: z.string().min(1).optional(),
     togglWorkspaceId: z
       .any()
-      .transform((value) => (value === undefined ? undefined : !!value ? parseInt(String(value), 10) : null))
+      .transform((value) => (value === undefined ? undefined : value ? parseInt(String(value), 10) : null))
       .pipe(z.number().int().positive().nullable().optional()),
     chronExpression: z.string().regex(chronRegex).optional(),
     scanPeriod: z
       .any()
       .transform((value) =>
-        value === undefined ? undefined : !!value ? parseInt(String(value), 10) : togglDefaultScanPeriod
+        value === undefined ? undefined : value ? parseInt(String(value), 10) : togglDefaultScanPeriod
       )
       .pipe(z.number().int().positive().max(togglMaxScanPeriod).optional()),
     emailMap: z.array(emailMapEntrySchema).optional(),

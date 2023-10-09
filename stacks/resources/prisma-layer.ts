@@ -1,6 +1,6 @@
 import { AssetHashType, BundlingFileAccess, IgnoreMode } from 'aws-cdk-lib';
-import { Code, LayerVersion, LayerVersionProps } from 'aws-cdk-lib/aws-lambda';
-import { Construct } from 'constructs';
+import { Code, LayerVersion, type LayerVersionProps } from 'aws-cdk-lib/aws-lambda';
+import { type Construct } from 'constructs';
 import crypto from 'crypto';
 import { RUNTIME } from 'stacks';
 

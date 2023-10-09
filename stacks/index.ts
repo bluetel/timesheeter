@@ -1,4 +1,4 @@
-import * as sst from 'sst/constructs';
+import type * as sst from 'sst/constructs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { BastionHost } from './bastionHost';
 import { Database } from './database';
