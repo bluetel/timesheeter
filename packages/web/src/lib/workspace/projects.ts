@@ -12,6 +12,9 @@ export const ProjectIcon = FolderIcon as IconType;
 
 export const taskPrefixesHelpText = `Jira prefixes that will be auto-assigned to this project and contain tracked task numbers (e.g. "AC" in "AC-1234")`;
 
+/** A special project name that does represent non-billable activities */
+export const nonWorkingProjectName = 'Non Working';
+
 export const PROJECT_DEFINITIONS = {
   DefaultProject: {
     name: 'Project',
