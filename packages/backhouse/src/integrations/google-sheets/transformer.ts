@@ -1,5 +1,6 @@
 import { type DatabaseEntries } from './database-entries';
 import { getBankHolidayDates } from './bank-holidays';
+import { nonWorkingProjectName } from '@timesheeter/web';
 
 export type TransformedData = {
   date: Date;
@@ -190,6 +191,15 @@ const calculateOvertime = (
   let timeWorked = 0;
 
   for (const timesheetEntry of timesheetEntriesDate) {
+    // If task name is 'Non Working' then don't apply overtime
+    if (timesheetEntry.task.project.name === nonWorkingProjectName) {
+      overtimeCalculations.push({
+        timesheetEntry,
+        overtime: 0,
+      });
+      continue;
+    }
+
     const duration = timesheetEntry.end.getTime() - timesheetEntry.start.getTime();
 
     if (timeWorked > OVERTIME_MILLISECONDS) {

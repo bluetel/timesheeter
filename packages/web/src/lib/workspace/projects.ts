@@ -16,6 +16,9 @@ export const autoAssignTasksHelpText = `Entries that start with these names will
 
 export const autoAssignTaskSchema = z.string().min(1);
 
+/** A special project name that does represent non-billable activities */
+export const nonWorkingProjectName = 'Non Working';
+
 export const PROJECT_DEFINITIONS = {
   DefaultProject: {
     name: 'Project',
