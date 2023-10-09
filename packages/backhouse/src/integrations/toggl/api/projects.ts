@@ -76,16 +76,14 @@ export const projectsPut = async ({
   return togglProjectSchema.parse(response.data);
 };
 
-export const projectsDelete = async ({
-  path,
-}: {
+export const projectsDelete = async (_: {
   axiosClient: RateLimitedAxiosClient;
   path: {
     workspace_id: number;
     project_id: number;
   };
 }) => {
-  console.log('Skipping projectsDelete', path);
+  //console.log('Skipping projectsDelete', path);
   // Temporarily disable deletes
   // axiosClient.delete(`${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/projects/${path.project_id}`);
 };
