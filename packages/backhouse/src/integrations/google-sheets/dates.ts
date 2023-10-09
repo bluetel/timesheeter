@@ -40,9 +40,12 @@ export const monthYearToDate = (monthYear: string) => {
     throw new Error('Invalid month/year');
   }
 
+  // Check if year is just 2 characters long and if so, pad with current century
+  const correctedYear = getCorrectedYear(parseInt(year));
+
   const monthIndex = getMonthIndex(month);
 
-  const date = new Date(Date.UTC(parseInt(year), monthIndex, 1));
+  const date = new Date(Date.UTC(correctedYear, monthIndex, 1));
 
   // Check if valid date
   if (isNaN(date.getTime())) {
@@ -50,6 +53,22 @@ export const monthYearToDate = (monthYear: string) => {
   }
 
   return date;
+};
+
+/** Helper function to correct dates that are only 2 digits long */
+const getCorrectedYear = (uncheckedYear: number) => {
+  const yearString = uncheckedYear.toString();
+
+  if (yearString.length > 2) {
+    return uncheckedYear;
+  }
+
+  const currentYear = new Date().getUTCFullYear();
+  const currentYearString = currentYear.toString();
+
+  const currentYearPrefix = currentYearString.slice(0, currentYearString.length - 2);
+
+  return parseInt(`${currentYearPrefix}${yearString}`);
 };
 
 /** Helper function that deals with all the many date formats a user may enter */
