@@ -1,4 +1,4 @@
-import { NextjsSite, StackContext, use } from 'sst/constructs';
+import { NextjsSite, type StackContext, use } from 'sst/constructs';
 import { sstEnv } from './lib';
 import { Database, makeDatabaseUrl } from './database';
 import { BullmqElastiCache } from './bullmq-elasticache';

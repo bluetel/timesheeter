@@ -1,8 +1,8 @@
 import { deleteProject, encrypt, getDefaultProjectConfig, parseProject } from '@timesheeter/web';
 import { toggl } from '../../api';
-import { TogglIntegrationContext } from '../../lib';
-import { ProjectPair, TimesheeterProject, TogglProject, timesheeterProjectSelectQuery } from './data';
-import { TogglProjectSyncRecord, togglProjectSyncRecordType, togglSyncRecordSelectQuery } from '../../sync-records';
+import { type TogglIntegrationContext } from '../../lib';
+import { type ProjectPair, type TimesheeterProject, type TogglProject, timesheeterProjectSelectQuery } from './data';
+import { togglProjectSyncRecordType, togglSyncRecordSelectQuery } from '../../sync-records';
 
 export const updateTimesheeterProject = async ({
   context: { prisma },
@@ -50,7 +50,7 @@ export const updateTogglProject = async ({
     path: { workspace_id: togglWorkspaceId, project_id: togglProject.id },
     body: {
       // Toggl Projects must have a name
-      name: !!timesheeterProject.name ? timesheeterProject.name : 'Unnamed project',
+      name: timesheeterProject.name ? timesheeterProject.name : 'Unnamed project',
       active: true,
       is_private: false,
     },

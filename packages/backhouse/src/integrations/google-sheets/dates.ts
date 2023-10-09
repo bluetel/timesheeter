@@ -101,7 +101,7 @@ export const parseCellBasedStartDate = ({
   // Type 2 - Date formatted as month date (e.g., "January 1")
   // If formattedCellValue starts with a month, try and parse it as a month/year
   if (MONTHS.some((month) => formattedCellValue.startsWith(month))) {
-    const [_, date] = formattedCellValue.split(' ');
+    const [, date] = formattedCellValue.split(' ');
 
     const startDate = new Date(Date.UTC(startYear, startMonthIndex, parseInt(date) + 1, 0, 0, 0, 0));
 

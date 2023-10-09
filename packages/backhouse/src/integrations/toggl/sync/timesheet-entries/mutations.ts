@@ -5,12 +5,12 @@ import {
   matchTaskRegex,
   parseTimesheetEntry,
 } from '@timesheeter/web';
-import { RawTogglProject, toggl } from '../../api';
-import { TogglIntegrationContext } from '../../lib';
+import { toggl } from '../../api';
+import { type TogglIntegrationContext } from '../../lib';
 import {
-  TimesheetEntryPair,
-  TimesheeterTimesheetEntry,
-  TogglTimeEntry,
+  type TimesheetEntryPair,
+  type TimesheeterTimesheetEntry,
+  type TogglTimeEntry,
   timesheeterTimesheetEntrySelectQuery,
 } from './data';
 import { togglTimeEntrySyncRecordType } from '../../sync-records';

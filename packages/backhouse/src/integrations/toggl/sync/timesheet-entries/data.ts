@@ -1,7 +1,11 @@
 import { parseTimesheetEntry } from '@timesheeter/web';
-import { RawTogglTimeEntry, toggl } from '../../api';
-import { TogglIntegrationContext } from '../../lib';
-import { TogglTimeEntrySyncRecord, togglSyncRecordSelectQuery, togglTimeEntrySyncRecordType } from '../../sync-records';
+import { type RawTogglTimeEntry, toggl } from '../../api';
+import { type TogglIntegrationContext } from '../../lib';
+import {
+  type TogglTimeEntrySyncRecord,
+  togglSyncRecordSelectQuery,
+  togglTimeEntrySyncRecordType,
+} from '../../sync-records';
 
 export type TogglTimeEntry =
   | (RawTogglTimeEntry & {
@@ -63,8 +67,6 @@ const getTimesheetEntryData = async ({
 
   // sort toggl time entries by start date, earliest first
   togglTimeEntries.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-
-  console.log('togglTimeEntries retrieved', startDate, endDate, togglTimeEntries.length);
 
   return {
     togglTimeEntries,
@@ -188,8 +190,6 @@ export const createTimesheetEntryPairs = async ({
       });
     }
   });
-
-  console.log('Created timesheetEntryPairs', timesheetEntryPairs.length);
 
   return timesheetEntryPairs;
 };

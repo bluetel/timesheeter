@@ -1,4 +1,4 @@
-import { Config, StackContext, use } from 'sst/constructs';
+import { Config, type StackContext, use } from 'sst/constructs';
 import * as elasticache from 'aws-cdk-lib/aws-elasticache';
 import { Network } from './network';
 import { sstEnv } from './lib';

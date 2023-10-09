@@ -26,12 +26,17 @@
     "outDir": "./dist"
   },
   "include": [
-    "../../.eslintrc.cjs",
+    ".eslintrc.cjs",
     "next-env.d.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
+    "vite.config.ts",
     "tsconfig.json",
-    "scripts/run-migrations.js"
+    "prisma.d.ts",
+    "index.ts",
+    "sst-env.d.ts",
+    "scripts/run-migrations.js",
+    "tailwind.config.cjs"
   ],
   "exclude": ["../../node_modules", "src/sst/*"]
 }

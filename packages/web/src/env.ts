@@ -29,7 +29,7 @@ export const env = createEnv({
 
         if (!APP_DB_USER || !APP_DB_PASSWORD || !APP_DB_HOST || !APP_DB_PORT || !APP_DB_NAME) {
           // If running in circleci, pass some dummy values
-          if (!!process.env.CIRCLE_JOB) {
+          if (process.env.CIRCLE_JOB) {
             return 'postgresql://postgres:postgres@localhost:5432/postgres?schema=public&connection_limit=1';
           }
 

@@ -1,4 +1,4 @@
-import { TogglIntegrationContext } from '../lib';
+import { type TogglIntegrationContext } from '../lib';
 import { createTogglSyncRecords } from '../sync-records';
 import { getPreSyncData } from './data';
 import { matchTimeEntryToProject } from './projects';
@@ -41,7 +41,8 @@ export const preSync = async ({ context }: { context: TogglIntegrationContext })
   // have a synced record without an entry in the response from the Toggl API
   await createTogglSyncRecords({ preSyncData, context });
 
-  let { togglTimeEntries, togglProjects, togglTasks, timesheeterProjects, uncategorizedTasksProject } = preSyncData;
+  let { togglProjects, togglTasks, timesheeterProjects } = preSyncData;
+  const { togglTimeEntries, uncategorizedTasksProject } = preSyncData;
 
   const togglTimeEntriesWithoutTask = togglTimeEntries.filter((timeEntry) => !timeEntry.task_id);
 

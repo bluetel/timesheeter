@@ -1,7 +1,7 @@
 import { matchTaskRegex } from '@timesheeter/web';
-import { TogglIntegrationContext } from '../../../lib';
-import { EvaluatedTaskPair } from '../../tasks';
-import { TimesheetEntryPair, TimesheeterTimesheetEntry, TogglTimeEntry } from '../data';
+import { type TogglIntegrationContext } from '../../../lib';
+import { type EvaluatedTaskPair } from '../../tasks';
+import { type TimesheetEntryPair, type TimesheeterTimesheetEntry, type TogglTimeEntry } from '../data';
 import { updateTimesheeterTimesheetEntry, updateTogglTimeEntry } from '../mutations';
 
 export const handleTwoWayUpdates = async ({

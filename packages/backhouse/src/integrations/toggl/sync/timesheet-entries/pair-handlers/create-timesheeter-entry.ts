@@ -1,6 +1,6 @@
-import { TogglIntegrationContext } from '../../../lib';
-import { EvaluatedTaskPair } from '../../tasks';
-import { TimesheetEntryPair, TogglTimeEntry } from '../data';
+import { type TogglIntegrationContext } from '../../../lib';
+import { type EvaluatedTaskPair } from '../../tasks';
+import { type TimesheetEntryPair, type TogglTimeEntry } from '../data';
 import { createTimesheeterTimesheetEntry } from '../mutations';
 
 export const handleCreateTimesheeterEntry = async ({

@@ -1,4 +1,4 @@
-import { getPrismaClient, ParsedIntegration, PrismaClient } from '@timesheeter/web';
+import { getPrismaClient, type ParsedIntegration, type PrismaClient } from '@timesheeter/web';
 import { ThrottledJiraClient } from './throttled-client';
 import { z } from 'zod';
 
@@ -35,8 +35,8 @@ export const handleJiraIntegration = async ({ integration }: { integration: Jira
 
       const issueNumber = `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}`;
 
-      const jiraTicket = await jiraClient.findIssue(issueNumber).catch((error) => {
-        console.log(`Error fetching jira ticket ${issueNumber}`, error);
+      const jiraTicket = await jiraClient.findIssue(issueNumber).catch(() => {
+        //console.log(`Error fetching jira ticket ${issueNumber}`, error);
         return null;
       });
 

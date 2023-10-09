@@ -1,7 +1,7 @@
 import { isoStringRegex } from '@timesheeter/web/lib';
-import { API_BASE_URL, RateLimitedAxiosClient } from '../../client';
+import { API_BASE_URL, type RateLimitedAxiosClient } from '../../client';
 import { z } from 'zod';
-import { RawTogglTimeEntry } from '../../time-entries';
+import { type RawTogglTimeEntry } from '../../time-entries';
 
 const reportTimeEntry = z.object({
   user_id: z.number().int().positive(),
@@ -75,7 +75,7 @@ export const reportTimeEntries = async ({
   };
   query: z.infer<typeof minimalTimeEntryQuerySchema>;
 }) => {
-  let rawTogglTimeEntries: RawTogglTimeEntry[] = [];
+  const rawTogglTimeEntries: RawTogglTimeEntry[] = [];
 
   let startDate = new Date(query.start_date);
   const endDate = new Date(query.end_date);

@@ -1,14 +1,14 @@
-import { defineConfig, configDefaults } from "vitest/config";
-import tsconfigPaths from "vite-tsconfig-paths";
-import react from "@vitejs/plugin-react";
+import { defineConfig, configDefaults } from 'vitest/config';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   test: {
     globals: true,
     clearMocks: true,
-    environment: "jsdom",
+    environment: 'jsdom',
 
-    exclude: [...configDefaults.exclude, "**/.next/**"],
+    exclude: [...configDefaults.exclude, '**/.next/**'],
 
     deps: {
       // we have a problem in the generated GQL client which causes the error 'Apollo.useMutation is not a function'
@@ -19,16 +19,17 @@ export default defineConfig({
     },
   },
   plugins: [
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     tsconfigPaths({
       loose: true,
     }),
     react(),
     process.env.VITEST
       ? {
-          name: "css-preprocess",
-          enforce: "pre",
+          name: 'css-preprocess',
+          enforce: 'pre',
           transform(code, id) {
-            if (/\.(css|sass|scss)$/.test(id)) return { code: "" };
+            if (/\.(css|sass|scss)$/.test(id)) return { code: '' };
             return null;
           },
         }

@@ -1,4 +1,4 @@
-import { StackContext, use } from 'sst/constructs';
+import { type StackContext, use } from 'sst/constructs';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { sstEnv } from './lib';
@@ -56,7 +56,7 @@ export const Backhouse = ({ stack }: StackContext) => {
   // A tarballed image exists at dist/backhouse.tar.gz
   taskDefinition.addContainer('BackhouseContainer', {
     image: ecs.ContainerImage.fromDockerImageAsset(dockerImageAsset),
-    memoryLimitMiB: 200,
+    memoryReservationMiB: 200,
     logging: new ecs.AwsLogDriver({
       streamPrefix: 'BackhouseEcsContainer',
     }),

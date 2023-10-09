@@ -76,17 +76,13 @@ export const timeEntriesPut = async ({
   return togglTimeEntrySchema.parse(response.data);
 };
 
-export const timeEntriesDelete = async ({
-  axiosClient,
-  path,
-}: {
+export const timeEntriesDelete = async (_: {
   axiosClient: RateLimitedAxiosClient;
   path: {
     workspace_id: number;
     time_entry_id: number;
   };
 }) => {
-  console.log('Skipping timeEntriesDelete', path);
   // Temporarily disable deletes
   // axiosClient.delete(`${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/time_entries/${path.time_entry_id}`)
 };

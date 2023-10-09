@@ -1,7 +1,7 @@
 import { matchTaskRegex } from '@timesheeter/web';
-import { TogglIntegrationContext } from '../../lib';
-import { EvaluatedProjectPair } from '../projects';
-import { EvaluatedTaskPair, TaskPair, TimesheeterTask, TogglTask, createTaskPairs } from './data';
+import { type TogglIntegrationContext } from '../../lib';
+import { type EvaluatedProjectPair } from '../projects';
+import { type EvaluatedTaskPair, type TaskPair, type TimesheeterTask, type TogglTask, createTaskPairs } from './data';
 import {
   createTimesheeterTask,
   createTogglTask,

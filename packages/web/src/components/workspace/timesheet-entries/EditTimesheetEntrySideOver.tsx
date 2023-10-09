@@ -194,7 +194,7 @@ const useTimesheetEntryFields = (
 ) => {
   const selectOptions = useMemo(() => tasks.map(({ id, name, ticketForTask }) => ({
     value: id,
-    label: !!name ? name : ((ticketForTask?.number && ticketForTask.taskPrefix.prefix) ? `${ticketForTask.taskPrefix.prefix}-${ticketForTask.number}` : "Unnamed task"),
+    label: name ? name : ((ticketForTask?.number && ticketForTask.taskPrefix.prefix) ? `${ticketForTask.taskPrefix.prefix}-${ticketForTask.number}` : "Unnamed task"),
   })), [tasks]);
 
   let taskId = methods.getValues("taskId");

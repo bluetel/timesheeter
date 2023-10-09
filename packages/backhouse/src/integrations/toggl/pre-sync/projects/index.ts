@@ -1,7 +1,7 @@
 import { matchTaskRegex } from '@timesheeter/web';
-import { TogglIntegrationContext } from '../../lib';
-import { TimesheeterProject } from '../../sync';
-import { RawTogglProject, RawTogglTask, RawTogglTimeEntry, toggl } from '../../api';
+import { type TogglIntegrationContext } from '../../lib';
+import { type TimesheeterProject } from '../../sync';
+import { type RawTogglProject, type RawTogglTask, type RawTogglTimeEntry } from '../../api';
 import { handleTaskPrefixMatch } from './handle-task-prefix-match';
 import { findAutoAssignMatch, handleAutoAssign } from './handle-auto-assign';
 

@@ -1,7 +1,7 @@
 import { monthYearRegex } from '@timesheeter/web';
-import { GoogleSpreadsheet, type GoogleSpreadsheetWorksheet } from 'google-spreadsheet';
+import { type GoogleSpreadsheet, type GoogleSpreadsheetWorksheet } from 'google-spreadsheet';
 import { monthYearToDate, parseCellBasedStartDate } from './dates';
-import { TransformedData } from './transformer';
+import { type TransformedData } from './transformer';
 import { createBlankSheet, addDefaultHeadings } from './blank-sheet';
 
 const HEADER_ROW = 0;
@@ -118,7 +118,7 @@ const sheetTitleToDate = (title: string) => {
   return monthYearToDate(result[0]);
 };
 
-export const filterExistingSheets = async (sheets: GoogleSpreadsheetWorksheet[]) =>
+export const filterExistingSheets = (sheets: GoogleSpreadsheetWorksheet[]) =>
   (
     sheets
       .map((sheet) => {
@@ -180,9 +180,6 @@ export const applyTransforms = async ({
       }
 
       await cursor.currentSheet.saveUpdatedCells();
-
-      // Delay for 1 second to avoid rate limiting
-      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     date.setUTCDate(date.getUTCDate() + 1);
