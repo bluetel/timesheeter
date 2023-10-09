@@ -43,7 +43,7 @@ export const createTaskSchema = z.object({
   projectId: z.string().cuid2(),
   taskNumber: z
     .any()
-    .transform((value) => (value === undefined ? undefined : !!value ? parseInt(String(value), 10) : null))
+    .transform((value) => (value === undefined ? undefined : value ? parseInt(String(value), 10) : null))
     .pipe(z.number().int().positive().nullable()),
   taskPrefixId: z.string().cuid2().nullable(),
   scoped: z.boolean().default(false),
@@ -57,7 +57,7 @@ export const updateTaskSchema = z.object({
   projectId: z.string().cuid2().optional(),
   taskNumber: z
     .any()
-    .transform((value) => (value === undefined ? undefined : !!value ? parseInt(String(value), 10) : null))
+    .transform((value) => (value === undefined ? undefined : value ? parseInt(String(value), 10) : null))
     .pipe(z.number().int().positive().nullable().optional()),
   taskPrefixId: z.string().cuid2().nullable().optional(),
   scoped: z.boolean().default(false).optional(),

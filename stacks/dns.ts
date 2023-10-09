@@ -1,4 +1,4 @@
-import { StackContext } from 'sst/constructs';
+import { type StackContext } from 'sst/constructs';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import { sstEnv } from './lib';

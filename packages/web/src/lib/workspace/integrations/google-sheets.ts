@@ -84,7 +84,7 @@ export const GoogleSheetsIntegration = {
     chronExpression: z.string().regex(chronRegex).optional(),
     commitDelayDays: z
       .any()
-      .transform((data) => (!!data ? parseInt(String(data), 10) : undefined))
+      .transform((data) => (data ? parseInt(String(data), 10) : undefined))
       .pipe(z.number().int().positive().optional()),
     timesheets: z.array(timesheetSchema).optional(),
   }),

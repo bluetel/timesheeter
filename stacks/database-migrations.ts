@@ -1,4 +1,4 @@
-import { StackContext, use } from 'sst/constructs';
+import { type StackContext, use } from 'sst/constructs';
 import { Network } from './network';
 import { Database } from './database';
 import { DbMigrationScript } from './resources/migration-script';

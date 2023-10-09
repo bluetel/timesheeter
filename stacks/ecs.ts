@@ -1,4 +1,4 @@
-import { StackContext, use } from 'sst/constructs';
+import { type StackContext, use } from 'sst/constructs';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import { Network } from './network';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
