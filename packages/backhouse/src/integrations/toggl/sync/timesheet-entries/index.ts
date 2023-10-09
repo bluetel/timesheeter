@@ -63,7 +63,7 @@ export const syncTimesheetEntries = async ({
         continue;
       }
 
-      console.warn('Unreachable code reached in syncTimesheetEntries');
+      // console.warn('Unreachable code reached in syncTimesheetEntries');
       updatedTimesheetEntryPairs.push(timesheetEntryPair);
     } catch (e) {
       console.log('Error in syncTimesheetEntries', e);

@@ -180,9 +180,6 @@ export const applyTransforms = async ({
       }
 
       await cursor.currentSheet.saveUpdatedCells();
-
-      // Delay for 1 second to avoid rate limiting
-      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     date.setUTCDate(date.getUTCDate() + 1);
