@@ -1,5 +1,5 @@
-import { TimesheeterProject } from '../../sync';
-import { RawTogglProject, RawTogglTask } from '../../api';
+import { type TimesheeterProject } from '../../sync';
+import { type RawTogglProject, type RawTogglTask } from '../../api';
 
 export const handleNoTaskPrefixMatch = async ({
   description,

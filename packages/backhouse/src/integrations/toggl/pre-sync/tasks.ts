@@ -1,6 +1,6 @@
 import { matchTaskRegex } from '@timesheeter/web';
-import { RawTogglProject, RawTogglTask, RawTogglTimeEntry, toggl } from '../api';
-import { TogglIntegrationContext } from '../lib';
+import { type RawTogglProject, type RawTogglTask, type RawTogglTimeEntry, toggl } from '../api';
+import { type TogglIntegrationContext } from '../lib';
 import { resolveTaskNumberFromTogglDescriptions } from '../toggl-task-descriptions';
 
 export const matchTimeEntryToTask = async ({
@@ -41,7 +41,7 @@ export const matchTimeEntryToTask = async ({
   }
 
   if (matchingTask) {
-    toggl.timeEntries.put({
+    await toggl.timeEntries.put({
       axiosClient: context.axiosClient,
       path: { workspace_id: context.togglWorkspaceId, time_entry_id: timeEntry.id },
       body: {

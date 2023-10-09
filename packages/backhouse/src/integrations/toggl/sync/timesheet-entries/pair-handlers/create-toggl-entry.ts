@@ -1,5 +1,5 @@
-import { TogglIntegrationContext } from '../../../lib';
-import { TimesheetEntryPair, TimesheeterTimesheetEntry } from '../data';
+import { type TogglIntegrationContext } from '../../../lib';
+import { type TimesheetEntryPair, type TimesheeterTimesheetEntry } from '../data';
 import { createTogglTimeEntry } from '../mutations';
 
 export const handleCreateTogglEntry = async ({

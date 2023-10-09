@@ -23,7 +23,10 @@ import { checkSchedule } from './check-schedule';
 console.log('Starting Backhouse Worker');
 
 // Ensure valid integrations are in the schedule, Elasticache is not persistent
-checkSchedule();
+checkSchedule().catch((error) => {
+  console.error('Error in checkSchedule', error);
+  throw new Error('Error in checkSchedule, exiting');
+});
 
 const worker = new Worker<IntegrationJob>('integrations', handleIntegrationsJob, {
   connection: connectionConfig,
@@ -42,7 +45,6 @@ const serverAdapter = new FastifyAdapter();
 createBullBoard({
   queues: [
     new BullMQAdapter(
-      // @ts-ignore - Types have separate declarations of a private property '_repeat'.
       new Queue('integrations', {
         connection: connectionConfig,
       })
@@ -51,7 +53,11 @@ createBullBoard({
   serverAdapter,
 });
 
-bullBoardApp.register(serverAdapter.registerPlugin());
-bullBoardApp.listen({ port: env.BULL_BOARD_PORT, host: '0.0.0.0' });
+(async () => {
+  await bullBoardApp.register(serverAdapter.registerPlugin());
+  await bullBoardApp.listen({ port: env.BULL_BOARD_PORT, host: '0.0.0.0' });
+})().catch((error) => {
+  console.error('Error in BullBoard', error);
+});
 
 console.log(`BullBoard running on http://0.0.0.0:${env.BULL_BOARD_PORT}`);

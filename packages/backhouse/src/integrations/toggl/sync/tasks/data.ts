@@ -1,8 +1,8 @@
 import { parseTask } from '@timesheeter/web';
-import { RawTogglTask, toggl } from '../../api';
-import { TogglIntegrationContext } from '../../lib';
-import { EvaluatedProjectPair } from '../projects';
-import { TogglTaskSyncRecord, togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../sync-records';
+import { type RawTogglTask, toggl } from '../../api';
+import { type TogglIntegrationContext } from '../../lib';
+import { type EvaluatedProjectPair } from '../projects';
+import { type TogglTaskSyncRecord, togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../sync-records';
 
 export type TogglTask =
   | (RawTogglTask & {

@@ -77,7 +77,6 @@ export const projectsPut = async ({
 };
 
 export const projectsDelete = async ({
-  axiosClient,
   path,
 }: {
   axiosClient: RateLimitedAxiosClient;

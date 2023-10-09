@@ -1,5 +1,5 @@
 import {
-  ProjectConfig,
+  type ProjectConfig,
   deleteTask,
   encrypt,
   getDefaultTaskConfig,
@@ -8,10 +8,10 @@ import {
   parseTask,
 } from '@timesheeter/web';
 import { toggl } from '../../../api';
-import { TogglIntegrationContext } from '../../../lib';
-import { TaskPair, TimesheeterTask, TogglTask, timesheeterTaskSelectQuery } from '../data';
+import { type TogglIntegrationContext } from '../../../lib';
+import { type TaskPair, type TimesheeterTask, type TogglTask, timesheeterTaskSelectQuery } from '../data';
 import { togglSyncRecordSelectQuery, togglTaskSyncRecordType } from '../../../sync-records';
-import { TogglProject } from '../../projects';
+import { type TogglProject } from '../../projects';
 
 export const updateTimesheeterTask = async ({
   context: { prisma },

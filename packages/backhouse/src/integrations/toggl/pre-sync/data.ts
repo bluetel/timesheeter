@@ -1,6 +1,6 @@
 import { UNCATEGORIZED_TASKS_PROJECT_NAME, parseProject } from '@timesheeter/web';
-import { RawTogglProject, toggl } from '../api';
-import { TogglIntegrationContext } from '../lib';
+import { type RawTogglProject, toggl } from '../api';
+import { type TogglIntegrationContext } from '../lib';
 import { timesheeterProjectSelectQuery } from '../sync';
 import { togglProjectSyncRecordType, togglSyncRecordSelectQuery } from '../sync-records';
 

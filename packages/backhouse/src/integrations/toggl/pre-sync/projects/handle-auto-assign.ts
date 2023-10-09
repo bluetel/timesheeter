@@ -1,6 +1,6 @@
-import { TogglIntegrationContext } from '../../lib';
-import { TimesheeterProject, timesheeterProjectSelectQuery } from '../../sync';
-import { RawTogglProject, RawTogglTimeEntry, toggl } from '../../api';
+import { type TogglIntegrationContext } from '../../lib';
+import { type TimesheeterProject, timesheeterProjectSelectQuery } from '../../sync';
+import { type RawTogglProject, type RawTogglTimeEntry, toggl } from '../../api';
 import { parseProject } from '@timesheeter/web';
 
 export const handleAutoAssign = async ({
@@ -21,7 +21,7 @@ export const handleAutoAssign = async ({
   let updatedTogglProjects = togglProjects;
   let updatedTimesheeterProjects = timesheeterProjects;
 
-  let togglProjectId = autoAssignTimesheeterProject.togglProjectId
+  const togglProjectId = autoAssignTimesheeterProject.togglProjectId
     ? Number(autoAssignTimesheeterProject.togglProjectId)
     : undefined;
 

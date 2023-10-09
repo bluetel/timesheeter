@@ -1,7 +1,7 @@
-import { encrypt, getDefaultProjectConfig, matchTaskRegex, parseProject } from '@timesheeter/web';
-import { TogglIntegrationContext } from '../../lib';
-import { TimesheeterProject, timesheeterProjectSelectQuery } from '../../sync';
-import { RawTogglProject, RawTogglTask, toggl } from '../../api';
+import { encrypt, getDefaultProjectConfig, type matchTaskRegex, parseProject } from '@timesheeter/web';
+import { type TogglIntegrationContext } from '../../lib';
+import { type TimesheeterProject, timesheeterProjectSelectQuery } from '../../sync';
+import { type RawTogglProject, type RawTogglTask, toggl } from '../../api';
 
 export const handleTaskPrefixMatch = async ({
   context,
