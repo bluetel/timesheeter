@@ -1,4 +1,4 @@
-import { type ParsedIntegration } from '@timesheeter/web';
+import { getPrismaClient, type ParsedIntegration } from '@timesheeter/web';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { applyTransforms, filterExistingSheets, getSheetStart } from './sheets';
 import { getDatabaseEntries, getDatabaseEntriesStartDate } from './database-entries';
@@ -18,10 +18,25 @@ export const handleGoogleSheetsIntegration = async ({
 }: {
   integration: GoogleSheetsIntegration;
 }) => {
+  const prisma = await getPrismaClient();
+
   for (const timesheet of timesheets) {
     // Run sequentially for rate limiting
     // We also want to catch any errors in a single sheet and continue processing the rest
     try {
+      const user = await prisma.user.findUnique({
+        where: {
+          id: timesheet.userId,
+        },
+      });
+
+      if (!user) {
+        console.error(`User ${timesheet.userId} not found`);
+        continue;
+      }
+
+      console.log(`Processing timesheet ${timesheet.sheetId} for user ${user.name} (${user.email})`);
+
       await outputToTimesheet({
         serviceAccountEmail,
         privateKey,
