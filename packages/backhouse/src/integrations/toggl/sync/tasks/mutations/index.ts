@@ -66,9 +66,9 @@ export const createTimesheeterTask = async ({
 
     let taskPrefix = await prisma.taskPrefix.findUnique({
       where: {
-        prefix_workspaceId: {
+        prefix_projectId: {
           prefix: matchResult.prefix,
-          workspaceId,
+          projectId: timesheeterProjectId,
         },
       },
       select: {

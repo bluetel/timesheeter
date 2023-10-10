@@ -5,13 +5,11 @@ export const handleNoTaskPrefixMatch = async ({
   description,
   togglProjects,
   timesheeterProjects,
-  uncategorizedTasksProject,
   togglTasks,
 }: {
   description: string;
   togglProjects: RawTogglProject[];
   timesheeterProjects: TimesheeterProject[];
-  uncategorizedTasksProject: RawTogglProject;
   togglTasks: RawTogglTask[];
 }) => {
   // See if any existing tasks match the task name
@@ -29,15 +27,12 @@ export const handleNoTaskPrefixMatch = async ({
       updatedTogglProjects: togglProjects,
       updatedTimesheeterProjects: timesheeterProjects,
       taskName: description,
-      autoAssignTrimmedDescription: null,
     };
   }
 
   return {
-    matchedProject: uncategorizedTasksProject,
     updatedTogglProjects: togglProjects,
     updatedTimesheeterProjects: timesheeterProjects,
     taskName: description,
-    autoAssignTrimmedDescription: null,
   };
 };

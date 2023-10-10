@@ -41,18 +41,10 @@ export const createTogglSyncRecords = async ({
   preSyncData: PreSyncData;
   context: TogglIntegrationContext;
 }) => {
-  const { togglProjects, uncategorizedTasksProject } = preSyncData;
+  // Create sync records for all new toggl entities if they don't exist already
 
-  const duplicateAllProjects = [...togglProjects, uncategorizedTasksProject];
-
-  // Ensure no duplicate ids
-  const allProjects = duplicateAllProjects.filter(
-    (project, index) => duplicateAllProjects.findIndex((project2) => project2.id === project.id) === index
-  );
-
-  // Create sync records for all projects if they don't exist
   const createProjectPromises = Promise.all(
-    allProjects.map((project) =>
+    preSyncData.togglProjects.map((project) =>
       context.prisma.togglSyncRecord.upsert({
         where: {
           workspaceId_category_togglEntityId_togglProjectId: {

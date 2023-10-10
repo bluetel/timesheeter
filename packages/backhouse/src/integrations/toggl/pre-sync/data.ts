@@ -1,8 +1,7 @@
-import { UNCATEGORIZED_TASKS_PROJECT_NAME, parseProject } from '@timesheeter/web';
-import { type RawTogglProject, toggl } from '../api';
+import { parseProject } from '@timesheeter/web';
+import { toggl } from '../api';
 import { type TogglIntegrationContext } from '../lib';
 import { timesheeterProjectSelectQuery } from '../sync';
-import { togglProjectSyncRecordType, togglSyncRecordSelectQuery } from '../sync-records';
 
 export type PreSyncData = Awaited<ReturnType<typeof getPreSyncData>>;
 
@@ -86,44 +85,5 @@ export const getPreSyncData = async ({ context }: { context: TogglIntegrationCon
     togglProjects,
     togglTasks,
     timesheeterProjects,
-    uncategorizedTasksProject: await getUncategorizedTasksProject({ togglProjects, context }),
-  };
-};
-
-const getUncategorizedTasksProject = async ({
-  togglProjects,
-  context,
-}: {
-  togglProjects: RawTogglProject[];
-  context: TogglIntegrationContext;
-}): Promise<RawTogglProject> => {
-  const unassignedTasksProject = togglProjects.find((project) => project.name === UNCATEGORIZED_TASKS_PROJECT_NAME);
-
-  if (unassignedTasksProject) {
-    return unassignedTasksProject;
-  }
-
-  const uncategorizedTasksProject = await toggl.projects.post({
-    axiosClient: context.axiosClient,
-    path: { workspace_id: context.togglWorkspaceId },
-    body: {
-      name: UNCATEGORIZED_TASKS_PROJECT_NAME,
-      active: true,
-      is_private: false,
-    },
-  });
-
-  await context.prisma.togglSyncRecord.create({
-    data: {
-      workspaceId: context.workspaceId,
-      category: togglProjectSyncRecordType,
-      togglEntityId: uncategorizedTasksProject.id,
-      togglProjectId: uncategorizedTasksProject.id,
-    },
-    select: togglSyncRecordSelectQuery,
-  });
-
-  return {
-    ...uncategorizedTasksProject,
   };
 };

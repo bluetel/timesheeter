@@ -1,8 +1,9 @@
-import { matchTaskRegex } from '@timesheeter/web';
+import { UNCATEGORIZED_TASKS_TASK_NAME, matchTaskRegex } from '@timesheeter/web';
 import { type TogglIntegrationContext } from '../../lib';
 import { type TimesheeterProject } from '../../sync';
 import { type RawTogglProject, type RawTogglTask, type RawTogglTimeEntry } from '../../api';
 import { handleTaskPrefixMatch } from './handle-task-prefix-match';
+import { addPromptToEntry, clearPromptsFromDescription, promptMessages } from '../../prompts';
 
 export const matchTimeEntryToProject = async ({
   context,
@@ -15,88 +16,46 @@ export const matchTimeEntryToProject = async ({
   timeEntry: RawTogglTimeEntry;
   togglProjects: RawTogglProject[];
   timesheeterProjects: TimesheeterProject[];
-  uncategorizedTasksProject: RawTogglProject;
   togglTasks: RawTogglTask[];
 }) => {
-  // Edge case where user sets a project but nothing more
-  if (!timeEntry.description && !timeEntry.task_id && !!timeEntry.project_id) {
-    // We are ignoring entries with no description for now
+  // Catch cases where user has not set a project
+  if (!timeEntry.project_id) {
+    await addPromptToEntry({
+      context,
+      togglTimeEntry: timeEntry,
+      promptMessage: promptMessages.ADD_PROJECT,
+    });
+
     return null;
-    // return handleNoDescription({
-    //   timeEntry,
-    //   togglProjects,
-    //   timesheeterProjects,
-    //   uncategorizedTasksProject,
-    // });
   }
 
-  // The parent task may already be in a project, if so set the timesheeterProject to that project
-  if (timeEntry.project_id) {
-    const togglProject = togglProjects.find((project) => project.id === timeEntry.project_id);
+  // Remove any prompts from the description
+  const descriptionNoPrompt = clearPromptsFromDescription(timeEntry.description ?? '');
 
-    if (!togglProject) {
+  // Handle no description or task_id by creating a default task in the project
+  if (!descriptionNoPrompt && !timeEntry.task_id) {
+    const parentProject = togglProjects.find((project) => project.id === timeEntry.project_id);
+
+    if (!parentProject) {
       throw new Error('Toggl project not found, this should exist as a task has it as a parent');
     }
 
-    const matchResult = matchTaskRegex(timeEntry.description ?? '');
-
-    // Even though the time entry has a project, the task prefix may not match
-    if (matchResult.variant === 'with-task') {
-      return handleTaskPrefixMatch({
-        context,
-        matchResult,
-        togglProjects,
-        timesheeterProjects,
-        togglTasks,
-        createInProject: togglProject,
-      });
-    }
-
-    // We are ignoring entries with no task prefix match for now
-    return null;
-    // return {
-    //   matchedProject: togglProject,
-    //   updatedTogglProjects: togglProjects,
-    //   updatedTimesheeterProjects: timesheeterProjects,
-    //   taskName: matchResult.description,
-    //   autoAssignTrimmedDescription: null,
-    // };
+    return {
+      matchedProject: parentProject,
+      updatedTogglProjects: togglProjects,
+      updatedTimesheeterProjects: timesheeterProjects,
+      taskName: UNCATEGORIZED_TASKS_TASK_NAME,
+    };
   }
 
-  const parentTask = togglTasks.find((task) => task.id === timeEntry.task_id);
-
-  if (parentTask) {
-    const parentTaskProject = togglProjects.find((project) => project.id === parentTask?.id);
-
-    if (parentTaskProject) {
-      return {
-        matchedProject: parentTaskProject,
-        updatedTogglProjects: togglProjects,
-        updatedTimesheeterProjects: timesheeterProjects,
-        taskName: parentTask.name,
-        autoAssignTrimmedDescription: null,
-      };
-    }
+  const togglProject = togglProjects.find((project) => project.id === timeEntry.project_id);
+  if (!togglProject) {
+    throw new Error('Toggl project not found, this should exist as a task has it as a parent');
   }
 
-  // There are no projects or tasks, so we need to create a new project
+  const matchResult = matchTaskRegex(descriptionNoPrompt);
 
-  const description = timeEntry.description;
-
-  if (!description) {
-    // We are ignoring entries with no description for now
-    return null;
-    // return {
-    //   matchedProject: uncategorizedTasksProject,
-    //   updatedTogglProjects: togglProjects,
-    //   updatedTimesheeterProjects: timesheeterProjects,
-    //   taskName: `Auto created by Timesheeter for time entry ${timeEntry.id}`,
-    //   autoAssignTrimmedDescription: null,
-    // };
-  }
-
-  const matchResult = matchTaskRegex(description);
-
+  // Even though the time entry has a project, the task prefix may not match
   if (matchResult.variant === 'with-task') {
     return handleTaskPrefixMatch({
       context,
@@ -104,16 +63,14 @@ export const matchTimeEntryToProject = async ({
       togglProjects,
       timesheeterProjects,
       togglTasks,
+      togglProject,
     });
   }
 
-  // We are ignoring entries with no task prefix match for now
-  return null;
-  // return handleNoTaskPrefixMatch({
-  //   description,
-  //   togglProjects,
-  //   timesheeterProjects,
-  //   uncategorizedTasksProject,
-  //   togglTasks,
-  // });
+  return {
+    matchedProject: togglProject,
+    updatedTogglProjects: togglProjects,
+    updatedTimesheeterProjects: timesheeterProjects,
+    taskName: matchResult.description,
+  };
 };

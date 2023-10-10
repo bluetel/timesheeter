@@ -9,14 +9,12 @@ export const matchTimeEntryToTask = async ({
   matchedProject,
   togglTasks,
   taskName,
-  autoAssignTrimmedDescription,
 }: {
   context: TogglIntegrationContext;
   timeEntry: RawTogglTimeEntry;
   matchedProject: RawTogglProject;
   togglTasks: RawTogglTask[];
   taskName: string;
-  autoAssignTrimmedDescription: string | null;
 }) => {
   let updatedTogglTasks = togglTasks;
 
@@ -34,11 +32,7 @@ export const matchTimeEntryToTask = async ({
 
   const matchResult = matchTaskRegex(timeEntry.description ?? '');
 
-  let timeEntryUpdatedDescription = matchResult.variant === 'with-task' ? matchResult.description ?? '' : '';
-
-  if (autoAssignTrimmedDescription) {
-    timeEntryUpdatedDescription = autoAssignTrimmedDescription;
-  }
+  const timeEntryUpdatedDescription = matchResult.variant === 'with-task' ? matchResult.description ?? '' : '';
 
   if (matchingTask) {
     await toggl.timeEntries.put({
