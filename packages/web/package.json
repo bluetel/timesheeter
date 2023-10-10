@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build": "next build",
-    "build:module": "rm -rf dist && tsc --module CommonJS --target ES5 --outDir dist --esModuleInterop --resolveJsonModule --skipLibCheck --declaration && tsc-alias -p tsconfig.json && mv dist/src/* dist && rm -rf dist/src",
+    "build:module": "rm -rf dist && tsc --module CommonJS --target ES5 --outDir dist --esModuleInterop --downlevelIteration --resolveJsonModule --skipLibCheck --declaration && tsc-alias -p tsconfig.json && mv dist/src/* dist && rm -rf dist/src",
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "next lint",
