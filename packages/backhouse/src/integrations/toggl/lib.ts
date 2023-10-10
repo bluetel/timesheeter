@@ -125,7 +125,3 @@ const getAndVerifyTogglWorkspaceId = async ({
 
   return workspace.id;
 };
-
-export const addressMessages = {
-  ADD_PROJECT: 'Please add project',
-} as const;
