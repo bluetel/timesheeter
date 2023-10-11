@@ -6,8 +6,11 @@ import { Network } from './network';
 import { Dns } from './dns';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { PrismaLayer } from './resources/prisma-layer';
+import { PRISMA_VERSION } from './layers';
+import { RemovalPolicy } from 'aws-cdk-lib';
 
-export const JobLambda = ({ stack }: StackContext) => {
+export const JobLambda = ({ stack, app }: StackContext) => {
   const { vpc } = use(Network);
   const { hostedZone } = use(Dns);
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
@@ -16,6 +19,17 @@ export const JobLambda = ({ stack }: StackContext) => {
   if (!database.secret) {
     throw new Error('Database secret not found');
   }
+
+  const prismaLayer = new PrismaLayer(stack, 'PrismaLayer', {
+    description: 'Prisma engine and library',
+    layerVersionName: app.logicalPrefixedName('prisma'),
+    prismaVersion: PRISMA_VERSION,
+
+    // retain for rollbacks
+    removalPolicy: RemovalPolicy.RETAIN,
+
+    prismaEngines: ['libquery_engine'],
+  });
 
   const jobLambda = new Function(stack, 'JobLambda', {
     handler: 'packages/backhouse/src/integrations/index.handleIntegrationsJob',
@@ -42,6 +56,10 @@ export const JobLambda = ({ stack }: StackContext) => {
     timeout: '15 minutes',
     memorySize: '2 GB',
     vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+    layers: [prismaLayer],
+    nodejs: {
+      format: 'cjs',
+    },
   });
 
   jobLambda.addToRolePolicy(secretsManagerAccessPolicy);
