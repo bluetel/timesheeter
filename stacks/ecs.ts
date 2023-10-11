@@ -15,7 +15,7 @@ export const Ecs = ({ stack }: StackContext) => {
   const asg = new autoscaling.AutoScalingGroup(stack, 'TimesheeterEcsASG', {
     vpc,
     vpcSubnets: vpc.selectSubnets({ subnetType: ec2.SubnetType.PUBLIC }),
-    instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3A, ec2.InstanceSize.MEDIUM),
+    instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3A, ec2.InstanceSize.SMALL),
     minCapacity: 1,
     maxCapacity: 1,
     machineImage: ecs.EcsOptimizedImage.amazonLinux2(),
