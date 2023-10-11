@@ -1,6 +1,8 @@
 import fs from 'fs';
 import * as AWS from 'aws-sdk';
 
+console.log('Starting Backhouse Scheduler');
+
 // See what file exists at ../../.env.* and load it, local, staging, or production
 const envPath = fs.existsSync('../../.env.local')
   ? '../../.env.local'
@@ -52,8 +54,6 @@ const invokeIntegrationJobLambda = async (wrappedIntegrationJob: Job<Integration
 };
 
 (async () => {
-  console.log('Starting Backhouse Scheduler');
-
   // Ensure valid integrations are in the schedule, Elasticache is not persistent
   await checkSchedule();
 

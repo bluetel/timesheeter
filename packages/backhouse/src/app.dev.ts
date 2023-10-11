@@ -1,5 +1,7 @@
 import fs from 'fs';
 
+console.log('Starting Dev Backhouse Worker');
+
 // See what file exists at ../../.env.* and load it, local, staging, or production
 const envPath = fs.existsSync('../../.env.local')
   ? '../../.env.local'
@@ -24,8 +26,6 @@ const runIntegrationJobDev = async (wrappedIntegrationJob: Job<IntegrationJob>) 
   handleIntegrationsJob(wrappedIntegrationJob.data);
 
 (async () => {
-  console.log('Starting Backhouse Worker');
-
   // Ensure valid integrations are in the schedule, Elasticache is not persistent
   await checkSchedule();
 

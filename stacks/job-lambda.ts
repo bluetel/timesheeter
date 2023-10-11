@@ -22,6 +22,7 @@ export const JobLambda = ({ stack }: StackContext) => {
     vpc,
     enableLiveDev: false,
     environment: {
+      NODE_ENV: 'production',
       DATABASE_URL: makeDatabaseUrl({
         connectionLimit: 10,
       }),
