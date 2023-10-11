@@ -18,7 +18,7 @@ export const JobLambda = ({ stack }: StackContext) => {
   }
 
   const jobLambda = new Function(stack, 'JobLambda', {
-    handler: 'packages/backhouse/src/job-lambda.handler',
+    handler: 'packages/backhouse/src/integrations/index.handleIntegrationsJob',
     vpc,
     enableLiveDev: false,
     environment: {
@@ -37,7 +37,6 @@ export const JobLambda = ({ stack }: StackContext) => {
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
       NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
       NEXT_PUBLIC_DEV_TOOLS_ENABLED: sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
-      AWS_REGION: stack.region,
     },
     timeout: '15 minutes',
     memorySize: '2 GB',
