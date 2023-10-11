@@ -1,5 +1,5 @@
 import fs from 'fs';
-import * as AWS from 'aws-sdk';
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 
 console.log('Starting Backhouse Scheduler');
 
@@ -28,29 +28,27 @@ if (!env.JOB_LAMBDA_ARN) {
 
 const jobLambdaArn = env.JOB_LAMBDA_ARN;
 
-AWS.config.update({ region: env.AWS_REGION });
-const lambda = new AWS.Lambda();
+const lambdaClient = new LambdaClient({ region: env.AWS_REGION });
 
 const invokeIntegrationJobLambda = async (wrappedIntegrationJob: Job<IntegrationJob>) => {
   const integration = wrappedIntegrationJob.data;
   console.log(`Invoking job lambda for integration ${integration.integrationId}`);
 
-  return lambda
-    .invoke(
-      {
-        FunctionName: jobLambdaArn,
-        InvocationType: 'Event',
-        Payload: JSON.stringify(integration),
-      },
-      (error) => {
-        if (error) {
-          console.error('Error invoking job lambda', error);
-        } else {
-          console.log(`Successfully invoked job lambda for integration ${integration.integrationId}`);
-        }
-      }
-    )
-    .promise();
+  const command = new InvokeCommand({
+    FunctionName: jobLambdaArn,
+    InvocationType: 'Event',
+    Payload: JSON.stringify(integration),
+  });
+
+  await lambdaClient
+    .send(command)
+    .then(() => {
+      console.log(`Invoked job lambda for integration ${integration.integrationId}`);
+    })
+
+    .catch((error) => {
+      console.error('Error invoking job lambda', error);
+    });
 };
 
 (async () => {
