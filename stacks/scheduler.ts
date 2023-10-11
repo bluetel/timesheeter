@@ -51,10 +51,6 @@ export const Scheduler = ({ stack }: StackContext) => {
   const dockerImageAsset = new DockerImageAsset(stack, 'SchedulerDockerImageAsset', {
     directory: '.',
     file: 'Dockerfile.scheduler',
-    // never cache this image
-    buildArgs: {
-      CACHEBUST: new Date().toISOString(),
-    },
   });
 
   taskDefinition.addContainer('SchedulerContainer', {
