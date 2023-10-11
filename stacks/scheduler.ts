@@ -55,7 +55,7 @@ export const Scheduler = ({ stack }: StackContext) => {
 
   taskDefinition.addContainer('SchedulerContainer', {
     image: ecs.ContainerImage.fromDockerImageAsset(dockerImageAsset),
-    memoryReservationMiB: 200,
+    memoryReservationMiB: 1000,
     logging: new ecs.AwsLogDriver({
       streamPrefix: 'SchedulerEcsContainer',
     }),
