@@ -9,8 +9,9 @@ import { Ecs } from './ecs';
 import { Network } from './network';
 import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
 import { Dns } from './dns';
+import { JobLambda } from './job-lambda';
 
-export const Backhouse = ({ stack }: StackContext) => {
+export const Scheduler = ({ stack }: StackContext) => {
   const { vpc } = use(Network);
   const { hostedZone } = use(Dns);
   const { cluster } = use(Ecs);
@@ -18,11 +19,13 @@ export const Backhouse = ({ stack }: StackContext) => {
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
   const { elastiCacheAccessPolicy, bullmqElastiCache } = use(BullmqElastiCache);
 
+  const { jobLambda, invokePolicy } = use(JobLambda);
+
   if (!database.secret) {
     throw new Error('Database secret not found');
   }
 
-  const taskRole = new iam.Role(stack, 'BackhouseTaskRole', {
+  const taskRole = new iam.Role(stack, 'SchedulerTaskRole', {
     assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
   });
 
@@ -39,26 +42,26 @@ export const Backhouse = ({ stack }: StackContext) => {
   taskRole.addToPolicy(databaseAccessPolicy);
   taskRole.addToPolicy(elastiCacheAccessPolicy);
   taskRole.addToPolicy(secretsManagerAccessPolicy);
+  taskRole.addToPolicy(invokePolicy);
 
-  const taskDefinition = new ecs.Ec2TaskDefinition(stack, 'BackhouseTaskDefinition', {
+  const taskDefinition = new ecs.Ec2TaskDefinition(stack, 'SchedulerTaskDefinition', {
     taskRole,
   });
 
-  const dockerImageAsset = new DockerImageAsset(stack, 'BackhouseDockerImageAsset', {
+  const dockerImageAsset = new DockerImageAsset(stack, 'SchedulerDockerImageAsset', {
     directory: '.',
-    file: 'Dockerfile.backhouse',
+    file: 'Dockerfile.scheduler',
     // never cache this image
     buildArgs: {
       CACHEBUST: new Date().toISOString(),
     },
   });
 
-  // A tarballed image exists at dist/backhouse.tar.gz
-  taskDefinition.addContainer('BackhouseContainer', {
+  taskDefinition.addContainer('SchedulerContainer', {
     image: ecs.ContainerImage.fromDockerImageAsset(dockerImageAsset),
     memoryReservationMiB: 200,
     logging: new ecs.AwsLogDriver({
-      streamPrefix: 'BackhouseEcsContainer',
+      streamPrefix: 'SchedulerEcsContainer',
     }),
     environment: {
       DATABASE_URL: makeDatabaseUrl({
@@ -76,13 +79,15 @@ export const Backhouse = ({ stack }: StackContext) => {
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
       NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
       NEXT_PUBLIC_DEV_TOOLS_ENABLED: sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
+      JOB_LAMBDA_ARN: jobLambda.functionArn,
+      AWS_REGION: stack.region,
     },
   });
 
-  const service = new ecs.Ec2Service(stack, 'BackhouseService', {
+  const service = new ecs.Ec2Service(stack, 'SchedulerService', {
     cluster,
     taskDefinition,
-    serviceName: 'backhouse-service',
+    serviceName: 'scheduler-service',
   });
 
   // allow traffic from inside the vpc

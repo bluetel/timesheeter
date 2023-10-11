@@ -132,6 +132,9 @@ importers:
       '@timesheeter/web':
         specifier: workspace:*
         version: link:../web
+      aws-sdk:
+        specifier: ^2.1472.0
+        version: 2.1472.0
       axios:
         specifier: ^1.4.0
         version: 1.4.0
@@ -6849,6 +6852,22 @@ packages:
       util: 0.12.5
       uuid: 8.0.0
       xml2js: 0.5.0
+
+  /aws-sdk@2.1472.0:
+    resolution: {integrity: sha512-U7kAHRbvTy753IXKV8Oom/AqlqnsbXG+Kw5gRbKi6VcsZ3hR/EpNMzdRXTWO5U415bnLWGo8WAqIz67PIaaKsw==}
+    engines: {node: '>= 10.0.0'}
+    dependencies:
+      buffer: 4.9.2
+      events: 1.1.1
+      ieee754: 1.1.13
+      jmespath: 0.16.0
+      querystring: 0.2.0
+      sax: 1.2.1
+      url: 0.10.3
+      util: 0.12.5
+      uuid: 8.0.0
+      xml2js: 0.5.0
+    dev: false
 
   /aws-sign2@0.7.0:
     resolution: {integrity: sha512-08kcGqnYf/YmjoRhfxyu+CLxBjUtHLXLXX/vUfx9l2LYzG3c1m61nrpyFUZI6zeS+Li/wWMMidD9KgrqtGq3mA==}

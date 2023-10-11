@@ -25,4 +25,4 @@ COPY --from=builder /app/packages/web/prisma/schema.prisma schema.prisma
 COPY --from=builder /app/packages/web/node_modules/@prisma/client .prisma/client
 COPY --from=builder /app/packages/web/node_modules/prisma/libquery_engine-linux-musl-openssl-3.0.x.so.node libquery_engine-linux-musl-openssl-3.0.x.so.node
 
-ENTRYPOINT [ "node", "app.js" ]
+ENTRYPOINT [ "node", "scheduler.app.js" ]
