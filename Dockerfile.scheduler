@@ -18,7 +18,7 @@ FROM node:18-alpine
 
 ENV NODE_ENV production
 
-COPY --from=builder /app/packages/backhouse/dist/app.js app.js
+COPY --from=builder /app/packages/backhouse/dist/scheduler-app.js scheduler-app.js
 
 # We need prisma to be able to run migrations
 COPY --from=builder /app/packages/web/prisma/schema.prisma schema.prisma
