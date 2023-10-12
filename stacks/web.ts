@@ -5,14 +5,12 @@ import { BullmqElastiCache } from './bullmq-elasticache';
 import { Network } from './network';
 import { SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { Dns } from './dns';
-import { JobLambda } from './job-lambda';
 
 export function Web({ stack, app }: StackContext) {
   const { hostedZone } = use(Dns);
   const { vpc } = use(Network);
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
   const { bullmqElastiCache, elastiCacheAccessPolicy } = use(BullmqElastiCache);
-  const { jobLambda } = use(JobLambda);
 
   if (!database.secret) {
     throw new Error('Database secret not found');

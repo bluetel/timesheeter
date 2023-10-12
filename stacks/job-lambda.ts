@@ -51,7 +51,10 @@ export const JobLambda = ({ stack }: StackContext) => {
         external: LAYER_MODULES.concat(prismaLayer.externalModules),
       },
     },
-    copyFiles: [{ from: 'packages/web/prisma/schema.prisma', to: 'schema.prisma' }],
+    copyFiles: [
+      { from: 'packages/web/prisma/schema.prisma' },
+      { from: 'packages/web/prisma/schema.prisma', to: 'packages/backhouse/src/integrations/schema.prisma' },
+    ],
   });
 
   jobLambda.addToRolePolicy(secretsManagerAccessPolicy);
