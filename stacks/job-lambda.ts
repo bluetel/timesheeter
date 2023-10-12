@@ -42,7 +42,6 @@ export const JobLambda = ({ stack }: StackContext) => {
       NEXT_PUBLIC_DEV_TOOLS_ENABLED: sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
       ...prismaLayer.environment,
     },
-    layers: [prismaLayer],
     timeout: '15 minutes',
     memorySize: '2 GB',
     vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
