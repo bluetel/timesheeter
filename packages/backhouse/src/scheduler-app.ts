@@ -32,7 +32,6 @@ const lambdaClient = new LambdaClient({ region: env.AWS_REGION });
 
 const invokeIntegrationJobLambda = async (wrappedIntegrationJob: Job<IntegrationJob>) => {
   const integration = wrappedIntegrationJob.data;
-  console.log(`Invoking job lambda for integration ${integration.integrationId}`);
 
   const command = new InvokeCommand({
     FunctionName: jobLambdaArn,
@@ -47,7 +46,7 @@ const invokeIntegrationJobLambda = async (wrappedIntegrationJob: Job<Integration
     })
 
     .catch((error) => {
-      console.error('Error invoking job lambda', error);
+      console.error(`Error invoking job lambda for integration ${integration.integrationId}`, error);
     });
 };
 
