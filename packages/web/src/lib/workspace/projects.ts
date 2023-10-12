@@ -8,6 +8,9 @@ export const PROJECTS_HELP_TEXT =
 
 export const UNCATEGORIZED_TASKS_PROJECT_NAME = 'Uncategorized tasks';
 
+/** A special project name that does represent non-billable activities */
+export const NON_WORKING_PROJECT_NAME = 'Non Working';
+
 export const ProjectIcon = FolderIcon as IconType;
 
 export const taskPrefixesHelpText = `Jira prefixes that will be auto-assigned to this project and contain tracked task numbers (e.g. "AC" in "AC-1234")`;
@@ -15,9 +18,6 @@ export const taskPrefixesHelpText = `Jira prefixes that will be auto-assigned to
 export const autoAssignTasksHelpText = `Entries that start with these names will automatically be assigned to this project and task (e.g. "INTERNAL-HIRING - New hire onboarding")`;
 
 export const autoAssignTaskSchema = z.string().min(1);
-
-/** A special project name that does represent non-billable activities */
-export const nonWorkingProjectName = 'Non Working';
 
 export const PROJECT_DEFINITIONS = {
   DefaultProject: {

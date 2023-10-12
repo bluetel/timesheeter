@@ -3,6 +3,8 @@ import { type IconType } from 'react-icons/lib';
 import { z } from 'zod';
 import { taskRegex } from '../regex';
 
+export const TOIL_TASK_NANE = 'TOIL';
+
 export const TASKS_HELP_TEXT = 'Tasks group timesheet entries together, they can have assigned numbers e.g. from Jira';
 
 export const TaskIcon = RectangleStackIcon as IconType;
