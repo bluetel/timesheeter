@@ -16,14 +16,6 @@ export const GoogleSheetsIntegration = {
   description: 'Outputs user timesheet data to multiple Google Sheets timesheets',
   icon: SiGooglesheets,
   fields: [
-    // {
-    //   accessor: 'sheetId',
-    //   name: 'Sheet ID',
-    //   type: 'string',
-    //   required: true,
-    //   protectCount: 0,
-    //   description: 'Your Google Sheet ID, found in the URL',
-    // },
     {
       accessor: 'serviceAccountEmail',
       name: 'Service Account Email',
