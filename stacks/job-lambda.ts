@@ -6,12 +6,14 @@ import { Network } from './network';
 import { Dns } from './dns';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { LAYER_MODULES, Layers } from './layers';
 
 export const JobLambda = ({ stack }: StackContext) => {
   const { vpc } = use(Network);
   const { hostedZone } = use(Dns);
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
   const { elastiCacheAccessPolicy, bullmqElastiCache } = use(BullmqElastiCache);
+  const { prismaLayer } = use(Layers);
 
   if (!database.secret) {
     throw new Error('Database secret not found');
@@ -38,13 +40,19 @@ export const JobLambda = ({ stack }: StackContext) => {
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
       NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
       NEXT_PUBLIC_DEV_TOOLS_ENABLED: sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
+      ...prismaLayer.environment,
     },
+    layers: [prismaLayer],
     timeout: '15 minutes',
     memorySize: '2 GB',
     vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
     nodejs: {
       format: 'cjs',
+      esbuild: {
+        external: LAYER_MODULES.concat(prismaLayer.externalModules),
+      },
     },
+    copyFiles: [{ from: 'packages/web/prisma/schema.prisma', to: 'schema.prisma' }],
   });
 
   jobLambda.addToRolePolicy(secretsManagerAccessPolicy);

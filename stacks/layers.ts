@@ -34,4 +34,6 @@ export function Layers({ stack, app }: StackContext) {
       },
     },
   });
+
+  return { prismaLayer };
 }
