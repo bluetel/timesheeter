@@ -3,10 +3,9 @@ import { Network } from './network';
 import { Database } from './database';
 import { DbMigrationScript } from './resources/migration-script';
 
-export function DatabaseMigrations({ stack, app }: StackContext) {
+export function DatabaseMigrations({ stack }: StackContext) {
   const { vpc } = use(Network);
   const { database, secretsManagerAccessPolicy } = use(Database);
-
   if (!database.secret) {
     throw new Error('Database secret not found');
   }
