@@ -8,9 +8,6 @@ export const PROJECTS_HELP_TEXT =
 
 export const UNCATEGORIZED_TASKS_PROJECT_NAME = 'Uncategorized tasks';
 
-/** A special project name that does represent non-billable activities */
-export const NON_WORKING_PROJECT_NAME = 'Non Working';
-
 export const ProjectIcon = FolderIcon as IconType;
 
 export const taskPrefixesHelpText = `Jira prefixes that will be auto-assigned to this project and contain tracked task numbers (e.g. "AC" in "AC-1234")`;
@@ -85,3 +82,6 @@ export const updateProjectSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   config: updateProjectConfigSchema,
 });
+
+/** A special project name that does represent non-billable activities */
+export const NON_WORKING_PROJECT_NAME = 'Non Working';
