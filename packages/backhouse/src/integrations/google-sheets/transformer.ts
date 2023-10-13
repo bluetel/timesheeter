@@ -40,10 +40,11 @@ export const getTransformedSheetData = async ({
 
     const timesheetEntriesForDate = findTimesheetEntries(timesheetEntries, date);
 
-    if (timesheetEntriesForDate.length > 0) {
+    const formattedCells = formatTimesheetEntryCells(timesheetEntriesForDate, date, isWorkDay);
+    if (formattedCells.length > 0) {
       sheetEntries.push({
         date: new Date(date),
-        cells: formatTimesheetEntryCells(timesheetEntriesForDate, date, isWorkDay),
+        cells: formattedCells,
       });
     }
 
@@ -154,7 +155,7 @@ const groupEntriesToTasks = (
     return acc;
   }, [] as GroupedEntryNumber[]);
 
-  return groupedEntries.map((groupedEntry) => {
+  const timedGroupEntries = groupedEntries.map((groupedEntry) => {
     const formattedOvertimeTime = formatTime(groupedEntry.overtime);
     return {
       ...groupedEntry,
@@ -162,6 +163,8 @@ const groupEntriesToTasks = (
       overtime: formattedOvertimeTime === 0 ? 0 : formattedOvertimeTime,
     };
   });
+
+  return timedGroupEntries.filter((groupedEntry) => groupedEntry.time >= 0.25);
 };
 
 type OvertimeCalculation = {
@@ -257,7 +260,10 @@ const removeDetailDuplicates = (input: string) => {
     .split(',')
     .map((item) => item.trim())
     .filter((item) => item !== '');
-  const uniqueItems = Array.from(new Set(items));
+
+  // We reverse the array as we want the oldest description to be first so there
+  // is a chronological order to the descriptions
+  const uniqueItems = Array.from(new Set(items)).reverse();
   return uniqueItems.join(', ');
 };
 
