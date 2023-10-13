@@ -155,16 +155,13 @@ const groupEntriesToTasks = (
     return acc;
   }, [] as GroupedEntryNumber[]);
 
-  const timedGroupedEntries = groupedEntries.map((groupedEntry) => {
-    const formattedOvertimeTime = formatTime(groupedEntry.overtime);
-    return {
+  return groupedEntries
+    .map((groupedEntry) => ({
       ...groupedEntry,
       time: formatTime(groupedEntry.time),
-      overtime: formattedOvertimeTime === 0 ? 0 : formattedOvertimeTime,
-    };
-  });
-
-  return timedGroupedEntries.filter((timedGroupedEntry) => timedGroupedEntry.time >= 0.25);
+      overtime: formatTime(groupedEntry.overtime),
+    }))
+    .filter((timedGroupedEntry) => timedGroupedEntry.time >= 0.25);
 };
 
 type OvertimeCalculation = {
