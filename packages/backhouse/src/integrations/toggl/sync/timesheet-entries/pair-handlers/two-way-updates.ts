@@ -1,4 +1,3 @@
-import { matchTaskRegex } from '@timesheeter/web';
 import { type TogglIntegrationContext } from '../../../lib';
 import { type EvaluatedTaskPair } from '../../tasks';
 import { type TimesheetEntryPair, type TimesheeterTimesheetEntry, type TogglTimeEntry } from '../data';
@@ -47,12 +46,6 @@ const timesheetEntriesAreTheSame = (
   },
   timesheeterTimesheetEntry: TimesheeterTimesheetEntry
 ): boolean => {
-  // Filter out the task number from the description for comparison as we don't copy
-  // it over from toggl to timesheeter
-  const { description: togglDescription } = togglTimeEntry.description
-    ? matchTaskRegex(togglTimeEntry.description)
-    : { description: null };
-
   if (!timesheeterTimesheetEntry.task.togglTaskId) {
     throw new Error(
       `Timesheeter task does not have a toggl task id, this should have been set in the sync tasks step, task id: ${timesheeterTimesheetEntry.task.id}`
@@ -63,7 +56,7 @@ const timesheetEntriesAreTheSame = (
   return (
     new Date(togglTimeEntry.start).toISOString() === timesheeterTimesheetEntry.start.toISOString() &&
     new Date(togglTimeEntry.stop).toISOString() === timesheeterTimesheetEntry.end.toISOString() &&
-    togglDescription === timesheeterTimesheetEntry.description &&
+    togglTimeEntry.description === timesheeterTimesheetEntry.description &&
     BigInt(togglTimeEntry.id) === timesheeterTimesheetEntry.togglTimeEntryId &&
     context.togglIdToEmail[togglTimeEntry.user_id] ===
       context.timesheeterUserIdToEmail[timesheeterTimesheetEntry.userId] &&
