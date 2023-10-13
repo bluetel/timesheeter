@@ -1,10 +1,4 @@
-import {
-  deleteTimesheetEntry,
-  encrypt,
-  getDefaultTimesheetEntryConfig,
-  matchTaskRegex,
-  parseTimesheetEntry,
-} from '@timesheeter/web';
+import { deleteTimesheetEntry, encrypt, getDefaultTimesheetEntryConfig, parseTimesheetEntry } from '@timesheeter/web';
 import { toggl } from '../../api';
 import { type TogglIntegrationContext } from '../../lib';
 import {
@@ -31,13 +25,6 @@ export const updateTimesheeterTimesheetEntry = async ({
   updatedTimesheeterTaskId: string;
   updatedTimesheeterUserId: string;
 }): Promise<TimesheetEntryPair> => {
-  // Filter out task numbers from the description
-  const { description } = togglTimeEntry.description
-    ? matchTaskRegex(togglTimeEntry.description)
-    : {
-        description: null,
-      };
-
   const updatedTimesheeterTimesheetEntry = await prisma.timesheetEntry
     .update({
       where: {
@@ -46,7 +33,7 @@ export const updateTimesheeterTimesheetEntry = async ({
       data: {
         start: new Date(togglTimeEntry.start),
         end: new Date(togglTimeEntry.stop),
-        description,
+        description: togglTimeEntry.description ?? '',
         taskId: updatedTimesheeterTaskId,
         togglTimeEntryId: togglTimeEntry.id,
         userId: updatedTimesheeterUserId,
@@ -140,20 +127,13 @@ export const createTimesheeterTimesheetEntry = async ({
   timesheeterTaskId: string;
   timesheeterUserId: string;
 }): Promise<TimesheetEntryPair> => {
-  // Filter out task numbers from the description
-  const { description } = togglTimeEntry.description
-    ? matchTaskRegex(togglTimeEntry.description)
-    : {
-        description: null,
-      };
-
   const timesheeterTimesheetEntry = await prisma.timesheetEntry
     .create({
       data: {
         start: new Date(togglTimeEntry.start),
         end: new Date(togglTimeEntry.stop),
         configSerialized: encrypt(JSON.stringify(getDefaultTimesheetEntryConfig())),
-        description,
+        description: togglTimeEntry.description ?? '',
         workspaceId,
         taskId: timesheeterTaskId,
         togglTimeEntryId: togglTimeEntry.id,
