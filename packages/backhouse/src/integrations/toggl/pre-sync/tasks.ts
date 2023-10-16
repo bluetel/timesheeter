@@ -21,7 +21,9 @@ export const matchTimeEntryToTask = async ({
   // The matched task needs to be in the same project as the time entry
   const matchingTask = togglTasks.find(
     (togglTask) =>
-      resolveTaskNumberFromTogglDescriptions(togglTask.name) === taskName && togglTask.project_id === matchedProject.id
+      // We compare in lowercase so we can match tasks with different cases
+      resolveTaskNumberFromTogglDescriptions(togglTask.name).toLowerCase() === taskName.toLowerCase() &&
+      togglTask.project_id === matchedProject.id
   );
 
   if (!timeEntry.stop) {

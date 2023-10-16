@@ -1,5 +1,4 @@
 import { type TogglIntegrationContext } from '../lib';
-import { clearPromptsFromEntry } from '../prompts';
 import { createTogglSyncRecords } from '../sync-records';
 import { getPreSyncData } from './data';
 import { matchTimeEntryToProject } from './projects';
@@ -8,7 +7,7 @@ import { matchTimeEntryToTask } from './tasks';
 /**
  * Toggl time entries do not require a task, however timesheeter timesheet entries do require a task.
  *
- * Therefore before syncing we need to auto-create tasks (and projects if necessary) for any time entries
+ * Therefore before syncing we need to auto-create tasks for any time entries
  * that do not have a task.
  *
  * ### Steps
@@ -49,7 +48,6 @@ export const preSync = async ({ context }: { context: TogglIntegrationContext })
   }
 
   for (const timeEntry of togglTimeEntriesWithoutTask) {
-    console.log(`toggl - Pre Sync - Matching Time Entry ${timeEntry.id} to Project`);
     const searchMatch = await matchTimeEntryToProject({
       context,
       timeEntry,
@@ -66,16 +64,9 @@ export const preSync = async ({ context }: { context: TogglIntegrationContext })
 
     timesheeterProjects = updatedTimesheeterProjects;
 
-    // Remove any prompts from the description as they are only used in the
-    // matchTimeEntryToProject function
-    const timeEntryNoPrompt = await clearPromptsFromEntry({
-      context,
-      togglTimeEntry: timeEntry,
-    });
-
     const { updatedTogglTasks } = await matchTimeEntryToTask({
       context,
-      timeEntry: timeEntryNoPrompt,
+      timeEntry,
       matchedProject,
       togglTasks,
       taskName,
