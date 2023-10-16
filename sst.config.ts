@@ -1,4 +1,4 @@
-import { SSTConfig } from 'sst';
+import { type SSTConfig } from 'sst';
 import { existsSync } from 'fs';
 
 // If a .env file exists throw an error
@@ -33,7 +33,7 @@ const awsRegionCodes = [
 
 type AwsRegionCode = (typeof awsRegionCodes)[number];
 
-const config = {
+const config: SSTConfig = {
   config(input) {
     if (
       input.stage !== undefined &&
@@ -56,6 +56,6 @@ const config = {
     const appStacks = await import('./stacks');
     appStacks.default(app);
   },
-} satisfies SSTConfig;
+};
 
 export default config;
