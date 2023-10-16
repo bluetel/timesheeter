@@ -161,9 +161,9 @@ const tasksAreTheSame = (
 
   const togglMatchResult = matchTaskRegex(togglTask.name);
 
-  if (togglMatchResult.variant === 'no-task') {
+  if (togglMatchResult.variant === 'description-based') {
     // As there is no task number, we can just compare the names
-    return togglMatchResult.description === timesheeterTask.name;
+    return togglMatchResult.taskName === timesheeterTask.name;
   }
 
   // As there is a task number, we need to compare the toggl task name with the timesheeter ticketForTask

@@ -49,7 +49,7 @@ export const matchTimeEntryToProject = async ({
   const matchResult = matchTaskRegex(timeEntry.description ?? '');
 
   // Even though the time entry has a project, the task prefix may not match
-  if (matchResult.variant === 'with-task') {
+  if (matchResult.variant === 'jira-based') {
     return handleTaskPrefixMatch({
       context,
       matchResult,
@@ -64,6 +64,6 @@ export const matchTimeEntryToProject = async ({
     matchedProject: togglProject,
     updatedTogglProjects: togglProjects,
     updatedTimesheeterProjects: timesheeterProjects,
-    taskName: matchResult.description,
+    taskName: matchResult.taskName,
   };
 };

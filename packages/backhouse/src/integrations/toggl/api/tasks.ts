@@ -102,7 +102,6 @@ export const tasksDelete = async (_: {
     task_id: number;
   };
 }) => {
-  // console.log('Skipping tasksDelete', path);
   // Get the project, see if the task
   // Temporarily disable deletes
   // axiosClient.delete(

@@ -60,7 +60,7 @@ export const createTimesheeterTask = async ({
   const matchResult = matchTaskRegex(togglTask.name);
 
   const getTicketForTask = async () => {
-    if (matchResult.variant === 'no-task') {
+    if (matchResult.variant === 'description-based') {
       return undefined;
     }
 
@@ -134,12 +134,10 @@ export const createTimesheeterTask = async ({
     };
   };
 
-  console.log('creating timesheeter task', togglTask.name, matchResult, timesheeterProjectId);
-
   const timesheeterTask = await prisma.task
     .create({
       data: {
-        name: matchResult.variant === 'no-task' ? togglTask.name : '',
+        name: matchResult.variant === 'description-based' ? matchResult.taskName : '',
         workspaceId,
         configSerialized: encrypt(JSON.stringify(getDefaultTaskConfig())),
         togglTaskId: togglTask.id,

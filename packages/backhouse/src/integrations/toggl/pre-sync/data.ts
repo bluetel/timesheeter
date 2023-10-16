@@ -63,7 +63,8 @@ export const getPreSyncData = async ({ context }: { context: TogglIntegrationCon
         path: { workspace_id: context.togglWorkspaceId, project_id: project.id },
       })
     )
-  ).then((results) => results.flat());
+    // sort so at earliest is first
+  ).then((results) => results.flat().sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0)));
 
   const timesheeterProjectsPromise = context.prisma.project
     .findMany({
