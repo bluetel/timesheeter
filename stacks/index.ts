@@ -9,7 +9,8 @@ import { Network } from './network';
 import { Web } from './web';
 import { BullmqElastiCache } from './bullmq-elasticache';
 import { Ecs } from './ecs';
-import { Backhouse } from './backhouse';
+import { Scheduler } from './scheduler';
+import { JobLambda } from './job-lambda';
 
 // deal with dynamic imports of node built-ins (e.g. "crypto")
 // from https://github.com/evanw/esbuild/pull/2067#issuecomment-1073039746
@@ -21,8 +22,6 @@ export const RUNTIME = Runtime.NODEJS_18_X;
 export default function main(app: sst.App) {
   app.setDefaultFunctionProps({
     runtime: 'nodejs18.x',
-
-    // N.B. bundle settings are defined in Layers
   });
 
   app
@@ -33,7 +32,8 @@ export default function main(app: sst.App) {
     .stack(BullmqElastiCache)
     .stack(BastionHost)
     .stack(DatabaseMigrations)
+    .stack(JobLambda)
     .stack(Ecs)
-    .stack(Backhouse)
+    .stack(Scheduler)
     .stack(Web);
 }

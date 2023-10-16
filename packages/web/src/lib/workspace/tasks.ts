@@ -108,3 +108,5 @@ export const matchTaskRegex = (rawDescription: string): MatchedTaskResult => {
     description: rawDescription,
   };
 };
+
+export const TOIL_TASK_NANE = 'TOIL';

@@ -10,9 +10,6 @@ export const ProjectIcon = FolderIcon as IconType;
 
 export const taskPrefixesHelpText = `Jira prefixes that will be auto-assigned to this project and contain tracked task numbers (e.g. "AC" in "AC-1234")`;
 
-/** A special project name that does represent non-billable activities */
-export const nonWorkingProjectName = 'Non Working';
-
 export const PROJECT_DEFINITIONS = {
   DefaultProject: {
     name: 'Project',
@@ -68,3 +65,6 @@ export const updateProjectSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   config: updateProjectConfigSchema,
 });
+
+/** A special project name that does represent non-billable activities */
+export const NON_WORKING_PROJECT_NAME = 'Non Working';

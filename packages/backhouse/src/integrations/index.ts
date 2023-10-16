@@ -1,18 +1,16 @@
 import { type IntegrationJob, parseIntegration, getPrismaClient } from '@timesheeter/web';
-import { type Job } from 'bullmq';
 import { handleTogglIntegration } from './toggl';
 import { handleJiraIntegration } from './jira';
 import { handleGoogleSheetsIntegration } from './google-sheets';
 
-export const handleIntegrationsJob = async (job: Job<IntegrationJob>) => {
-  await handleIntegrationsJobThrowable(job).catch((error) => {
+export const handleIntegrationsJob = async (integrationJob: IntegrationJob) => {
+  await handleIntegrationsJobThrowable(integrationJob).catch((error) => {
     console.error('Error in handleIntegrationsJob', error);
   });
 };
 
-const handleIntegrationsJobThrowable = async (job: Job<IntegrationJob>) => {
-  const { integrationId } = job.data;
-
+const handleIntegrationsJobThrowable = async (integrationJob: IntegrationJob) => {
+  const { integrationId } = integrationJob;
   console.log('Processing integration', integrationId);
 
   const prisma = await getPrismaClient();

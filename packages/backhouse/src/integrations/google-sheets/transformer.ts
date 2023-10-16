@@ -1,6 +1,6 @@
 import { type DatabaseEntries } from './database-entries';
 import { getBankHolidayDates } from './bank-holidays';
-import { nonWorkingProjectName } from '@timesheeter/web';
+import { NON_WORKING_PROJECT_NAME, TOIL_TASK_NANE } from '@timesheeter/web';
 
 export type TransformedData = {
   date: Date;
@@ -40,10 +40,11 @@ export const getTransformedSheetData = async ({
 
     const timesheetEntriesForDate = findTimesheetEntries(timesheetEntries, date);
 
-    if (timesheetEntriesForDate.length > 0) {
+    const formattedCells = formatTimesheetEntryCells(timesheetEntriesForDate, date, isWorkDay);
+    if (formattedCells.length > 0) {
       sheetEntries.push({
         date: new Date(date),
-        cells: formatTimesheetEntryCells(timesheetEntriesForDate, date, isWorkDay),
+        cells: formattedCells,
       });
     }
 
@@ -154,14 +155,13 @@ const groupEntriesToTasks = (
     return acc;
   }, [] as GroupedEntryNumber[]);
 
-  return groupedEntries.map((groupedEntry) => {
-    const formattedOvertimeTime = formatTime(groupedEntry.overtime);
-    return {
+  return groupedEntries
+    .map((groupedEntry) => ({
       ...groupedEntry,
       time: formatTime(groupedEntry.time),
-      overtime: formattedOvertimeTime === 0 ? 0 : formattedOvertimeTime,
-    };
-  });
+      overtime: formatTime(groupedEntry.overtime),
+    }))
+    .filter((timedGroupedEntry) => timedGroupedEntry.time >= 0.25);
 };
 
 type OvertimeCalculation = {
@@ -191,16 +191,30 @@ const calculateOvertime = (
   let timeWorked = 0;
 
   for (const timesheetEntry of timesheetEntriesDate) {
-    // If task name is 'Non Working' then don't apply overtime
-    if (timesheetEntry.task.project.name === nonWorkingProjectName) {
+    const duration = timesheetEntry.end.getTime() - timesheetEntry.start.getTime();
+
+    // If task name is TOIL_TASK_NANE then subtract overtime as time off in lieu
+    if (
+      timesheetEntry.task.name.toUpperCase() === TOIL_TASK_NANE &&
+      timesheetEntry.task.project.name === NON_WORKING_PROJECT_NAME
+    ) {
+      overtimeCalculations.push({
+        timesheetEntry,
+        overtime: -duration,
+      });
+      continue;
+    }
+
+    // If task name is NON_WORKING_PROJECT_NAME then don't apply overtime
+    // Must also not be TOIL_TASK_NANE as that is a special case but we have already
+    // handled that above
+    if (timesheetEntry.task.project.name === NON_WORKING_PROJECT_NAME) {
       overtimeCalculations.push({
         timesheetEntry,
         overtime: 0,
       });
       continue;
     }
-
-    const duration = timesheetEntry.end.getTime() - timesheetEntry.start.getTime();
 
     if (timeWorked > OVERTIME_MILLISECONDS) {
       overtimeCalculations.push({
@@ -257,7 +271,10 @@ const removeDetailDuplicates = (input: string) => {
     .split(',')
     .map((item) => item.trim())
     .filter((item) => item !== '');
-  const uniqueItems = Array.from(new Set(items));
+
+  // We reverse the array as we want the oldest description to be first so there
+  // is a chronological order to the descriptions
+  const uniqueItems = Array.from(new Set(items)).reverse();
   return uniqueItems.join(', ');
 };
 
