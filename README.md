@@ -7,7 +7,7 @@ Supports 2 way bi-directional sync with Toggl, ticketing information from Jira, 
 ## Quickstart
 
 ```shell
-cp .env.example .env.local # You will need to add some fieds, those alreayd filled in are setup for local dev already
+cp .env.example .env.local # You will need to add some fields, those already filled in are setup for local dev already
 nvm use
 npm install -g pnpm
 pnpm install
