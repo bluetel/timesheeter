@@ -15,6 +15,8 @@ import { SelectableList } from '../../ui/SelectableList';
 import { SimpleEmptyState } from '../../ui/SimpleEmptyState';
 import { TogglEmailMapIcon, emailMapDescription } from '@timesheeter/web/lib/workspace/integrations/toggl';
 import { jiraTaskPrefixesDescription } from '@timesheeter/web/lib/workspace/integrations/jira';
+import { ProjectIcon } from '@timesheeter/web/lib';
+import { type IconType } from 'react-icons/lib';
 
 type IntegrationPanelProps = {
   integration: ParsedIntegration;
@@ -22,6 +24,7 @@ type IntegrationPanelProps = {
   onNewIntegrationClick: () => void;
   memberships: WorkspaceInfo['memberships'];
   userId: string;
+  workspaceTaskPrefixes: RouterOutputs['workspace']['taskPrefixes']['listMinimal'];
 };
 
 export const IntegrationPanel = ({
@@ -30,6 +33,7 @@ export const IntegrationPanel = ({
   onNewIntegrationClick,
   memberships,
   userId,
+  workspaceTaskPrefixes,
 }: IntegrationPanelProps) => {
   const [showEditIntegrationSideOver, setShowEditIntegrationSideOver] = useState(false);
   const [showDeleteIntegrationModal, setShowDeleteIntegrationModal] = useState(false);
@@ -133,6 +137,58 @@ export const IntegrationPanel = ({
       };
     }
 
+    if (integrationType === 'JiraIntegrationV2') {
+      const prefixItems = workspaceTaskPrefixes
+        .map((prefix) => {
+          if (integration.config.type !== 'JiraIntegrationV2') {
+            throw new Error('Invalid integration type');
+          }
+
+          const taskPrefixId = integration.config.taskPrefixIds.find((id) => id === prefix.id);
+          if (!taskPrefixId) {
+            return null;
+          }
+
+          return {
+            label: prefix.prefix,
+            subLabel: prefix.project.name,
+            icon: ProjectIcon,
+          };
+        })
+        .filter(Boolean) as { label: string; subLabel: string; icon: IconType }[];
+
+      return {
+        multiple: true,
+        bodies: [
+          {
+            icon: ConfigIcon,
+            label: 'Config',
+            body: <BasicDetailList items={basicDetails} />,
+          },
+          {
+            icon: ConfigIcon,
+            label: 'Task Prefixes',
+            subDescription: jiraTaskPrefixesDescription,
+            body:
+              integration.config.taskPrefixIds.length > 0 ? (
+                <SelectableList items={prefixItems} />
+              ) : (
+                <SimpleEmptyState
+                  title="No task prefixes"
+                  helpText="Add some task prefixes to this integration to start outputting from Jira"
+                  icon={ProjectIcon}
+                  button={{
+                    label: 'Add task prefix',
+                    onClick: () => setShowEditIntegrationSideOver(true),
+                  }}
+                  shrink
+                />
+              ),
+          },
+        ],
+      };
+    }
+
     return {
       multiple: false,
       body: <BasicDetailList items={basicDetails} />,
@@ -159,6 +215,7 @@ export const IntegrationPanel = ({
         workspaceId={integration.workspaceId}
         memberships={memberships}
         userId={userId}
+        workspaceTaskPrefixes={workspaceTaskPrefixes}
       />
       <DetailPanel
         header={{

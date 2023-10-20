@@ -3,7 +3,7 @@ import { type IconType } from 'react-icons';
 import { LinkIcon } from '@heroicons/react/24/outline';
 import { GoogleSheetsIntegration } from './google-sheets';
 import { TogglIntegration } from './toggl';
-import { JiraIntegration } from './jira';
+import { JiraIntegration, JiraIntegrationV2 } from './jira';
 
 export const INTEGRATIONS_HELP_TEXT = 'Integrations allow you to sync data to and from other external sources';
 
@@ -12,6 +12,7 @@ export const IntegrationIcon = LinkIcon as IconType;
 export const INTEGRATION_DEFINITIONS = {
   TogglIntegration,
   JiraIntegration,
+  JiraIntegrationV2,
   GoogleSheetsIntegration,
 } as const;
 
@@ -22,6 +23,7 @@ export type IntegrationDetail = (typeof INTEGRATION_DEFINITIONS)[IntegrationType
 export const integrationConfigSchema = z.union([
   INTEGRATION_DEFINITIONS.TogglIntegration.configSchema,
   INTEGRATION_DEFINITIONS.JiraIntegration.configSchema,
+  INTEGRATION_DEFINITIONS.JiraIntegrationV2.configSchema,
   INTEGRATION_DEFINITIONS.GoogleSheetsIntegration.configSchema,
 ]);
 
@@ -30,6 +32,7 @@ export type IntegrationConfig = z.infer<typeof integrationConfigSchema>;
 export const updateIntegrationConfigSchema = z.union([
   INTEGRATION_DEFINITIONS.TogglIntegration.updateIntegrationSchema,
   INTEGRATION_DEFINITIONS.JiraIntegration.updateIntegrationSchema,
+  INTEGRATION_DEFINITIONS.JiraIntegrationV2.updateIntegrationSchema,
   INTEGRATION_DEFINITIONS.GoogleSheetsIntegration.updateIntegrationSchema,
 ]);
 

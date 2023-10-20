@@ -6,10 +6,12 @@ import { timesheetEntriesRouter } from './timesheet-entries';
 import { tasksRouter } from './tasks';
 import { managementRouter } from './management';
 import { adminToolsRouter } from './admin';
+import { taskPrefixesRouter } from './task-prefixes';
 
 export const workspaceRouter = createTRPCRouter({
   integrations: integrationsRouter,
   projects: projectsRouter,
+  taskPrefixes: taskPrefixesRouter,
   tasks: tasksRouter,
   timesheetEntries: timesheetEntriesRouter,
   holidays: holidaysRouter,
@@ -19,6 +21,7 @@ export const workspaceRouter = createTRPCRouter({
 
 export * from './integrations';
 export * from './projects';
+export * from './task-prefixes';
 export * from './tasks';
 export * from './timesheet-entries';
 export * from './holidays';
