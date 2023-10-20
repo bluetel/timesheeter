@@ -8,25 +8,23 @@ import { matchTimeEntryToTask } from './tasks';
  * Toggl time entries do not require a task, however timesheeter timesheet entries do require a task.
  *
  * Therefore before syncing we need to auto-create tasks for any time entries
- * that do not have a task.
+ * that do not have a task. We also need to enforce project selection and ignore any
+ * entries that do not have a project.
  *
  * ### Steps
  *
  * 1. Get all time entries that do not have a task
  *
- * 2. For each time entry, see if it has been assigned a project
- *
- * 3. If it hasn't, put a message on the entry to instruct the user to add a project
- *
  * 3. Try and match a JIRA styled task prefix, if we can't then we have to do one
  * of two things:
  *
- * - If the project has a description, then we use that as the task name
+ * - If the entry has a description, then we use that as the task name
  *
- * - If the project has no description, then we use the UNCATEGORIZED_TASKS_TASK_NAME variable
+ * - If the entry has a description and a colon in it, use the text before the colon as the task name
  *
- * 4. We check to see if we can find a task with that task number and prefix (or
- * matching the whole description for the case of auto assign prefixes), if we can't then we create a new task
+ * - If the entry has no description or task, we ignore it
+ *
+ * 4. We check to see if we can find a task with a matching name, if we can't then we create a new task
  *
  * 5. We then update the time entry to be assigned to the task
  */
