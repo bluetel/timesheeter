@@ -1,6 +1,6 @@
 import { type IntegrationJob, parseIntegration, getPrismaClient } from '@timesheeter/web';
 import { handleTogglIntegration } from './toggl';
-import { handleJiraIntegration } from './jira';
+import { handleV1JiraIntegration, handleV2JiraIntegration } from './jira';
 import { handleGoogleSheetsIntegration } from './google-sheets';
 
 export const handleIntegrationsJob = async (integrationJob: IntegrationJob) => {
@@ -38,7 +38,14 @@ const handleIntegrationsJobThrowable = async (integrationJob: IntegrationJob) =>
       },
     });
   } else if (integration.config.type === 'JiraIntegration') {
-    await handleJiraIntegration({
+    await handleV1JiraIntegration({
+      integration: {
+        ...integration,
+        config: integration.config,
+      },
+    });
+  } else if (integration.config.type === 'JiraIntegrationV2') {
+    await handleV2JiraIntegration({
       integration: {
         ...integration,
         config: integration.config,

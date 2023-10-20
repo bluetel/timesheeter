@@ -24,7 +24,7 @@ import {
   timesheetSchema,
   timesheetDescription,
 } from '@timesheeter/web/lib/workspace/integrations/google-sheets';
-import { TaskIcon, customJSONStringify, taskPrefixRegex } from '@timesheeter/web/lib';
+import { ProjectIcon, TaskIcon, customJSONStringify, taskPrefixRegex } from '@timesheeter/web/lib';
 import {
   type EmailMapEntry,
   emailMapDescription,
@@ -32,7 +32,12 @@ import {
   TogglEmailMapIcon,
 } from '@timesheeter/web/lib/workspace/integrations/toggl';
 import { ListableForm } from '../../ui/forms/BasicForm/ListableForm';
-import { jiraTaskPrefixesDescription } from '@timesheeter/web/lib/workspace/integrations/jira';
+import {
+  jiraTaskPrefixesDescription,
+  jiraTaskPrefixesDescriptionV2,
+} from '@timesheeter/web/lib/workspace/integrations/jira';
+import { ClickableListForm } from '../../ui/forms/ClickableListForm';
+import { SimpleEmptyState } from '../../ui/SimpleEmptyState';
 
 const mutationSchema = z.union([
   createIntegrationSchema.extend({
@@ -58,6 +63,7 @@ type EditIntegrationSideOverProps = {
   workspaceId: string;
   userId: string;
   memberships: WorkspaceInfo['memberships'];
+  workspaceTaskPrefixes: RouterOutputs['workspace']['taskPrefixes']['listMinimal'];
 };
 
 export const EditIntegrationSideOver = ({
@@ -68,6 +74,7 @@ export const EditIntegrationSideOver = ({
   workspaceId,
   userId,
   memberships,
+  workspaceTaskPrefixes,
 }: EditIntegrationSideOverProps) => {
   const { addNotification } = useNotifications();
 
@@ -178,16 +185,6 @@ export const EditIntegrationSideOver = ({
   };
 
   const fields = useIntegrationFields({ methods, userId });
-
-  const getTaskPrefixes = () => {
-    const taskPrefixes = [...(methods.getValues('config.taskPrefixes') ?? [])];
-
-    if (taskPrefixes.length === 0) {
-      taskPrefixes.push('');
-    }
-
-    return taskPrefixes;
-  };
 
   const getTabs = (): SideOverProps['tabs'] => {
     const config = methods.getValues('config');
@@ -326,6 +323,16 @@ export const EditIntegrationSideOver = ({
     }
 
     if (integrationType === 'JiraIntegration') {
+      const getTaskPrefixes = () => {
+        const taskPrefixes = [...(methods.getValues('config.taskPrefixes') ?? [])];
+
+        if (taskPrefixes.length === 0) {
+          taskPrefixes.push('');
+        }
+
+        return taskPrefixes;
+      };
+
       return {
         multiple: true as const,
         bodies: [
@@ -354,6 +361,60 @@ export const EditIntegrationSideOver = ({
               />
             ),
             subDescription: jiraTaskPrefixesDescription,
+          },
+        ],
+      };
+    }
+
+    if (integrationType === 'JiraIntegrationV2') {
+      if (!workspaceTaskPrefixes) {
+        return {
+          multiple: false,
+          body: <SimpleEmptyState title="Loading task prefixes" shrink icon={ProjectIcon} />,
+        };
+      }
+
+      const getItems = () => {
+        const currentTaskPrefixIds = [...(methods.getValues('config.taskPrefixIds') ?? [])];
+
+        return workspaceTaskPrefixes.map((prefix) => ({
+          id: prefix.id,
+          label: prefix.prefix,
+          subLabel: prefix.project.name,
+          selected: currentTaskPrefixIds.includes(prefix.id),
+          icon: ProjectIcon,
+          onChange: (selected: boolean) => {
+            if (selected) {
+              methods.setValue('config.taskPrefixIds', [...currentTaskPrefixIds, prefix.id], {
+                shouldValidate: true,
+              });
+            } else {
+              methods.setValue(
+                'config.taskPrefixIds',
+                currentTaskPrefixIds.filter((id) => id !== prefix.id),
+                {
+                  shouldValidate: true,
+                }
+              );
+            }
+          },
+        }));
+      };
+
+      return {
+        multiple: true as const,
+        bodies: [
+          {
+            icon: ConfigIcon,
+            label: 'Configuration',
+            body: <BasicForm items={fields} />,
+            subDescription: integrationDefinition.description,
+          },
+          {
+            icon: TaskIcon,
+            label: 'Task Prefixes',
+            body: <ClickableListForm items={getItems()} />,
+            subDescription: jiraTaskPrefixesDescriptionV2,
           },
         ],
       };

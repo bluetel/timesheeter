@@ -5,7 +5,7 @@ import { chronRegex, hostnameRegex, taskPrefixRegex } from '@timesheeter/web/lib
 export const jiraTaskPrefixesDescription = 'Task prefixes to search for in Jira, if empty will search for all tasks';
 
 export const JiraIntegration = {
-  name: 'Jira',
+  name: 'Jira (legacy - please migrate)',
   description:
     'Connects to Jira to pull in task details, if private, will only scan for tasks you have timesheet entries for',
   icon: SiJira,

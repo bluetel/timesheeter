@@ -54,9 +54,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
     transformer: superjson,
   });
 
-  await helpers.workspace.integrations.list.prefetch({
-    workspaceId: workspaceInfo.workspace.id,
-  });
+  await Promise.all([
+    helpers.workspace.integrations.list.prefetch({
+      workspaceId: workspaceInfo.workspace.id,
+    }),
+
+    helpers.workspace.taskPrefixes.listMinimal.prefetch({
+      workspaceId: workspaceInfo.workspace.id,
+    }),
+  ]);
 
   return {
     props: {
@@ -120,6 +126,14 @@ const Integrations = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getS
     [integrations, selectedIntegration]
   );
 
+  const { data: workspaceTaskPrefixes } = api.workspace.taskPrefixes.listMinimal.useQuery({
+    workspaceId: workspaceInfo.workspace.id,
+  });
+
+  if (!workspaceTaskPrefixes) {
+    return null;
+  }
+
   if (!integrations || integrationItems.length === 0) {
     return (
       <>
@@ -133,6 +147,7 @@ const Integrations = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getS
           workspaceId={workspaceInfo.workspace.id}
           memberships={workspaceInfo.memberships}
           userId={workspaceInfo.membership.user.id}
+          workspaceTaskPrefixes={workspaceTaskPrefixes}
         />
         <WorkspaceLayout workspaceInfo={workspaceInfo}>
           <SimpleEmptyState
@@ -159,6 +174,7 @@ const Integrations = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getS
         workspaceId={workspaceInfo.workspace.id}
         memberships={workspaceInfo.memberships}
         userId={workspaceInfo.membership.user.id}
+        workspaceTaskPrefixes={workspaceTaskPrefixes}
       />
       <WorkspaceLayout
         workspaceInfo={workspaceInfo}
@@ -176,6 +192,7 @@ const Integrations = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getS
               onNewIntegrationClick={() => setShowNewIntegrationSideOver(true)}
               memberships={workspaceInfo.memberships}
               userId={workspaceInfo.membership.user.id}
+              workspaceTaskPrefixes={workspaceTaskPrefixes}
             />
           </div>
         ))}
