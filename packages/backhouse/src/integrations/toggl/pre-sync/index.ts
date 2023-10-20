@@ -7,30 +7,26 @@ import { matchTimeEntryToTask } from './tasks';
 /**
  * Toggl time entries do not require a task, however timesheeter timesheet entries do require a task.
  *
- * Therefore before syncing we need to auto-create tasks (and projects if necessary) for any time entries
- * that do not have a task.
+ * Therefore before syncing we need to auto-create tasks for any time entries
+ * that do not have a task. We also need to enforce project selection and ignore any
+ * entries that do not have a project.
  *
  * ### Steps
  *
  * 1. Get all time entries that do not have a task
  *
- * 2. For each time entry, try and parse a task number and prefix (or auto assign expression) from the description
+ * 3. Try and match a JIRA styled task prefix, if we can't then we have to do one
+ * of two things:
  *
- * 3. If we can parse a task number and prefix (or auto assign expression), then try and find a project with that prefix (or auto assign expression)
+ * - If the entry has a description, then we use that as the task name
  *
- * 4. If we can't find a project with that prefix (or auto assign expression), then create a new project
+ * - If the entry has a description and a colon in it, use the text before the colon as the task name
  *
- * - The new project should have a name like "Auto created by Timesheeter - {prefix}/{auto assign expression}"
+ * - If the entry has no description or task, we ignore it
  *
- * - The new project should have the task prefix or auto assign expression set in the project config
+ * 4. We check to see if we can find a task with a matching name, if we can't then we create a new task
  *
- * - If we can't find any matching task prefix or auto assign expression, then add to a project called the UNCATEGORIZED_TASKS_PROJECT_NAME variable
- * this may need to be created if it doesn't exist
- *
- * 5. We check to see if we can find a task with that task number and prefix (or
- * matching the whole description for the case of auto assign prefixes), if we can't then we create a new task
- *
- * 6. We then update the time entry to be assigned to the task
+ * 5. We then update the time entry to be assigned to the task
  */
 export const preSync = async ({ context }: { context: TogglIntegrationContext }) => {
   const preSyncData = await getPreSyncData({
@@ -41,27 +37,29 @@ export const preSync = async ({ context }: { context: TogglIntegrationContext })
   // have a synced record without an entry in the response from the Toggl API
   await createTogglSyncRecords({ preSyncData, context });
 
-  let { togglProjects, togglTasks, timesheeterProjects } = preSyncData;
-  const { togglTimeEntries, uncategorizedTasksProject } = preSyncData;
+  const { togglProjects } = preSyncData;
+  let { togglTasks, timesheeterProjects } = preSyncData;
 
-  const togglTimeEntriesWithoutTask = togglTimeEntries.filter((timeEntry) => !timeEntry.task_id);
-
+  const togglTimeEntriesWithoutTask = preSyncData.togglTimeEntries.filter((timeEntry) => !timeEntry.task_id);
   if (togglTimeEntriesWithoutTask.length === 0) {
     return;
   }
 
   for (const timeEntry of togglTimeEntriesWithoutTask) {
-    const { matchedProject, updatedTogglProjects, updatedTimesheeterProjects, taskName, autoAssignTrimmedDescription } =
-      await matchTimeEntryToProject({
-        context,
-        timeEntry,
-        togglProjects,
-        timesheeterProjects,
-        uncategorizedTasksProject,
-        togglTasks,
-      });
+    const searchMatch = await matchTimeEntryToProject({
+      context,
+      timeEntry,
+      togglProjects,
+      timesheeterProjects,
+      togglTasks,
+    });
 
-    togglProjects = updatedTogglProjects;
+    if (!searchMatch) {
+      continue;
+    }
+
+    const { matchedProject, updatedTimesheeterProjects, taskName } = searchMatch;
+
     timesheeterProjects = updatedTimesheeterProjects;
 
     const { updatedTogglTasks } = await matchTimeEntryToTask({
@@ -70,7 +68,6 @@ export const preSync = async ({ context }: { context: TogglIntegrationContext })
       matchedProject,
       togglTasks,
       taskName,
-      autoAssignTrimmedDescription,
     });
 
     togglTasks = updatedTogglTasks;

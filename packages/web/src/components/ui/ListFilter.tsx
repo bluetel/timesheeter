@@ -65,7 +65,12 @@ export const ListFilter = ({ filters }: ListFilterProps) => {
             leaveFrom="transform opacity-100 scale-100"
             leaveTo="transform opacity-0 scale-95"
           >
-            <Menu.Items className="fixed z-10 mt-10 w-56 origin-top-right divide-y divide-gray-100 overflow-visible rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+            <Menu.Items
+              style={{
+                maxHeight: 'calc(100vh - 3rem)',
+              }}
+              className="fixed z-10 mt-10  w-56 origin-top-right divide-y divide-gray-100 overflow-y-auto rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+            >
               {filter.groups.map((group, index) => (
                 <div className="overflow-hidden py-1" key={index}>
                   {group.items.map((item, index) => (

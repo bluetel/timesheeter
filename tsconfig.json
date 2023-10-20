@@ -4,5 +4,6 @@
     "module": "esnext",
     "outDir": "./dist"
   },
-  "include": ["stacks", ".eslintrc.cjs", "tsconfig.json", "packages/**/*"]
+  "include": ["stacks", ".eslintrc.cjs", "tsconfig.json", "packages/**/*", "sst.config.ts", "sst-env.d.ts"],
+  "ignore": ["dist", "node_modules", ".sst"]
 }

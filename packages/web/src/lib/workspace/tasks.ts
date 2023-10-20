@@ -3,6 +3,8 @@ import { type IconType } from 'react-icons/lib';
 import { z } from 'zod';
 import { taskRegex } from '../regex';
 
+export const UNCATEGORIZED_TASKS_TASK_NAME = 'Uncategorized tasks';
+
 export const TASKS_HELP_TEXT = 'Tasks group timesheet entries together, they can have assigned numbers e.g. from Jira';
 
 export const TaskIcon = RectangleStackIcon as IconType;
@@ -64,16 +66,17 @@ export const updateTaskSchema = z.object({
   config: updateTaskConfigSchema,
 });
 
-type MatchedTaskResult =
+export type MatchedTaskResult =
   | {
-      variant: 'with-task';
+      variant: 'jira-based';
       prefix: string;
       taskNumber: number;
       description: string | null;
     }
   | {
-      variant: 'no-task';
-      description: string;
+      variant: 'description-based';
+      taskName: string;
+      description: string | null;
     };
 
 // 2 captial letters, followed by a dash, followed by 1 or more numbers, it can have additional text after the numbers if there is a hypen surrounded by spaces
@@ -93,7 +96,7 @@ export const matchTaskRegex = (rawDescription: string): MatchedTaskResult => {
 
     if (prefix && taskNumber) {
       return {
-        variant: 'with-task',
+        variant: 'jira-based',
         prefix: prefix.toUpperCase(),
         taskNumber: parseInt(taskNumber, 10),
         description: customDescription ? customDescription.trim() : null,
@@ -101,9 +104,26 @@ export const matchTaskRegex = (rawDescription: string): MatchedTaskResult => {
     }
   }
 
+  // See if there is a colon in the description, if there is then we have a task name
+  // and a description
+
+  const colonIndex = rawDescription.indexOf(':');
+
+  if (colonIndex > 0) {
+    const taskName = rawDescription.slice(0, colonIndex).trim();
+    const description = rawDescription.slice(colonIndex + 1).trim();
+
+    return {
+      variant: 'description-based',
+      taskName,
+      description: description ? description : null,
+    };
+  }
+
   return {
-    variant: 'no-task',
-    description: rawDescription,
+    variant: 'description-based',
+    taskName: rawDescription,
+    description: null,
   };
 };
 

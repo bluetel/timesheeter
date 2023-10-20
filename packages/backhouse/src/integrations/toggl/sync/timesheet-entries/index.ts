@@ -76,9 +76,6 @@ export const syncTimesheetEntries = async ({
       if (timesheetEntryPair.togglTimeEntry?.deleted === false && timesheetEntryPair.timesheeterTimesheetEntry) {
         return timesheetEntryPair as EvaluatedTimesheetEntryPair;
       }
-
-      // Don't think we need this
-      // console.log('Toggl - Sync Timesheet Pair Filtered as invalid', timesheetEntryPair);
       return null;
     })
     .filter((timesheetEntryPair): timesheetEntryPair is EvaluatedTimesheetEntryPair => !!timesheetEntryPair);

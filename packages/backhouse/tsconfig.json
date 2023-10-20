@@ -20,6 +20,12 @@
       "@timesheeter/web": ["../web/src/index.ts"]
     }
   },
-  "include": ["test/**/*.spec.ts", "src/**/*.ts", ".eslintrc.cjs", "tsconfig.json"],
+  "include": [
+    "test/**/*.spec.ts",
+    "src/**/*.ts",
+    ".eslintrc.cjs",
+    "tsconfig.json",
+    "src/integrations/toggl/pre-sync/projects/handle-task-id-and-no-description"
+  ],
   "exclude": ["node_modules"]
 }

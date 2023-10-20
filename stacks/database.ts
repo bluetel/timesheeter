@@ -1,4 +1,4 @@
-import { Config, RDS, type StackContext, use } from 'sst/constructs';
+import { Config, type StackContext, use } from 'sst/constructs';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { RemovalPolicy } from 'aws-cdk-lib';

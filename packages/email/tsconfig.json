@@ -18,5 +18,5 @@
     "jsx": "react-jsx"
   },
   "include": ["test/**/*.spec.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", ".react-email/**/*"]
+  "exclude": ["node_modules", ".react-email/**/*", "dist/**/*"]
 }

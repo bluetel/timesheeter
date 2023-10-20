@@ -3,129 +3,67 @@ import { type TogglIntegrationContext } from '../../lib';
 import { type TimesheeterProject } from '../../sync';
 import { type RawTogglProject, type RawTogglTask, type RawTogglTimeEntry } from '../../api';
 import { handleTaskPrefixMatch } from './handle-task-prefix-match';
-import { findAutoAssignMatch, handleAutoAssign } from './handle-auto-assign';
-import { handleNoDescription } from './handle-no-description';
-import { handleNoTaskPrefixMatch } from './handle-no-task-prefix-match';
 
 export const matchTimeEntryToProject = async ({
   context,
   timeEntry,
   togglProjects,
   timesheeterProjects,
-  uncategorizedTasksProject,
   togglTasks,
 }: {
   context: TogglIntegrationContext;
   timeEntry: RawTogglTimeEntry;
   togglProjects: RawTogglProject[];
   timesheeterProjects: TimesheeterProject[];
-  uncategorizedTasksProject: RawTogglProject;
   togglTasks: RawTogglTask[];
 }) => {
-  // Edge case where user sets a project but nothing more
-  if (!timeEntry.description && !timeEntry.task_id && !!timeEntry.project_id) {
-    return handleNoDescription({
-      timeEntry,
-      togglProjects,
-      timesheeterProjects,
-      uncategorizedTasksProject,
-    });
+  // Catch cases where user has not set a project
+  if (!timeEntry.project_id) {
+    return null;
   }
 
-  // We match auto assign project regardless of user project selection
-  const autoAssign = findAutoAssignMatch({ timeEntry, timesheeterProjects });
+  // Handle no description or task_id by creating a default task in the project
+  if (!timeEntry.description && !timeEntry.task_id) {
+    return null;
 
-  if (autoAssign.match) {
-    // We don't need to handle creating projects in timesheeter as we know that
-    // they must exist
-    return handleAutoAssign({
-      context,
-      autoAssignTimesheeterProject: autoAssign.timesheeterProject,
-      autoAssignPrefix: autoAssign.autoAssignPrefix,
-      togglProjects,
-      timesheeterProjects,
-      trimmedDescription: autoAssign.trimmedDescription,
-    });
-  }
+    // We could alternatively create an uncategorized task like below
+    /*const parentProject = togglProjects.find((project) => project.id === timeEntry.project_id);
 
-  // The parent task may already be in a project, if so set the timesheeterProject to that project
-  if (timeEntry.project_id) {
-    const togglProject = togglProjects.find((project) => project.id === timeEntry.project_id);
-
-    if (!togglProject) {
+    if (!parentProject) {
       throw new Error('Toggl project not found, this should exist as a task has it as a parent');
     }
 
-    const matchResult = matchTaskRegex(timeEntry.description ?? '');
-
-    // Even though the time entry has a project, the task prefix may not match
-    if (matchResult.variant === 'with-task') {
-      return handleTaskPrefixMatch({
-        context,
-        matchResult,
-        togglProjects,
-        timesheeterProjects,
-        togglTasks,
-        createInProject: togglProject,
-      });
-    }
-
     return {
-      matchedProject: togglProject,
+      matchedProject: parentProject,
       updatedTogglProjects: togglProjects,
       updatedTimesheeterProjects: timesheeterProjects,
-      taskName: matchResult.description,
-      autoAssignTrimmedDescription: null,
-    };
+      taskName: UNCATEGORIZED_TASKS_TASK_NAME,
+    };*/
   }
 
-  const parentTask = togglTasks.find((task) => task.id === timeEntry.task_id);
-
-  if (parentTask) {
-    const parentTaskProject = togglProjects.find((project) => project.id === parentTask?.id);
-
-    if (parentTaskProject) {
-      return {
-        matchedProject: parentTaskProject,
-        updatedTogglProjects: togglProjects,
-        updatedTimesheeterProjects: timesheeterProjects,
-        taskName: parentTask.name,
-        autoAssignTrimmedDescription: null,
-      };
-    }
+  const togglProject = togglProjects.find((project) => project.id === timeEntry.project_id);
+  if (!togglProject) {
+    throw new Error('Toggl project not found, this should exist as a task has it as a parent');
   }
 
-  // There are no projects or tasks, so we need to create a new project
+  const matchResult = matchTaskRegex(timeEntry.description ?? '');
 
-  const description = timeEntry.description;
-
-  if (!description) {
-    return {
-      matchedProject: uncategorizedTasksProject,
-      updatedTogglProjects: togglProjects,
-      updatedTimesheeterProjects: timesheeterProjects,
-      taskName: `Auto created by Timesheeter for time entry ${timeEntry.id}`,
-      autoAssignTrimmedDescription: null,
-    };
-  }
-
-  const matchResult = matchTaskRegex(description);
-
-  if (matchResult.variant === 'with-task') {
+  // Even though the time entry has a project, the task prefix may not match
+  if (matchResult.variant === 'jira-based') {
     return handleTaskPrefixMatch({
       context,
       matchResult,
       togglProjects,
       timesheeterProjects,
       togglTasks,
+      togglProject,
     });
   }
 
-  return handleNoTaskPrefixMatch({
-    description,
-    togglProjects,
-    timesheeterProjects,
-    uncategorizedTasksProject,
-    togglTasks,
-  });
+  return {
+    matchedProject: togglProject,
+    updatedTogglProjects: togglProjects,
+    updatedTimesheeterProjects: timesheeterProjects,
+    taskName: matchResult.taskName,
+  };
 };

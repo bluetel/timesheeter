@@ -177,7 +177,8 @@ model TaskPrefix {
 
   deleted Boolean @default(false)
 
-  @@unique([prefix, workspaceId])
+  // Workspaces can support multiple task prefixes
+  @@unique([prefix, projectId])
 }
 
 model Task {

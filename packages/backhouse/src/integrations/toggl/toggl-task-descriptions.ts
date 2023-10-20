@@ -9,14 +9,16 @@ import { type TogglIntegrationContext } from './lib';
  *
  * We want to extract just the task Number if it exists, else return the whole name
  */
-export const resolveTaskNumberFromTogglDescriptions = (togglName: string): string => {
-  const matchResult = matchTaskRegex(togglName);
+export const resolveTaskNumberFromTogglDescriptions = (rawDescription: string): string => {
+  const matchResult = matchTaskRegex(rawDescription);
 
-  if (matchResult.variant === 'with-task') {
+  if (matchResult.variant === 'jira-based') {
     return `${matchResult.prefix}-${matchResult.taskNumber}`;
   }
 
-  return togglName;
+  // We want to return rawDescription here, not filtered task name as it may contain
+  // a colon
+  return matchResult.taskName;
 };
 
 /**
@@ -40,7 +42,7 @@ export const applyTaskDescriptions = async ({
       const togglMatchResult = matchTaskRegex(togglTask.name);
 
       // We only want to update tasks that have a task number
-      if (togglMatchResult.variant === 'no-task') {
+      if (togglMatchResult.variant === 'description-based') {
         return;
       }
 

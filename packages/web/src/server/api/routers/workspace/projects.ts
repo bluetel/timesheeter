@@ -93,25 +93,6 @@ export const projectsRouter = createTRPCRouter({
 
     const { config, ...rest } = input;
 
-    // Ensure workspace doesnlt already have a task prefix matching the ones in the config and
-    // is not deleted
-    const existingTaskPrefixes = await ctx.prisma.taskPrefix.findMany({
-      where: {
-        workspaceId: input.workspaceId,
-        prefix: {
-          in: config.taskPrefixes,
-        },
-        deleted: false,
-      },
-    });
-
-    if (existingTaskPrefixes[0]) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: `Task prefix ${existingTaskPrefixes[0].prefix} already exists`,
-      });
-    }
-
     const createdProject = await ctx.prisma.project
       .create({
         data: {
@@ -153,6 +134,18 @@ export const projectsRouter = createTRPCRouter({
       ...updatedConfigValues,
     } satisfies UpdateProjectConfig;
 
+    if (updatedConfigValues.taskPrefixes) {
+      // If some aren't unique, throw an error
+      const uniqueTaskPrefixes = [...new Set(updatedConfigValues.taskPrefixes)];
+
+      if (uniqueTaskPrefixes.length !== updatedConfigValues.taskPrefixes.length) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Task prefixes must be unique',
+        });
+      }
+    }
+
     const taskPrefixesToDelete = oldTaskPrefixes.filter(
       (oldTaskPrefix) => !updatedConfig.taskPrefixes.includes(oldTaskPrefix.prefix)
     );
@@ -169,11 +162,14 @@ export const projectsRouter = createTRPCRouter({
     // is not deleted
     const existingTaskPrefixes = await ctx.prisma.taskPrefix.findMany({
       where: {
-        workspaceId: input.workspaceId,
+        projectId: input.id,
         prefix: {
           in: taskPrefixesToCreate,
         },
         deleted: false,
+      },
+      select: {
+        prefix: true,
       },
     });
 

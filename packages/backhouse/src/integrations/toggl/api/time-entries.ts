@@ -34,7 +34,7 @@ const togglTimeEntryMutationSchema = z.object({
   task_id: z.number().int().positive().optional(),
   user_id: z.number().int().positive(),
   workspace_id: z.number().int().positive(),
-  project_id: z.number().int().positive(),
+  project_id: z.number().int().positive().optional(),
   billable: z.boolean().default(true),
 });
 
