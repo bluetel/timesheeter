@@ -411,7 +411,7 @@ export const EditIntegrationSideOver = ({
             subDescription: integrationDefinition.description,
           },
           {
-            icon: TaskIcon,
+            icon: ProjectIcon,
             label: 'Task Prefixes',
             body: <ClickableListForm items={getItems()} />,
             subDescription: jiraTaskPrefixesDescriptionV2,

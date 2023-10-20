@@ -166,7 +166,7 @@ export const IntegrationPanel = ({
             body: <BasicDetailList items={basicDetails} />,
           },
           {
-            icon: ConfigIcon,
+            icon: ProjectIcon,
             label: 'Task Prefixes',
             subDescription: jiraTaskPrefixesDescription,
             body:
