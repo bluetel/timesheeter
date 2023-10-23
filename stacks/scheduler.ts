@@ -30,6 +30,7 @@ export const Scheduler = ({ stack }: StackContext) => {
       DATABASE_URL: makeDatabaseUrl({
         connectionLimit: 10,
       }),
+      NODE_ENV: 'production',
       NEXTAUTH_URL: sstEnv.NEXTAUTH_URL,
       NEXTAUTH_SECRET: sstEnv.NEXTAUTH_SECRET,
       CONFIG_SECRET_KEY: sstEnv.CONFIG_SECRET_KEY,
