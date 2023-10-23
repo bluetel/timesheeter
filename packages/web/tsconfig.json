@@ -38,5 +38,5 @@
     "scripts/run-migrations.js",
     "tailwind.config.cjs"
   ],
-  "exclude": ["../../node_modules", "src/sst/*"]
+  "exclude": ["../../node_modules", "src/sst/*", "dist"]
 }

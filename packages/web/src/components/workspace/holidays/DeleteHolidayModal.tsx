@@ -1,6 +1,6 @@
-import { api } from "@timesheeter/web/utils/api";
-import { DeleteConfirmationModal } from "@timesheeter/web/components/ui/DeleteConfirmationModal";
-import { type Holiday } from "@prisma/client";
+import { api } from '@timesheeter/web/utils/api';
+import { DeleteConfirmationModal } from '@timesheeter/web/components/ui/DeleteConfirmationModal';
+import { type Holiday } from '@prisma/client';
 
 type DeleteHolidayModalProps = {
   show: boolean;
@@ -9,12 +9,7 @@ type DeleteHolidayModalProps = {
   refetchHolidays: () => void;
 };
 
-export const DeleteHolidayModal = ({
-  show,
-  onClose,
-  holiday,
-  refetchHolidays,
-}: DeleteHolidayModalProps) => {
+export const DeleteHolidayModal = ({ show, onClose, holiday, refetchHolidays }: DeleteHolidayModalProps) => {
   const deleteMutation = api.workspace.holidays.delete.useMutation({
     onSuccess: () => {
       void refetchHolidays();

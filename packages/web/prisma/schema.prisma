@@ -120,7 +120,6 @@ model Integration {
   name             String
   configSerialized String
 
-  repeatJobKey    String?
   integrationRuns IntegrationRun[]
 
   privateUser   User?   @relation(fields: [privateUserId], references: [id], onDelete: Cascade)

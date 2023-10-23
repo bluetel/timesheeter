@@ -1,7 +1,6 @@
 import { type StackContext, Function, use } from 'sst/constructs';
 import { sstEnv } from './lib';
 import { Database, makeDatabaseUrl } from './database';
-import { BullmqElastiCache } from './bullmq-elasticache';
 import { Network } from './network';
 import { Dns } from './dns';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
@@ -11,10 +10,9 @@ import { LAYER_MODULES, Layers } from './layers';
 export const JobLambda = ({ stack }: StackContext) => {
   const { vpc } = use(Network);
   const { hostedZone } = use(Dns);
-  const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
-  const { elastiCacheAccessPolicy, bullmqElastiCache } = use(BullmqElastiCache);
   const { prismaLayer } = use(Layers);
 
+  const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
   if (!database.secret) {
     throw new Error('Database secret not found');
   }
@@ -34,8 +32,6 @@ export const JobLambda = ({ stack }: StackContext) => {
       GOOGLE_CLIENT_ID: sstEnv.GOOGLE_CLIENT_ID,
       GOOGLE_CLIENT_SECRET: sstEnv.GOOGLE_CLIENT_SECRET,
       NEXT_PUBLIC_REGION: stack.region,
-      BULLMQ_REDIS_PATH: bullmqElastiCache.attrRedisEndpointAddress,
-      BULLMQ_REDIS_PORT: bullmqElastiCache.attrRedisEndpointPort,
       DB_SECRET_ARN: database.secret.secretArn,
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
       NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
@@ -55,11 +51,8 @@ export const JobLambda = ({ stack }: StackContext) => {
       { from: 'packages/web/prisma/schema.prisma' },
       { from: 'packages/web/prisma/schema.prisma', to: 'packages/backhouse/src/integrations/schema.prisma' },
     ],
+    initialPolicy: [databaseAccessPolicy, secretsManagerAccessPolicy],
   });
-
-  jobLambda.addToRolePolicy(secretsManagerAccessPolicy);
-  jobLambda.addToRolePolicy(databaseAccessPolicy);
-  jobLambda.addToRolePolicy(elastiCacheAccessPolicy);
 
   // allow traffic from inside the vpc
   jobLambda.connections.allowFrom(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.allTraffic(), 'allow all traffic from vpc');
@@ -68,7 +61,7 @@ export const JobLambda = ({ stack }: StackContext) => {
   jobLambda.connections.allowTo(ec2.Peer.anyIpv4(), ec2.Port.allTraffic(), 'allow all outbound traffic');
 
   // Create a policy that allows invoking this lambda from the scheduler
-  const invokePolicy = new iam.PolicyStatement({
+  const jobLambdaInvokePolicyStatement = new iam.PolicyStatement({
     effect: iam.Effect.ALLOW,
     actions: ['lambda:InvokeFunction'],
     resources: [jobLambda.functionArn],
@@ -76,6 +69,6 @@ export const JobLambda = ({ stack }: StackContext) => {
 
   return {
     jobLambda,
-    invokePolicy,
+    jobLambdaInvokePolicyStatement,
   };
 };
