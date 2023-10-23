@@ -8,8 +8,11 @@ import { Network } from './network';
 import { Web } from './web';
 import { Scheduler } from './scheduler';
 import { JobLambda } from './job-lambda';
+import { Tags } from 'aws-cdk-lib';
 
 export default function main(app: sst.App) {
+  Tags.of(app).add('timesheeter', `${app.stage}-${app.region}`);
+
   app.setDefaultFunctionProps({
     runtime: 'nodejs18.x',
   });
