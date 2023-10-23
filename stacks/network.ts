@@ -1,5 +1,5 @@
 import { type App, type Stack, type StackContext } from 'sst/constructs';
-import { SecurityGroup, Vpc, Instance, InstanceType, MachineImage, SubnetType, Peer, Port } from 'aws-cdk-lib/aws-ec2';
+import { SecurityGroup, Vpc, InstanceType, Peer, Port } from 'aws-cdk-lib/aws-ec2';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 export const Network = ({ stack, app }: StackContext) => {
