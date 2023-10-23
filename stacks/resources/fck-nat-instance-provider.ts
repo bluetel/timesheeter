@@ -55,7 +55,7 @@ export interface FckNatInstanceProps {
    *
    * @default - Latest fck-nat instance image
    */
-  readonly machineImage?: ec2.IMachineImage;
+  readonly machineImage: ec2.IMachineImage;
 
   /**
    * Instance type of the fck-nat instance
@@ -90,12 +90,7 @@ export class FckNatInstanceProvider extends ec2.NatProvider implements ec2.IConn
 
   configureNat(options: ec2.ConfigureNatOptions): void {
     // Create the NAT instances. They can share a security group and a Role.
-    const machineImage =
-      this.props.machineImage ||
-      new ec2.LookupMachineImage({
-        name: 'fck-nat-amzn2-*-arm64-ebs',
-        owners: ['568608671756'],
-      });
+    const machineImage = this.props.machineImage;
     this._securityGroup =
       this.props.securityGroup ??
       new ec2.SecurityGroup(options.vpc, 'NatSecurityGroup', {
@@ -150,6 +145,7 @@ export class FckNatInstanceProvider extends ec2.NatProvider implements ec2.IConn
       keyName: this.props.keyName,
       spotPrice: this.props.spotPrice,
     });
+
     // Add routes to them in the private subnets
     for (const sub of options.privateSubnets) {
       this.configureSubnet(sub);
