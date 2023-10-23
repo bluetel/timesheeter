@@ -10,7 +10,7 @@ export const Network = ({ stack, app }: StackContext) => {
   });
 
   // Create the VPC without NAT Gateways
-  const vpc = new Vpc(stack, app.logicalPrefixedName('net'), { natGateways: 0, natGatewayProvider });
+  const vpc = new Vpc(stack, app.logicalPrefixedName('net'), { natGateways: 1, natGatewayProvider });
 
   const { defaultLambdaSecurityGroup } = configureLambdaDefaults({ stack, app, vpc });
 
