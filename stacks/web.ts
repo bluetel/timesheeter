@@ -1,7 +1,6 @@
 import { NextjsSite, type StackContext, use } from 'sst/constructs';
 import { sstEnv } from './lib';
 import { Database, makeDatabaseUrl } from './database';
-import { BullmqElastiCache } from './bullmq-elasticache';
 import { Network } from './network';
 import { SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { Dns } from './dns';
@@ -10,7 +9,6 @@ export function Web({ stack, app }: StackContext) {
   const { hostedZone } = use(Dns);
   const { vpc } = use(Network);
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
-  const { bullmqElastiCache, elastiCacheAccessPolicy } = use(BullmqElastiCache);
 
   if (!database.secret) {
     throw new Error('Database secret not found');
@@ -48,8 +46,6 @@ export function Web({ stack, app }: StackContext) {
       GOOGLE_CLIENT_ID: sstEnv.GOOGLE_CLIENT_ID,
       GOOGLE_CLIENT_SECRET: sstEnv.GOOGLE_CLIENT_SECRET,
       NEXT_PUBLIC_REGION: stack.region,
-      BULLMQ_REDIS_PATH: bullmqElastiCache.attrRedisEndpointAddress,
-      BULLMQ_REDIS_PORT: bullmqElastiCache.attrRedisEndpointPort,
       DB_SECRET_ARN: database.secret.secretArn,
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
       NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
@@ -57,7 +53,7 @@ export function Web({ stack, app }: StackContext) {
     },
   });
 
-  frontendSite.attachPermissions([databaseAccessPolicy, secretsManagerAccessPolicy, elastiCacheAccessPolicy]);
+  frontendSite.attachPermissions([databaseAccessPolicy, secretsManagerAccessPolicy]);
 
   stack.addOutputs({
     WebURL: frontendSite.customDomainUrl || frontendSite.url || 'unknown',

@@ -1,4 +1,4 @@
-import { type IntegrationJob, parseIntegration, getPrismaClient } from '@timesheeter/web';
+import { type IntegrationJob, getPrismaClient, parseIntegration } from '@timesheeter/web';
 import { handleTogglIntegration } from './toggl';
 import { handleV1JiraIntegration, handleV2JiraIntegration } from './jira';
 import { handleGoogleSheetsIntegration } from './google-sheets';

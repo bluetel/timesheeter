@@ -1,63 +1,37 @@
-import fs from 'fs';
+import { config } from 'dotenv';
 
 console.log('Starting Dev Backhouse Worker');
 
-// See what file exists at ../../.env.* and load it, local, staging, or production
-const envPath = fs.existsSync('../../.env.local')
-  ? '../../.env.local'
-  : fs.existsSync('../../.env.staging')
-  ? '../../.env.staging'
-  : '../../.env.production';
+if (process.env.NODE_ENV !== 'production') {
+  config({ path: '../../.env.local' });
+}
 
-import { config as dotenvConfig } from 'dotenv';
+import { handleIntegrationsJob } from './integrations';
+import { determineExecution } from './determine-execution';
 
-dotenvConfig({ path: envPath });
+const determineDevExecution = () => {
+  determineExecution()
+    .then(async (parsedIntegrations) => {
+      const integrationJobs = parsedIntegrations.map((parsedIntegration) => ({
+        integrationId: parsedIntegration.id,
+      }));
 
-import { type IntegrationJob, connectionConfig, env } from '@timesheeter/web';
-import { Worker, Queue, type Job } from 'bullmq';
-import { handleIntegrationsJob } from '@timesheeter/backhouse/integrations';
-import fastify from 'fastify';
-import { createBullBoard } from '@bull-board/api';
-import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
-import { FastifyAdapter } from '@bull-board/fastify';
-import { checkSchedule } from './check-schedule';
-
-const runIntegrationJobDev = async (wrappedIntegrationJob: Job<IntegrationJob>) =>
-  handleIntegrationsJob(wrappedIntegrationJob.data);
+      await Promise.all(integrationJobs.map(handleIntegrationsJob));
+    })
+    .catch((error) => {
+      console.error('Error in determineDevExecution', error);
+    });
+};
 
 (async () => {
-  // Ensure valid integrations are in the schedule, Elasticache is not persistent
-  await checkSchedule();
+  setInterval(() => {
+    const secondsNow = new Date().getSeconds();
+    if (secondsNow === 0) {
+      determineDevExecution();
+    }
+  }, 1000);
 
-  const worker = new Worker<IntegrationJob>('integrations', runIntegrationJobDev, {
-    connection: connectionConfig,
-    concurrency: 10,
-  });
-
-  // Error handler is required to prevent unhandled errors from crashing the worker
-  worker.on('error', (error) => {
-    // log the error
-    console.error('Error in worker', error);
-  });
-
-  const bullBoardApp = fastify();
-  const serverAdapter = new FastifyAdapter();
-
-  createBullBoard({
-    queues: [
-      new BullMQAdapter(
-        new Queue('integrations', {
-          connection: connectionConfig,
-        })
-      ),
-    ],
-    serverAdapter,
-  });
-
-  await bullBoardApp.register(serverAdapter.registerPlugin());
-  await bullBoardApp.listen({ port: env.BULL_BOARD_PORT, host: '0.0.0.0' });
-
-  console.log(`BullBoard running on http://0.0.0.0:${env.BULL_BOARD_PORT}`);
+  console.log('Dev backhouse runner running, waiting for integrations to run...');
 })().catch((error) => {
   throw error;
 });

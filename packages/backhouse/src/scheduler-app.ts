@@ -1,69 +1,57 @@
-import fs from 'fs';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
-
-console.log('Starting Backhouse Scheduler');
-
-// See what file exists at ../../.env.* and load it, local, staging, or production
-const envPath = fs.existsSync('../../.env.local')
-  ? '../../.env.local'
-  : fs.existsSync('../../.env.staging')
-  ? '../../.env.staging'
-  : '../../.env.production';
-
-import { config as dotenvConfig } from 'dotenv';
-
-dotenvConfig({ path: envPath });
-
-import { type IntegrationJob, connectionConfig, env } from '@timesheeter/web';
-import { type Job, Worker } from 'bullmq';
-import { checkSchedule } from './check-schedule';
+import { type IntegrationJob, env, type ParsedIntegration } from '@timesheeter/web';
+import { determineExecution } from './determine-execution';
 
 if (!env.AWS_REGION) {
   throw new Error('AWS_REGION is not set');
 }
 
-if (!env.JOB_LAMBDA_ARN) {
-  throw new Error('JOB_LAMBDA_ARN is not set');
+if (!env.JOB_LAMBDA_SMALL_ARN) {
+  throw new Error('JOB_LAMBDA_SMALL_ARN is not set');
 }
 
-const jobLambdaArn = env.JOB_LAMBDA_ARN;
+if (!env.JOB_LAMBDA_LARGE_ARN) {
+  throw new Error('JOB_LAMBDA_LARGE_ARN is not set');
+}
+
+const jobLambdaSmallArn = env.JOB_LAMBDA_SMALL_ARN;
+const jobLambdaLargeArn = env.JOB_LAMBDA_LARGE_ARN;
 
 const lambdaClient = new LambdaClient({ region: env.AWS_REGION });
 
-const invokeIntegrationJobLambda = async (wrappedIntegrationJob: Job<IntegrationJob>) => {
-  const integration = wrappedIntegrationJob.data;
+const determineLambdaArn = ({ parsedIntegration }: { parsedIntegration: ParsedIntegration }): string => {
+  if (parsedIntegration.config.type === 'GoogleSheetsIntegration') {
+    return jobLambdaLargeArn;
+  }
+
+  return jobLambdaSmallArn;
+};
+
+const invokeIntegrationJobLambda = async (parsedIntegration: ParsedIntegration) => {
+  const integrationJob: IntegrationJob = {
+    integrationId: parsedIntegration.id,
+  };
 
   const command = new InvokeCommand({
-    FunctionName: jobLambdaArn,
+    FunctionName: determineLambdaArn({ parsedIntegration }),
     InvocationType: 'Event',
-    Payload: JSON.stringify(integration),
+    Payload: JSON.stringify(integrationJob),
   });
 
   await lambdaClient
     .send(command)
     .then(() => {
-      console.log(`Invoked job lambda for integration ${integration.integrationId}`);
+      console.log(`Invoked job lambda for integration ${integrationJob.integrationId}`);
     })
 
     .catch((error) => {
-      console.error(`Error invoking job lambda for integration ${integration.integrationId}`, error);
+      console.error(`Error invoking job lambda for integration ${integrationJob.integrationId}`, error);
     });
 };
 
-(async () => {
+export const scheduleIntegrations = async () => {
   // Ensure valid integrations are in the schedule, Elasticache is not persistent
-  await checkSchedule();
+  const parsedIntegrations = await determineExecution();
 
-  const worker = new Worker<IntegrationJob>('integrations', invokeIntegrationJobLambda, {
-    connection: connectionConfig,
-    concurrency: 10,
-  });
-
-  // Error handler is required to prevent unhandled errors from crashing the worker
-  worker.on('error', (error) => {
-    // log the error
-    console.error('Error in worker', error);
-  });
-})().catch((error) => {
-  throw error;
-});
+  await Promise.all(parsedIntegrations.map(invokeIntegrationJobLambda));
+};

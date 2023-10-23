@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   node: circleci/node@5.1.0
-  aws-cli: circleci/aws-cli@4.1.0
+  aws-cli: circleci/aws-cli@4.1.1
 
 jobs:
   sst_deploy:
