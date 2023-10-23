@@ -20,7 +20,7 @@ export const Scheduler = ({ stack }: StackContext) => {
     throw new Error('Database secret not found');
   }
 
-  const { jobLambda, jobLambdaInvokePolicyStatement } = use(JobLambda);
+  const { jobLambdaSmall, jobLambdaLarge, jobLambdaInvokePolicyStatement } = use(JobLambda);
 
   const schedulerLambda = new Function(stack, 'SchedulerLambda', {
     handler: 'packages/backhouse/src/scheduler-app.scheduleIntegrations',
@@ -41,11 +41,12 @@ export const Scheduler = ({ stack }: StackContext) => {
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
       NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
       NEXT_PUBLIC_DEV_TOOLS_ENABLED: sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
-      JOB_LAMBDA_ARN: jobLambda.functionArn,
+      JOB_LAMBDA_SMALL_ARN: jobLambdaSmall.functionArn,
+      JOB_LAMBDA_LARGE_ARN: jobLambdaLarge.functionArn,
       ...prismaLayer.environment,
     },
     timeout: '2 minutes',
-    memorySize: '1 GB',
+    memorySize: '192 MB',
     vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
     nodejs: {
       format: 'cjs',

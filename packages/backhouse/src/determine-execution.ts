@@ -1,10 +1,10 @@
-import { type IntegrationJob, getPrismaClient, parseIntegration } from '@timesheeter/web';
+import { getPrismaClient, parseIntegration, type ParsedIntegration } from '@timesheeter/web';
 import { parseCronExpression } from '@harrytwigg/cron-schedule';
 
-export const determineExecution = async (): Promise<IntegrationJob[]> => {
+export const determineExecution = async (): Promise<ParsedIntegration[]> => {
   const prisma = await getPrismaClient();
 
-  const integrations = await prisma.integration
+  const parsedIntegrations = await prisma.integration
     .findMany({})
     .then((integrations) => integrations.map((integration) => parseIntegration(integration, false)));
 
@@ -15,16 +15,12 @@ export const determineExecution = async (): Promise<IntegrationJob[]> => {
   correctedTime.setUTCSeconds(0);
   correctedTime.setUTCMilliseconds(0);
 
-  const integrationJobs = integrations.map((integration) => {
-    const { chronExpression } = integration.config;
+  const integrationJobs = parsedIntegrations.map((parsedIntegration) => {
+    const { chronExpression } = parsedIntegration.config;
     const cron = parseCronExpression(chronExpression);
 
-    return cron.matchDate(correctedTime)
-      ? {
-          integrationId: integration.id,
-        }
-      : null;
+    return cron.matchDate(correctedTime) ? parsedIntegration : null;
   });
 
-  return integrationJobs.filter((integrationJob) => !!integrationJob) as IntegrationJob[];
+  return integrationJobs.filter((parsedIntegration) => !!parsedIntegration) as ParsedIntegration[];
 };

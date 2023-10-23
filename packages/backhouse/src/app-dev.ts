@@ -11,7 +11,13 @@ import { determineExecution } from './determine-execution';
 
 const determineDevExecution = () => {
   determineExecution()
-    .then((integrationJobs) => Promise.all(integrationJobs.map(handleIntegrationsJob)))
+    .then(async (parsedIntegrations) => {
+      const integrationJobs = parsedIntegrations.map((parsedIntegration) => ({
+        integrationId: parsedIntegration.id,
+      }));
+
+      await Promise.all(integrationJobs.map(handleIntegrationsJob));
+    })
     .catch((error) => {
       console.error('Error in determineDevExecution', error);
     });

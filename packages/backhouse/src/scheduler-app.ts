@@ -1,24 +1,41 @@
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
-import { type IntegrationJob, env } from '@timesheeter/web';
+import { type IntegrationJob, env, type ParsedIntegration } from '@timesheeter/web';
 import { determineExecution } from './determine-execution';
 
 if (!env.AWS_REGION) {
   throw new Error('AWS_REGION is not set');
 }
 
-if (!env.JOB_LAMBDA_ARN) {
-  throw new Error('JOB_LAMBDA_ARN is not set');
+if (!env.JOB_LAMBDA_SMALL_ARN) {
+  throw new Error('JOB_LAMBDA_SMALL_ARN is not set');
 }
 
-const jobLambdaArn = env.JOB_LAMBDA_ARN;
+if (!env.JOB_LAMBDA_LARGE_ARN) {
+  throw new Error('JOB_LAMBDA_LARGE_ARN is not set');
+}
+
+const jobLambdaSmallArn = env.JOB_LAMBDA_SMALL_ARN;
+const jobLambdaLargeArn = env.JOB_LAMBDA_LARGE_ARN;
 
 const lambdaClient = new LambdaClient({ region: env.AWS_REGION });
 
-const invokeIntegrationJobLambda = async (integrationJob: IntegrationJob) => {
+const determineLambdaArn = ({ parsedIntegration }: { parsedIntegration: ParsedIntegration }): string => {
+  if (parsedIntegration.config.type === 'GoogleSheetsIntegration') {
+    return jobLambdaLargeArn;
+  }
+
+  return jobLambdaSmallArn;
+};
+
+const invokeIntegrationJobLambda = async (parsedIntegration: ParsedIntegration) => {
+  const integrationJob: IntegrationJob = {
+    integrationId: parsedIntegration.id,
+  };
+
   const command = new InvokeCommand({
-    FunctionName: jobLambdaArn,
+    FunctionName: determineLambdaArn({ parsedIntegration }),
     InvocationType: 'Event',
-    Payload: JSON.stringify(integrationJob),
+    Payload: JSON.stringify({ integrationJob }),
   });
 
   await lambdaClient
@@ -34,7 +51,7 @@ const invokeIntegrationJobLambda = async (integrationJob: IntegrationJob) => {
 
 export const scheduleIntegrations = async () => {
   // Ensure valid integrations are in the schedule, Elasticache is not persistent
-  const integrationJobs = await determineExecution();
+  const parsedIntegrations = await determineExecution();
 
-  await Promise.all(integrationJobs.map(invokeIntegrationJobLambda));
+  await Promise.all(parsedIntegrations.map(invokeIntegrationJobLambda));
 };
