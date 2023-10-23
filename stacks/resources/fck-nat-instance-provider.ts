@@ -90,12 +90,12 @@ export class FckNatInstanceProvider extends ec2.NatProvider implements ec2.IConn
 
   configureNat(options: ec2.ConfigureNatOptions): void {
     // Create the NAT instances. They can share a security group and a Role.
-    const machineImage =
-      this.props.machineImage ||
-      new ec2.LookupMachineImage({
-        name: 'fck-nat-amzn2-*-arm64-ebs',
-        owners: ['568608671756'],
-      });
+    // const machineImage =
+    //   this.props.machineImage ||
+    //   new ec2.LookupMachineImage({
+    //     name: 'fck-nat-amzn2-*-arm64-ebs',
+    //     owners: ['568608671756'],
+    //   });
     this._securityGroup =
       this.props.securityGroup ??
       new ec2.SecurityGroup(options.vpc, 'NatSecurityGroup', {
@@ -139,7 +139,13 @@ export class FckNatInstanceProvider extends ec2.NatProvider implements ec2.IConn
     // Create a single ASG for all NAT subnets.
     new autoscaling.AutoScalingGroup(options.vpc, 'FckNatAsg', {
       instanceType: this.props.instanceType,
-      machineImage,
+      machineImage: {
+        getImage: () => ({
+          imageId: 'ami-00d653f185e930c04',
+          osType: ec2.OperatingSystemType.LINUX,
+          userData: new ec2.MultipartUserData(),
+        }),
+      },
       vpc: options.vpc,
       vpcSubnets: { subnets: options.natSubnets },
       securityGroup: this._securityGroup,
