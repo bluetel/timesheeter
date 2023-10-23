@@ -48,7 +48,7 @@ jobs:
       - run:
           name: Deploy
           # run the pnpm deploy:
-          command: pnpm deploy:<< parameters.stage >>
+          command: CDK_DEFAULT_ACCOUNT=$AWS_ACCOUNT_ID CDK_DEFAULT_REGION=$AWS_REGION pnpm deploy:<< parameters.stage >>
 
 workflows:
   build_and_deploy:

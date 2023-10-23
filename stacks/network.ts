@@ -7,10 +7,6 @@ export const Network = ({ stack, app }: StackContext) => {
   const natGatewayProvider = new FckNatInstanceProvider({
     instanceType: InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.NANO),
     spotPrice: stack.stage === 'prod' ? undefined : '0.045',
-    machineImage: new ec2.LookupMachineImage({
-      name: 'fck-nat-amzn2-hvm-1.2.0-20220812-arm64-ebs',
-      owners: ['568608671756'],
-    }),
   });
 
   // Create the VPC without NAT Gateways
