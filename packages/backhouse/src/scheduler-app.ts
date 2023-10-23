@@ -35,7 +35,7 @@ const invokeIntegrationJobLambda = async (parsedIntegration: ParsedIntegration) 
   const command = new InvokeCommand({
     FunctionName: determineLambdaArn({ parsedIntegration }),
     InvocationType: 'Event',
-    Payload: JSON.stringify({ integrationJob }),
+    Payload: JSON.stringify(integrationJob),
   });
 
   await lambdaClient
