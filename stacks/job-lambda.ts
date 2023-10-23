@@ -55,12 +55,12 @@ export const JobLambda = ({ stack }: StackContext) => {
 
   const jobLambdaSmall = new Function(stack, 'JobLambdaSmall', {
     ...jobLambdaConfigBase,
-    memorySize: '380 MB',
+    memorySize: '384 MB',
   });
 
   const jobLambdaLarge = new Function(stack, 'JobLambdaLarge', {
     ...jobLambdaConfigBase,
-    memorySize: '2 GB',
+    memorySize: '2048 MB',
   });
 
   // allow traffic from inside the vpc
