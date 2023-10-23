@@ -77,7 +77,8 @@
     "typescript": "^5.1.3",
     "vite": "^3.0.8",
     "vite-tsconfig-paths": "*",
-    "vitest": "^0.23.4"
+    "vitest": "^0.23.4",
+    "cdk-ec2-spot-simple": "2.1.0"
   },
   "engines": {
     "node": ">=0.18",
