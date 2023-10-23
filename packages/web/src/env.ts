@@ -106,7 +106,7 @@ export const env = createEnv({
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
     NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
     NEXT_PUBLIC_DEV_TOOLS_ENABLED: process.env.NEXT_PUBLIC_DEV_TOOLS_ENABLED,
-    JOB_LAMBDA_SMALL_ARN: process.env.JOB_LAMBDA_ARN,
+    JOB_LAMBDA_SMALL_ARN: process.env.JOB_LAMBDA_SMALL_ARN,
     JOB_LAMBDA_LARGE_ARN: process.env.JOB_LAMBDA_LARGE_ARN,
     AWS_REGION: process.env.AWS_REGION,
   },
