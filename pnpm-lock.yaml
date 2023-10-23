@@ -51,6 +51,9 @@ importers:
       aws-lambda:
         specifier: ^1.0.7
         version: 1.0.7
+      cdk-construct-simple-nat:
+        specifier: 0.2.585
+        version: 0.2.585(aws-cdk-lib@2.84.0)(constructs@10.1.156)
       cdk-ec2-spot-simple:
         specifier: 2.1.0
         version: 2.1.0(aws-cdk-lib@2.84.0)(constructs@10.1.156)
@@ -8072,6 +8075,20 @@ packages:
       mime: 2.6.0
       yargs: 16.2.0
     dev: false
+
+  /cdk-construct-simple-nat@0.2.585(aws-cdk-lib@2.84.0)(constructs@10.1.156):
+    resolution: {integrity: sha512-6bmRoUyW21Mlh8isbWb2699wOJYJSV6oHYDCdX/NIM/zHd1leRoDPeYT2vvkk3JdMHps9ssU91dGOwXFVpQpqw==}
+    engines: {node: '>= 16.20.0'}
+    peerDependencies:
+      aws-cdk-lib: ^2.0.0
+      constructs: ^10.0.5
+    dependencies:
+      aws-cdk-lib: 2.84.0(constructs@10.1.156)
+      constructs: 10.1.156
+    dev: true
+    bundledDependencies:
+      - mustache
+      - sync-fetch
 
   /cdk-ec2-spot-simple@2.1.0(aws-cdk-lib@2.84.0)(constructs@10.1.156):
     resolution: {integrity: sha512-945wTTIqyvGkKs9E68AW8iT1VhT/b45uMooregMpviF6tk/q3c4CNUC4IsAym8S0NhWhHXeFREorv99xT1OFFw==}
