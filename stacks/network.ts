@@ -4,7 +4,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 export const Network = ({ stack, app }: StackContext) => {
   const natGatewayProvider = ec2.NatProvider.instance({
-    instanceType: InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.NANO),
+    instanceType: InstanceType.of(ec2.InstanceClass.T3A, ec2.InstanceSize.NANO),
   });
 
   // Create the VPC without NAT Gateways
