@@ -41,7 +41,6 @@ export const Scheduler = ({ stack }: StackContext) => {
       NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
       NEXT_PUBLIC_DEV_TOOLS_ENABLED: sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
       JOB_LAMBDA_ARN: jobLambda.functionArn,
-      AWS_REGION: stack.region,
       ...prismaLayer.environment,
     },
     timeout: '2 minutes',
