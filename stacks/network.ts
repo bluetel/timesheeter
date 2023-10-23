@@ -5,7 +5,7 @@ import { FckNatInstanceProvider } from './resources/fck-nat-instance-provider';
 
 export const Network = ({ stack, app }: StackContext) => {
   const natGatewayProvider = new FckNatInstanceProvider({
-    instanceType: InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.NANO),
+    instanceType: InstanceType.of(ec2.InstanceClass.T3A, ec2.InstanceSize.NANO),
     spotPrice: stack.stage === 'prod' ? undefined : '0.045',
   });
 

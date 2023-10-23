@@ -54,9 +54,6 @@ importers:
       cdk-ec2-spot-simple:
         specifier: 2.1.0
         version: 2.1.0(aws-cdk-lib@2.84.0)(constructs@10.1.156)
-      cdk-nat-asg-provider:
-        specifier: 0.0.5
-        version: 0.0.5(aws-cdk-lib@2.84.0)(constructs@10.1.156)
       concurrently:
         specifier: ^7.3.0
         version: 7.3.0
@@ -8082,16 +8079,6 @@ packages:
     peerDependencies:
       aws-cdk-lib: ^2.24.0
       constructs: ^10.0.9
-    dependencies:
-      aws-cdk-lib: 2.84.0(constructs@10.1.156)
-      constructs: 10.1.156
-    dev: true
-
-  /cdk-nat-asg-provider@0.0.5(aws-cdk-lib@2.84.0)(constructs@10.1.156):
-    resolution: {integrity: sha512-YHSUnO2F8I4Vk/HQxGCYN9ILbN7fiXpbFqPnlNg3m6s4mdnI0fnPTvXaNYiCN2uzVVdEmTKkN29SspIhDSWBIA==}
-    peerDependencies:
-      aws-cdk-lib: ^2.26.0
-      constructs: ^10.0.5
     dependencies:
       aws-cdk-lib: 2.84.0(constructs@10.1.156)
       constructs: 10.1.156
