@@ -2,7 +2,7 @@ import { AssetHashType, BundlingFileAccess, IgnoreMode } from 'aws-cdk-lib';
 import { Code, LayerVersion, type LayerVersionProps } from 'aws-cdk-lib/aws-lambda';
 import { type Construct } from 'constructs';
 import crypto from 'crypto';
-import { RUNTIME } from 'stacks';
+import { RUNTIME } from '../lib';
 
 // modules to mark as "external" when bundling
 // added to prismaModules

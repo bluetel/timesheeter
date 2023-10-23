@@ -59,59 +59,6 @@ export const env = createEnv({
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
 
-    BULLMQ_REDIS_PATH: z.unknown().transform((s) => {
-      let sFormatted = s;
-
-      if (
-        // Check for non-substituted DATABASE_URL, this occurs when building on local machine
-        typeof s === 'string' &&
-        s.includes('{')
-      ) {
-        sFormatted = undefined;
-      }
-
-      // If unset and running in circleci, pass some dummy values
-      if (!sFormatted && !!process.env.CIRCLE_JOB) {
-        return '127.0.0.1';
-      }
-
-      if (typeof sFormatted !== 'string') {
-        throw new Error('BULLMQ_REDIS_PATH is not a string');
-      }
-
-      return sFormatted;
-    }),
-    BULLMQ_REDIS_PORT: z
-      .unknown()
-      .transform((s) => {
-        let sFormatted = s;
-
-        if (
-          // Check for non-substituted DATABASE_URL, this occurs when building on local machine
-          typeof s === 'string' &&
-          s.includes('{')
-        ) {
-          sFormatted = undefined;
-        }
-
-        if (!sFormatted) {
-          sFormatted = '6379';
-        }
-
-        if (typeof sFormatted !== 'string') {
-          throw new Error('BULLMQ_REDIS_PORT is not a string');
-        }
-
-        return parseInt(sFormatted, 10);
-      })
-      .pipe(z.number()),
-
-    BULL_BOARD_PORT: z
-      .string()
-      .default('9999')
-      .transform((s) => parseInt(s, 10))
-      .pipe(z.number()),
-
     RESEND_API_KEY: z.string(),
 
     RESEND_FROM_EMAIL: z.string().email().default('noreply@timesheeter.pro'),
@@ -147,9 +94,6 @@ export const env = createEnv({
     CONFIG_SECRET_KEY: process.env.CONFIG_SECRET_KEY,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-    BULLMQ_REDIS_PATH: process.env.BULLMQ_REDIS_PATH,
-    BULLMQ_REDIS_PORT: process.env.BULLMQ_REDIS_PORT,
-    BULL_BOARD_PORT: process.env.BULL_BOARD_PORT,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
     NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,

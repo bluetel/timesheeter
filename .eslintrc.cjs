@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path');
 
 const config = {
@@ -24,6 +25,7 @@ const config = {
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/no-misused-promises": "error"
   },
+  ignorePatterns: ['dist'],
 };
 
 module.exports = config;

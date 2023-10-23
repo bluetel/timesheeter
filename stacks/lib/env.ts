@@ -17,12 +17,6 @@ const sstEnvSchema = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
 
-  BULL_BOARD_PORT: z
-    .string()
-    .default('9999')
-    .transform((s) => parseInt(s, 10))
-    .pipe(z.number()),
-
   RESEND_API_KEY: z.string().min(1),
 
   HOSTED_ZONE: z.string().min(1),

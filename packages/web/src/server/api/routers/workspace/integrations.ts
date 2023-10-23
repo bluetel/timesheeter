@@ -11,7 +11,6 @@ import {
 } from '@timesheeter/web/lib/workspace/integrations';
 import { decrypt, encrypt, filterConfig } from '@timesheeter/web/server/lib/secret-helpers';
 import { type Integration, type PrismaClient } from '@prisma/client';
-import { integrationsQueue } from '@timesheeter/web/server/bullmq';
 
 export const integrationsRouter = createTRPCRouter({
   list: protectedProcedure
@@ -65,7 +64,7 @@ export const integrationsRouter = createTRPCRouter({
       });
     }
 
-    const createdIntegration = await ctx.prisma.integration
+    return ctx.prisma.integration
       .create({
         data: {
           ...rest,
@@ -73,36 +72,9 @@ export const integrationsRouter = createTRPCRouter({
         },
       })
       .then(parseIntegration);
-
-    // Queue the integration for processing
-    const { repeatJobKey } = await integrationsQueue.add(
-      'processIntegration',
-      {
-        integrationId: createdIntegration.id,
-      },
-      {
-        repeat: {
-          pattern: config.chronExpression,
-        },
-        jobId: `integration-${createdIntegration.id}-jobId`,
-        repeatJobKey: `integration-${createdIntegration.id}-repeatJobKey`,
-      }
-    );
-
-    // Update the integration with the repeat job key
-    return ctx.prisma.integration
-      .update({
-        where: {
-          id: createdIntegration.id,
-        },
-        data: {
-          repeatJobKey,
-        },
-      })
-      .then(parseIntegration);
   }),
   update: protectedProcedure.input(updateIntegrationSchema).mutation(async ({ ctx, input }) => {
-    const { config: oldConfig, repeatJobKey: oldRepeatJobKey } = await authorize({
+    const { config: oldConfig } = await authorize({
       prisma: ctx.prisma,
       integrationId: input.id,
       workspaceId: input.workspaceId,
@@ -129,7 +101,7 @@ export const integrationsRouter = createTRPCRouter({
     // has been merged correctly
     updateIntegrationConfigSchema.parse(updatedConfig);
 
-    await ctx.prisma.integration
+    return ctx.prisma.integration
       .update({
         where: {
           id: input.id,
@@ -137,37 +109,6 @@ export const integrationsRouter = createTRPCRouter({
         data: {
           ...rest,
           configSerialized: encrypt(JSON.stringify(updatedConfig)),
-        },
-      })
-      .then(parseIntegration);
-
-    // Delete the old job
-    if (oldRepeatJobKey) {
-      await integrationsQueue.removeRepeatableByKey(oldRepeatJobKey);
-    }
-
-    // Queue the integration for processing
-    const { repeatJobKey } = await integrationsQueue.add(
-      'processIntegration',
-      {
-        integrationId: input.id,
-      },
-      {
-        repeat: {
-          pattern: updatedConfig.chronExpression,
-        },
-        jobId: `integration-${input.id}-jobId`,
-        repeatJobKey: `integration-${input.id}-repeatJobKey`,
-      }
-    );
-
-    return ctx.prisma.integration
-      .update({
-        where: {
-          id: input.id,
-        },
-        data: {
-          repeatJobKey,
         },
       })
       .then(parseIntegration);
@@ -187,19 +128,13 @@ export const integrationsRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       });
 
-      const deletedIntegration = await ctx.prisma.integration
+      return ctx.prisma.integration
         .delete({
           where: {
             id: input.id,
           },
         })
         .then(parseIntegration);
-
-      if (deletedIntegration.repeatJobKey) {
-        await integrationsQueue.removeRepeatableByKey(deletedIntegration.repeatJobKey);
-      }
-
-      return deletedIntegration;
     }),
 });
 

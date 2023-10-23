@@ -14,19 +14,6 @@ services:
     restart: always
     network_mode: host
 
-  local-redis:
-    container_name: local-redis
-    image: docker.io/bitnami/redis:latest
-    environment:
-      - REDIS_PORT_NUMBER=${BULLMQ_REDIS_PORT}
-      - ALLOW_EMPTY_PASSWORD=yes
-    volumes:
-      - 'bullmq-redis:/bitnami/redis/data'
-    restart: always
-    network_mode: host
-
 volumes:
   local-db:
-    driver: local
-  bullmq-redis:
     driver: local
