@@ -104,7 +104,6 @@ export class FckNatInstanceProvider extends ec2.NatProvider implements ec2.IConn
       });
     this._connections = new ec2.Connections({ securityGroups: [this._securityGroup] });
 
-    // TODO: This should get buttoned up to only allow attaching ENIs created by this construct.
     const role = new iam.Role(options.vpc, 'NatRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
       inlinePolicies: {
