@@ -1,10 +1,28 @@
-import { type StackContext } from 'sst/constructs';
-import { SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { type App, type Stack, type StackContext } from 'sst/constructs';
+import { SecurityGroup, Vpc, InstanceType, Peer, Port } from 'aws-cdk-lib/aws-ec2';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
-export function Network({ stack, app }: StackContext) {
-  const vpc = new Vpc(stack, app.logicalPrefixedName('net'), { natGateways: 1 });
+export const Network = ({ stack, app }: StackContext) => {
+  const natGatewayProvider = new ec2.NatInstanceProvider({
+    instanceType: InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.NANO),
+    machineImage: {
+      getImage: () => ({
+        imageId: 'ami-00d653f185e930c04',
+        osType: ec2.OperatingSystemType.LINUX,
+        userData: new ec2.MultipartUserData(),
+      }),
+    },
+  });
 
+  // Create the VPC without NAT Gateways
+  const vpc = new Vpc(stack, app.logicalPrefixedName('net'), { natGateways: 1, natGatewayProvider });
+
+  const { defaultLambdaSecurityGroup } = configureLambdaDefaults({ stack, app, vpc });
+
+  return { vpc, defaultLambdaSecurityGroup };
+};
+
+const configureLambdaDefaults = ({ stack, app, vpc }: { stack: Stack; app: App; vpc: Vpc }) => {
   const defaultLambdaSecurityGroup = new SecurityGroup(stack, 'DefaultLambda', {
     vpc,
     description: 'Default security group for lambda functions',
@@ -13,8 +31,8 @@ export function Network({ stack, app }: StackContext) {
 
   // allow all traffic from vpc
   defaultLambdaSecurityGroup.addIngressRule(
-    ec2.Peer.ipv4(vpc.vpcCidrBlock),
-    ec2.Port.allTraffic(),
+    Peer.ipv4(vpc.vpcCidrBlock),
+    Port.allTraffic(),
     'allow all traffic from vpc'
   );
 
@@ -23,5 +41,5 @@ export function Network({ stack, app }: StackContext) {
     securityGroups: [defaultLambdaSecurityGroup],
   });
 
-  return { vpc, defaultLambdaSecurityGroup };
-}
+  return { defaultLambdaSecurityGroup };
+};

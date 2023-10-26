@@ -72,7 +72,7 @@ export const TimesheeterInviteUserEmail = ({
             </Text>
             <Hr className="my-[26px] mx-0 w-full border border-solid border-[#eaeaea]" />
             <Text className="text-[12px] leading-[24px] text-[#666666]">
-              This invitation was intended for <span className="text-black">{email}</span> .If you were not expecting this invitation, you
+              This invitation was intended for <span className="text-black">{email}</span>. If you were not expecting this invitation, you
               can ignore this email.
             </Text>
           </Container>
