@@ -4,7 +4,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 export const Network = ({ stack, app }: StackContext) => {
   const natGatewayProvider = new ec2.NatInstanceProvider({
-    instanceType: InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.MICRO),
+    instanceType: InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.NANO),
     machineImage: {
       getImage: () => ({
         imageId: 'ami-00d653f185e930c04',
