@@ -1,12 +1,17 @@
 import { type App, type Stack, type StackContext } from 'sst/constructs';
 import { SecurityGroup, Vpc, InstanceType, Peer, Port } from 'aws-cdk-lib/aws-ec2';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import { FckNatInstanceProvider } from './resources/fck-nat-instance-provider';
 
 export const Network = ({ stack, app }: StackContext) => {
-  const natGatewayProvider = new FckNatInstanceProvider({
-    instanceType: InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.NANO),
-    spotPrice: stack.stage === 'prod' ? undefined : '0.045',
+  const natGatewayProvider = new ec2.NatInstanceProvider({
+    instanceType: InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.MICRO),
+    machineImage: {
+      getImage: () => ({
+        imageId: 'ami-00d653f185e930c04',
+        osType: ec2.OperatingSystemType.LINUX,
+        userData: new ec2.MultipartUserData(),
+      }),
+    },
   });
 
   // Create the VPC without NAT Gateways

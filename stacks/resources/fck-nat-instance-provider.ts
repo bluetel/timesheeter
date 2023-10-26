@@ -90,12 +90,6 @@ export class FckNatInstanceProvider extends ec2.NatProvider implements ec2.IConn
 
   configureNat(options: ec2.ConfigureNatOptions): void {
     // Create the NAT instances. They can share a security group and a Role.
-    // const machineImage =
-    //   this.props.machineImage ||
-    //   new ec2.LookupMachineImage({
-    //     name: 'fck-nat-amzn2-*-arm64-ebs',
-    //     owners: ['568608671756'],
-    //   });
     this._securityGroup =
       this.props.securityGroup ??
       new ec2.SecurityGroup(options.vpc, 'NatSecurityGroup', {
@@ -104,6 +98,7 @@ export class FckNatInstanceProvider extends ec2.NatProvider implements ec2.IConn
       });
     this._connections = new ec2.Connections({ securityGroups: [this._securityGroup] });
 
+    // TODO: This should get buttoned up to only allow attaching ENIs created by this construct.
     const role = new iam.Role(options.vpc, 'NatRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
       inlinePolicies: {
@@ -118,43 +113,37 @@ export class FckNatInstanceProvider extends ec2.NatProvider implements ec2.IConn
       },
     });
 
-    const allNetworkInterfaces = [];
-
     for (const sub of options.natSubnets) {
       const networkInterface = new ec2.CfnNetworkInterface(sub, 'FckNatInterface', {
         subnetId: sub.subnetId,
         sourceDestCheck: false,
         groupSet: [this._securityGroup.securityGroupId],
       });
-      allNetworkInterfaces.push(networkInterface.ref);
+
+      const userData = ec2.UserData.forLinux();
+      userData.addCommands(`echo "eni_id=${networkInterface.ref}" >> /etc/fck-nat.conf`);
+      userData.addCommands('service fck-nat restart');
+
+      new autoscaling.AutoScalingGroup(sub, 'FckNatAsg', {
+        instanceType: this.props.instanceType,
+        machineImage: {
+          getImage: () => ({
+            imageId: 'ami-00d653f185e930c04',
+            osType: ec2.OperatingSystemType.LINUX,
+            userData: new ec2.MultipartUserData(),
+          }),
+        },
+        vpc: options.vpc,
+        vpcSubnets: { subnets: [sub] },
+        securityGroup: this._securityGroup,
+        role,
+        desiredCapacity: 1,
+        userData: userData,
+        keyName: this.props.keyName,
+      });
+      // NAT instance routes all traffic, both ways
       this.gateways.add(sub.availabilityZone, networkInterface);
     }
-
-    const userData = ec2.UserData.forLinux();
-    for (const eni of allNetworkInterfaces) {
-      userData.addCommands(`echo "eni_id=${eni}" >> /etc/fck-nat.conf`);
-    }
-    userData.addCommands('service fck-nat restart');
-
-    // Create a single ASG for all NAT subnets.
-    new autoscaling.AutoScalingGroup(options.vpc, 'FckNatAsg', {
-      instanceType: this.props.instanceType,
-      machineImage: {
-        getImage: () => ({
-          imageId: 'ami-00d653f185e930c04',
-          osType: ec2.OperatingSystemType.LINUX,
-          userData: new ec2.MultipartUserData(),
-        }),
-      },
-      vpc: options.vpc,
-      vpcSubnets: { subnets: options.natSubnets },
-      securityGroup: this._securityGroup,
-      role,
-      desiredCapacity: 1,
-      userData: userData,
-      keyName: this.props.keyName,
-      spotPrice: this.props.spotPrice,
-    });
 
     // Add routes to them in the private subnets
     for (const sub of options.privateSubnets) {
