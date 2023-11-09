@@ -134,6 +134,8 @@ export const createTimesheeterTask = async ({
     };
   };
 
+  console.log('Creating timesheeter task', togglTask.name, matchResult);
+
   const timesheeterTask = await prisma.task
     .create({
       data: {
