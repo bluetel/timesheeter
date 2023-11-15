@@ -1,4 +1,4 @@
-import { type StackContext, Function, use } from 'sst/constructs';
+import { type StackContext, Function as SSTFunction, use } from 'sst/constructs';
 import { sstEnv } from './lib';
 import { Database, makeDatabaseUrl } from './database';
 import { Network } from './network';
@@ -6,6 +6,12 @@ import { Dns } from './dns';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { LAYER_MODULES, Layers } from './layers';
+
+const jobLambdaSizes = {
+  small: '320 MB',
+  medium: '512 MB',
+  large: '2048 MB',
+} as const;
 
 export const JobLambda = ({ stack }: StackContext) => {
   const { vpc } = use(Network);
@@ -53,20 +59,18 @@ export const JobLambda = ({ stack }: StackContext) => {
     initialPolicy: [databaseAccessPolicy, secretsManagerAccessPolicy],
   };
 
-  const jobLambdaSmall = new Function(stack, 'JobLambdaSmall', {
-    ...jobLambdaConfigBase,
-    memorySize: '384 MB',
-  });
+  const jobLambdas: Record<keyof typeof jobLambdaSizes, SSTFunction> = Object.entries(jobLambdaSizes).reduce(
+    (acc, [size, memorySize]) => ({
+      ...acc,
+      [size]: new SSTFunction(stack, `JobLambda${size}`, {
+        ...jobLambdaConfigBase,
+        memorySize,
+      }),
+    }),
+    {} as Record<keyof typeof jobLambdaSizes, SSTFunction>
+  );
 
-  const jobLambdaLarge = new Function(stack, 'JobLambdaLarge', {
-    ...jobLambdaConfigBase,
-    memorySize: '2048 MB',
-  });
-
-  // allow traffic from inside the vpc
-  const jobLambdas = [jobLambdaSmall, jobLambdaLarge];
-
-  jobLambdas.forEach((jobLambda) =>
+  Object.values(jobLambdas).forEach((jobLambda) =>
     jobLambda.connections.allowFrom(
       ec2.Peer.ipv4(vpc.vpcCidrBlock),
       ec2.Port.allTraffic(),
@@ -75,7 +79,7 @@ export const JobLambda = ({ stack }: StackContext) => {
   );
 
   // allow all outbound traffic
-  jobLambdas.forEach((jobLambda) =>
+  Object.values(jobLambdas).forEach((jobLambda) =>
     jobLambda.connections.allowTo(ec2.Peer.anyIpv4(), ec2.Port.allTraffic(), 'allow all outbound traffic')
   );
 
@@ -83,12 +87,11 @@ export const JobLambda = ({ stack }: StackContext) => {
   const jobLambdaInvokePolicyStatement = new iam.PolicyStatement({
     effect: iam.Effect.ALLOW,
     actions: ['lambda:InvokeFunction'],
-    resources: jobLambdas.map((jobLambda) => jobLambda.functionArn),
+    resources: Object.values(jobLambdas).map((jobLambda) => jobLambda.functionArn),
   });
 
   return {
-    jobLambdaSmall,
-    jobLambdaLarge,
+    jobLambdas,
     jobLambdaInvokePolicyStatement,
   };
 };
