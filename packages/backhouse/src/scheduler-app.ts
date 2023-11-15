@@ -10,11 +10,16 @@ if (!env.JOB_LAMBDA_SMALL_ARN) {
   throw new Error('JOB_LAMBDA_SMALL_ARN is not set');
 }
 
+if (!env.JOB_LAMBDA_MEDIUM_ARN) {
+  throw new Error('JOB_LAMBDA_MEDIUM_ARN is not set');
+}
+
 if (!env.JOB_LAMBDA_LARGE_ARN) {
   throw new Error('JOB_LAMBDA_LARGE_ARN is not set');
 }
 
 const jobLambdaSmallArn = env.JOB_LAMBDA_SMALL_ARN;
+const jobLambdaMediumArn = env.JOB_LAMBDA_MEDIUM_ARN;
 const jobLambdaLargeArn = env.JOB_LAMBDA_LARGE_ARN;
 
 const lambdaClient = new LambdaClient({ region: env.AWS_REGION });
@@ -22,6 +27,10 @@ const lambdaClient = new LambdaClient({ region: env.AWS_REGION });
 const determineLambdaArn = ({ parsedIntegration }: { parsedIntegration: ParsedIntegration }): string => {
   if (parsedIntegration.config.type === 'GoogleSheetsIntegration') {
     return jobLambdaLargeArn;
+  }
+
+  if (parsedIntegration.config.type === 'TogglIntegration') {
+    return jobLambdaMediumArn;
   }
 
   return jobLambdaSmallArn;

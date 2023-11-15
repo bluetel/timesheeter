@@ -20,7 +20,7 @@ export const Scheduler = ({ stack }: StackContext) => {
     throw new Error('Database secret not found');
   }
 
-  const { jobLambdaSmall, jobLambdaLarge, jobLambdaInvokePolicyStatement } = use(JobLambda);
+  const { jobLambdas, jobLambdaInvokePolicyStatement } = use(JobLambda);
 
   const schedulerLambda = new Function(stack, 'SchedulerLambda', {
     handler: 'packages/backhouse/src/scheduler-app.scheduleIntegrations',
@@ -41,8 +41,9 @@ export const Scheduler = ({ stack }: StackContext) => {
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
       NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
       NEXT_PUBLIC_DEV_TOOLS_ENABLED: sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
-      JOB_LAMBDA_SMALL_ARN: jobLambdaSmall.functionArn,
-      JOB_LAMBDA_LARGE_ARN: jobLambdaLarge.functionArn,
+      JOB_LAMBDA_SMALL_ARN: jobLambdas['small'].functionArn,
+      JOB_LAMBDA_MEDIUM_ARN: jobLambdas['medium'].functionArn,
+      JOB_LAMBDA_LARGE_ARN: jobLambdas['large'].functionArn,
       ...prismaLayer.environment,
     },
     timeout: '2 minutes',

@@ -71,6 +71,14 @@ export const env = createEnv({
       return s;
     }),
 
+    JOB_LAMBDA_MEDIUM_ARN: z.unknown().transform((s) => {
+      if (typeof s !== 'string') {
+        return null;
+      }
+
+      return s;
+    }),
+
     JOB_LAMBDA_LARGE_ARN: z.unknown().transform((s) => {
       if (typeof s !== 'string') {
         return null;
@@ -107,6 +115,7 @@ export const env = createEnv({
     NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
     NEXT_PUBLIC_DEV_TOOLS_ENABLED: process.env.NEXT_PUBLIC_DEV_TOOLS_ENABLED,
     JOB_LAMBDA_SMALL_ARN: process.env.JOB_LAMBDA_SMALL_ARN,
+    JOB_LAMBDA_MEDIUM_ARN: process.env.JOB_LAMBDA_MEDIUM_ARN,
     JOB_LAMBDA_LARGE_ARN: process.env.JOB_LAMBDA_LARGE_ARN,
     AWS_REGION: process.env.AWS_REGION,
   },
