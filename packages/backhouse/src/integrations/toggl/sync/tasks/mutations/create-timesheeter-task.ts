@@ -87,11 +87,25 @@ export const createTimesheeterTask = async ({
       throw error;
     }
 
-    await context.prisma.task.delete({
+    const deletedTask = await context.prisma.task.delete({
       where: {
         id: existingTask.id,
+        workspaceId: context.workspaceId,
+      },
+      select: {
+        id: true,
+        togglTaskId: true,
       },
     });
+
+    if (deletedTask.togglTaskId) {
+      await context.prisma.togglSyncRecord.deleteMany({
+        where: {
+          togglEntityId: deletedTask.togglTaskId,
+          category: 'Task',
+        },
+      });
+    }
 
     return {
       togglTask,
