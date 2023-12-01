@@ -1,4 +1,4 @@
-import { PrismaClient as UnderlyingPrismaClient } from '@prisma/client';
+import { PrismaClient as UnderlyingPrismaClient, Prisma } from '@prisma/client';
 import { env } from '@timesheeter/web/env';
 
 export type PrismaClient = UnderlyingPrismaClient;
@@ -27,3 +27,7 @@ export const getPrismaClient = async (): Promise<PrismaClient> => {
 
   return new Promise((resolve) => resolve(prisma));
 };
+
+export type PrismaClientKnownRequestError = Prisma.PrismaClientKnownRequestError;
+
+export const PrismaInstance = Prisma;
