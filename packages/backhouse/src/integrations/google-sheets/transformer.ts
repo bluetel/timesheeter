@@ -152,7 +152,12 @@ const OVERTIME_HOURS = 8;
 const calculateOvertime = (groupedEntries: Omit<GroupedEntry, 'overtime'>[], isWorkDay: boolean): GroupedEntry[] => {
   // If not a workday, then overtime is applied to all entries
   if (!isWorkDay) {
-    return groupedEntries.map((groupedEntry) => ({
+    // Filter out non working entries as we don't want to include them if not a work day
+    const entriesWorking = groupedEntries.filter(
+      (groupedEntry) => groupedEntry.task.project.name !== NON_WORKING_PROJECT_NAME
+    );
+
+    return entriesWorking.map((groupedEntry) => ({
       ...groupedEntry,
       overtime: groupedEntry.time,
     }));
