@@ -97,23 +97,17 @@ const formatTimesheetEntryCells = (
   const formattedDate = formatOutputDate(date);
 
   return groupedEntries.map((entry) => {
-    const { projectName, taskDetails, time, details, overtime } = entry;
+    const { projectName, task, time, details, overtime } = entry;
 
-    return [formattedDate, projectName, taskDetails, time, removeDetailDuplicates(details), overtime];
+    return [formattedDate, projectName, formatTaskDetails(task), time, removeDetailDuplicates(details), overtime];
   });
 };
 
 type GroupedEntry = {
-  taskId: string;
+  task: DatabaseEntries['timesheetEntries'][number]['task'];
   projectName: string;
-  taskDetails: string;
   time: number;
   details: string;
-  overtime: number;
-};
-
-type GroupedEntryNumber = Omit<GroupedEntry, 'time' | 'overtime'> & {
-  time: number;
   overtime: number;
 };
 
@@ -121,16 +115,13 @@ const groupEntriesToTasks = (
   timesheetEntriesDate: DatabaseEntries['timesheetEntries'],
   isWorkDay: boolean
 ): GroupedEntry[] => {
-  const overtimeCalculations = calculateOvertime(timesheetEntriesDate, isWorkDay);
-
-  const groupedEntries = overtimeCalculations.reduce((acc, { timesheetEntry, overtime }) => {
+  const groupedEntries = timesheetEntriesDate.reduce((acc, timesheetEntry) => {
     const { task } = timesheetEntry;
 
-    const existingEntry = acc.find((entry) => entry.taskId === task.id);
+    const existingEntry = acc.find((entry) => entry.task.id === task.id);
 
     if (existingEntry) {
-      (existingEntry.time += timesheetEntry.end.getTime() - timesheetEntry.start.getTime()),
-        (existingEntry.overtime += overtime);
+      existingEntry.time += timesheetEntry.end.getTime() - timesheetEntry.start.getTime();
 
       const trimmedDescription = (timesheetEntry.description ?? '').trim();
 
@@ -138,106 +129,80 @@ const groupEntriesToTasks = (
         existingEntry.details = `${existingEntry.details}, ${trimmedDescription}`;
       }
     } else {
-      const taskNumber = task.ticketForTask
-        ? `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}`
-        : undefined;
-
       acc.push({
-        taskId: task.id,
+        task,
         projectName: task.project?.name ?? '',
-        taskDetails: formatTaskDetails({ taskNumber, task }),
-        time: timesheetEntry.end.getTime() - timesheetEntry.start.getTime(),
-        overtime,
+        time: formatTime(timesheetEntry.end.getTime() - timesheetEntry.start.getTime()),
         details: timesheetEntry.description ?? '',
       });
     }
 
     return acc;
-  }, [] as GroupedEntryNumber[]);
+  }, [] as Omit<GroupedEntry, 'overtime'>[]);
 
-  return groupedEntries
-    .map((groupedEntry) => ({
-      ...groupedEntry,
-      time: formatTime(groupedEntry.time),
-      overtime: formatTime(groupedEntry.overtime),
-    }))
-    .filter((timedGroupedEntry) => timedGroupedEntry.time >= 0.25);
+  return calculateOvertime(groupedEntries, isWorkDay).filter((timedGroupedEntry) => timedGroupedEntry.time >= 0.25);
 };
 
-type OvertimeCalculation = {
-  timesheetEntry: DatabaseEntries['timesheetEntries'][number];
-  overtime: number;
-};
-
-const OVERTIME_MILLISECONDS = 28800000 as const; // 8 hours
+const OVERTIME_HOURS = 8;
 
 /**  Need to calculate overtime, overtime is applied to each entry based on the hours already worked in that day, ie later entries might have overtime applied to them, earlier ones won't. There are 8 hours */
-const calculateOvertime = (
-  timesheetEntriesDate: DatabaseEntries['timesheetEntries'],
-  isWorkDay: boolean
-): OvertimeCalculation[] => {
-  // sort most recent
-  const sortedTimesheetEntries = timesheetEntriesDate.sort((a, b) => b.start.getTime() - a.start.getTime());
-
+const calculateOvertime = (groupedEntries: Omit<GroupedEntry, 'overtime'>[], isWorkDay: boolean): GroupedEntry[] => {
   // If not a workday, then overtime is applied to all entries
   if (!isWorkDay) {
-    return sortedTimesheetEntries.map((timesheetEntry) => ({
-      timesheetEntry,
-      overtime: timesheetEntry.end.getTime() - timesheetEntry.start.getTime(),
+    return groupedEntries.map((groupedEntry) => ({
+      ...groupedEntry,
+      overtime: groupedEntry.time,
     }));
   }
 
-  const overtimeCalculations: OvertimeCalculation[] = [];
   let timeWorked = 0;
 
-  for (const timesheetEntry of timesheetEntriesDate) {
-    const duration = timesheetEntry.end.getTime() - timesheetEntry.start.getTime();
-
+  return groupedEntries.map((groupedEntry) => {
     // If task name is TOIL_TASK_NANE then subtract overtime as time off in lieu
     if (
-      timesheetEntry.task.name.toUpperCase() === TOIL_TASK_NANE &&
-      timesheetEntry.task.project.name === NON_WORKING_PROJECT_NAME
+      groupedEntry.task.name.toUpperCase() === TOIL_TASK_NANE &&
+      groupedEntry.task.project.name === NON_WORKING_PROJECT_NAME
     ) {
-      overtimeCalculations.push({
-        timesheetEntry,
-        overtime: -duration,
-      });
-      continue;
+      return {
+        ...groupedEntry,
+        overtime: -groupedEntry.time,
+      };
     }
 
     // If task name is NON_WORKING_PROJECT_NAME then don't apply overtime
     // Must also not be TOIL_TASK_NANE as that is a special case but we have already
     // handled that above
-    if (timesheetEntry.task.project.name === NON_WORKING_PROJECT_NAME) {
-      overtimeCalculations.push({
-        timesheetEntry,
+    if (groupedEntry.task.project.name === NON_WORKING_PROJECT_NAME) {
+      return {
+        ...groupedEntry,
         overtime: 0,
-      });
-      continue;
+      };
     }
 
-    if (timeWorked > OVERTIME_MILLISECONDS) {
-      overtimeCalculations.push({
-        timesheetEntry,
-        overtime: duration,
-      });
-    } else if (timeWorked + duration < OVERTIME_MILLISECONDS) {
-      overtimeCalculations.push({
-        timesheetEntry,
+    let newGroupedEntry: GroupedEntry | null = null;
+
+    if (timeWorked > OVERTIME_HOURS) {
+      newGroupedEntry = {
+        ...groupedEntry,
+        overtime: groupedEntry.time,
+      };
+    } else if (timeWorked + groupedEntry.time < OVERTIME_HOURS) {
+      newGroupedEntry = {
+        ...groupedEntry,
         overtime: 0,
-      });
+      };
     } else {
       // Only some of the time is overtime
-      overtimeCalculations.push({
-        timesheetEntry,
-        overtime: timeWorked + duration - OVERTIME_MILLISECONDS,
-      });
+      newGroupedEntry = {
+        ...groupedEntry,
+        overtime: timeWorked + groupedEntry.time - OVERTIME_HOURS,
+      };
     }
 
-    timeWorked += duration;
-  }
+    timeWorked += groupedEntry.time;
 
-  return overtimeCalculations;
+    return newGroupedEntry;
+  });
 };
 
 const calculateIsWorkDay = (bankHolidays: Date[], date: Date): boolean => {
@@ -278,13 +243,9 @@ const removeDetailDuplicates = (input: string) => {
   return uniqueItems.join(', ');
 };
 
-const formatTaskDetails = ({
-  taskNumber,
-  task,
-}: {
-  taskNumber: string | undefined;
-  task: DatabaseEntries['timesheetEntries'][number]['task'];
-}) => {
+const formatTaskDetails = (task: DatabaseEntries['timesheetEntries'][number]['task']) => {
+  const taskNumber = task.ticketForTask ? `${task.ticketForTask.taskPrefix.prefix}-${task.ticketForTask.number}` : null;
+
   if (taskNumber) {
     return task.name ? `${taskNumber}: ${task.name}` : taskNumber;
   }
