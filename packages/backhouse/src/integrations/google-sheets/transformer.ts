@@ -1,6 +1,6 @@
 import { type DatabaseEntries } from './database-entries';
 import { getBankHolidayDates } from './bank-holidays';
-import { NON_WORKING_PROJECT_NAME, TOIL_TASK_NANE } from '@timesheeter/web';
+import { NON_WORKING_PROJECT_NAME, TOIL_TASK_NAME } from '@timesheeter/web';
 
 export type TransformedData = {
   date: Date;
@@ -161,9 +161,9 @@ const calculateOvertime = (groupedEntries: Omit<GroupedEntry, 'overtime'>[], isW
   let timeWorked = 0;
 
   return groupedEntries.map((groupedEntry) => {
-    // If task name is TOIL_TASK_NANE then subtract overtime as time off in lieu
+    // If task name is TOIL_TASK_NAME then subtract overtime as time off in lieu
     if (
-      groupedEntry.task.name.toUpperCase() === TOIL_TASK_NANE &&
+      groupedEntry.task.name.toUpperCase() === TOIL_TASK_NAME &&
       groupedEntry.task.project.name === NON_WORKING_PROJECT_NAME
     ) {
       return {
@@ -173,7 +173,7 @@ const calculateOvertime = (groupedEntries: Omit<GroupedEntry, 'overtime'>[], isW
     }
 
     // If task name is NON_WORKING_PROJECT_NAME then don't apply overtime
-    // Must also not be TOIL_TASK_NANE as that is a special case but we have already
+    // Must also not be TOIL_TASK_NAME as that is a special case but we have already
     // handled that above
     if (groupedEntry.task.project.name === NON_WORKING_PROJECT_NAME) {
       return {
