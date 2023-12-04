@@ -115,30 +115,33 @@ const groupEntriesToTasks = (
   timesheetEntriesDate: DatabaseEntries['timesheetEntries'],
   isWorkDay: boolean
 ): GroupedEntry[] => {
-  const groupedEntries = timesheetEntriesDate.reduce((acc, timesheetEntry) => {
-    const { task } = timesheetEntry;
+  const groupedEntries = timesheetEntriesDate
+    .reduce((acc, timesheetEntry) => {
+      const existingEntry = acc.find((entry) => entry.task.id === timesheetEntry.task.id);
 
-    const existingEntry = acc.find((entry) => entry.task.id === task.id);
+      if (existingEntry) {
+        existingEntry.time += timesheetEntry.end.getTime() - timesheetEntry.start.getTime();
 
-    if (existingEntry) {
-      existingEntry.time += timesheetEntry.end.getTime() - timesheetEntry.start.getTime();
+        const trimmedDescription = (timesheetEntry.description ?? '').trim();
 
-      const trimmedDescription = (timesheetEntry.description ?? '').trim();
-
-      if (trimmedDescription !== '') {
-        existingEntry.details = `${existingEntry.details}, ${trimmedDescription}`;
+        if (trimmedDescription !== '') {
+          existingEntry.details = `${existingEntry.details}, ${trimmedDescription}`;
+        }
+      } else {
+        acc.push({
+          task: timesheetEntry.task,
+          projectName: timesheetEntry.task.project?.name ?? '',
+          time: timesheetEntry.end.getTime() - timesheetEntry.start.getTime(),
+          details: timesheetEntry.description ?? '',
+        });
       }
-    } else {
-      acc.push({
-        task,
-        projectName: task.project?.name ?? '',
-        time: formatTime(timesheetEntry.end.getTime() - timesheetEntry.start.getTime()),
-        details: timesheetEntry.description ?? '',
-      });
-    }
 
-    return acc;
-  }, [] as Omit<GroupedEntry, 'overtime'>[]);
+      return acc;
+    }, [] as Omit<GroupedEntry, 'overtime'>[])
+    .map((groupedEntry) => ({
+      ...groupedEntry,
+      time: formatTime(groupedEntry.time),
+    }));
 
   return calculateOvertime(groupedEntries, isWorkDay).filter((timedGroupedEntry) => timedGroupedEntry.time >= 0.25);
 };
