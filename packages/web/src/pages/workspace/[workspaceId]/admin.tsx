@@ -42,6 +42,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
 const Admin = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { mutate } = api.workspace.adminTools.purgeTaskRaw.useMutation();
 
+  const [targetTaskId, setTargetTaskId] = useState<string | null>(null);
+
+  const { data } = api.workspace.adminTools.listAllTimesheetEntriesOfTask.useQuery({
+    taskId: targetTaskId,
+    workspaceId: workspaceInfo.workspace.id,
+  });
+
   // Show prompt to ask for
   const [taskId, setTaskId] = useState<string | null>(null);
 
@@ -71,6 +78,48 @@ const Admin = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
       >
         Purge task raw
       </button>
+
+      <div className="space-y-4">
+        <h2>Find timesheet entries of task</h2>
+        <input type="text" placeholder="Task ID" onChange={(e) => setTargetTaskId(e.target.value.toString())} />
+        {data?.taskWithTimesheetEntries ? (
+          <>
+            <h3>Task</h3>
+            <p>
+              <strong>Name:</strong> {data.taskWithTimesheetEntries.name}
+            </p>
+            <h4>
+              <strong>Timesheet entries:</strong>
+            </h4>
+            <div className="space-y-4">
+              {data.taskWithTimesheetEntries.timesheetEntries.map((timesheetEntry) => (
+                <div key={timesheetEntry.id}>
+                  <p>
+                    <strong>ID:</strong> {timesheetEntry.id}
+                  </p>
+                  <p>
+                    <strong>CreatedAt:</strong> {timesheetEntry.createdAt.toISOString()}
+                  </p>
+                  <p>
+                    <strong>UpdatedAt:</strong> {timesheetEntry.updatedAt.toISOString()}
+                  </p>
+                  <p>
+                    <strong>Duration:</strong> {timesheetEntry.start.toISOString()} - {timesheetEntry.end.toISOString()}
+                  </p>
+                  <p>
+                    <strong>User name:</strong> {timesheetEntry.user.name} ({timesheetEntry.user.email})
+                  </p>
+                  <p>
+                    <strong>Description:</strong> {timesheetEntry.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p>No task found</p>
+        )}
+      </div>
     </div>
   );
 };
