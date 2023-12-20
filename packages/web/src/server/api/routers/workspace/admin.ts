@@ -64,6 +64,53 @@ export const adminToolsRouter = createTRPCRouter({
         taskId: input.taskId,
       });
     }),
+  listAllTimesheetEntriesOfTask: protectedProcedure
+    .input(
+      z.object({
+        taskId: z.string().nullable(),
+        workspaceId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      await ensureIsAdmin({
+        prisma: ctx.prisma,
+        userId: ctx.session.user.id,
+        workspaceId: input.workspaceId,
+      });
+
+      if (!input.taskId) {
+        return { taskWithTimesheetEntries: null };
+      }
+
+      const taskWithTimesheetEntries = await ctx.prisma.task.findUnique({
+        where: {
+          id: input.taskId,
+          workspaceId: input.workspaceId,
+        },
+        select: {
+          name: true,
+          togglTaskId: true,
+          timesheetEntries: {
+            select: {
+              id: true,
+              description: true,
+              createdAt: true,
+              updatedAt: true,
+              start: true,
+              end: true,
+              user: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return { taskWithTimesheetEntries };
+    }),
 });
 
 const ensureIsAdmin = async ({
