@@ -120,6 +120,9 @@ const Admin = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
             <p>
               <strong>Name:</strong> {taskData.taskWithTimesheetEntries.name}
             </p>
+            <p>
+              <strong>Toggl task id ID:</strong> {taskData.taskWithTimesheetEntries.togglTaskId?.toString() ?? 'N/A'}
+            </p>
             <h4>
               <strong>Timesheet entries:</strong>
             </h4>
@@ -129,6 +132,7 @@ const Admin = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
                   <p>
                     <strong>ID:</strong> {timesheetEntry.id}
                   </p>
+
                   <p>
                     <strong>CreatedAt:</strong> {timesheetEntry.createdAt.toISOString()}
                   </p>
@@ -175,6 +179,18 @@ const Admin = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
             </p>
             <p>
               <strong>Description:</strong> {timesheetEntryData.timesheetEntry.description}
+            </p>
+            <p>
+              <strong>Duration:</strong> {timesheetEntryData.timesheetEntry.start.toISOString()} -{' '}
+              {timesheetEntryData.timesheetEntry.end.toISOString()}
+            </p>
+            <p>
+              <strong>Task:</strong> {timesheetEntryData.timesheetEntry.task.name} Toggl task (
+              {timesheetEntryData.timesheetEntry.task.togglTaskId?.toString() ?? 'N/A'})
+            </p>
+            <p>
+              <strong>togglTimeEntryId:</strong>{' '}
+              {timesheetEntryData.timesheetEntry.togglTimeEntryId?.toString() ?? 'N/A'}
             </p>
           </>
         ) : (

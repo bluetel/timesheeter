@@ -140,6 +140,13 @@ export const adminToolsRouter = createTRPCRouter({
           updatedAt: true,
           start: true,
           end: true,
+          togglTimeEntryId: true,
+          task: {
+            select: {
+              name: true,
+              togglTaskId: true,
+            },
+          },
           user: {
             select: {
               name: true,
