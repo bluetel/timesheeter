@@ -127,27 +127,41 @@ export const createTimesheeterTimesheetEntry = async ({
   timesheeterTaskId: string;
   timesheeterUserId: string;
 }): Promise<TimesheetEntryPair> => {
-  const timesheeterTimesheetEntry = await prisma.timesheetEntry
-    .create({
-      data: {
-        start: new Date(togglTimeEntry.start),
-        end: new Date(togglTimeEntry.stop),
-        configSerialized: encrypt(JSON.stringify(getDefaultTimesheetEntryConfig())),
-        description: togglTimeEntry.description ?? '',
-        workspaceId,
-        taskId: timesheeterTaskId,
+  try {
+    const timesheeterTimesheetEntry = await prisma.timesheetEntry
+      .create({
+        data: {
+          start: new Date(togglTimeEntry.start),
+          end: new Date(togglTimeEntry.stop),
+          configSerialized: encrypt(JSON.stringify(getDefaultTimesheetEntryConfig())),
+          description: togglTimeEntry.description ?? '',
+          workspaceId,
+          taskId: timesheeterTaskId,
+          togglTimeEntryId: togglTimeEntry.id,
+          userId: timesheeterUserId,
+        },
+        select: timesheeterTimesheetEntrySelectQuery,
+      })
+
+      .then((timesheetEntry) => parseTimesheetEntry(timesheetEntry, false));
+
+    return {
+      togglTimeEntry,
+      timesheeterTimesheetEntry,
+    };
+  } catch (e) {
+    console.log('Failed to create timesheet entry', togglTimeEntry);
+
+    const existingTimesheetEntry = await prisma.timesheetEntry.findFirst({
+      where: {
         togglTimeEntryId: togglTimeEntry.id,
-        userId: timesheeterUserId,
       },
-      select: timesheeterTimesheetEntrySelectQuery,
-    })
+    });
 
-    .then((timesheetEntry) => parseTimesheetEntry(timesheetEntry, false));
+    console.log('Existing timesheet entry', existingTimesheetEntry ? existingTimesheetEntry.id : null);
 
-  return {
-    togglTimeEntry,
-    timesheeterTimesheetEntry,
-  };
+    throw e;
+  }
 };
 
 export const createTogglTimeEntry = async ({
