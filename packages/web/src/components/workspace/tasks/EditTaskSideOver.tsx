@@ -214,6 +214,14 @@ const useTaskFields = (
     throw new Error('No projects available');
   }
 
+  const options = projects.map(({ id, name }) => ({
+    value: id,
+    label: name ?? 'Unnamed project',
+  }))
+
+  //Sort the projects alphabetically
+  options.sort((a, b) => a.label.localeCompare(b.label))
+
   const projectIdFormItem: BasicFormItemProps<true> = {
     required: true,
     label: {
@@ -224,10 +232,7 @@ const useTaskFields = (
       variant: 'select',
       error: methods.formState.errors.projectId,
       select: {
-        options: projects.map(({ id, name }) => ({
-          value: id,
-          label: name ?? 'Unnamed project',
-        })),
+        options: options,
         onChange: async (value) => {
           methods.setValue('taskPrefixId', null);
 
