@@ -8,6 +8,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "importsNotUsedAsValues": "remove",
+    "esModuleInterop": true,
     "noUncheckedIndexedAccess": false,
     "noPropertyAccessFromIndexSignature": false,
     "exactOptionalPropertyTypes": false,
