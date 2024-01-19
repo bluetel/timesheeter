@@ -6,8 +6,7 @@ import {
   parseProject,
   parseTask,
   type MatchedTaskResult,
-  PrismaInstance,
-  type PrismaClientKnownRequestError,
+  isPrismaClientKnownRequestError,
 } from '@timesheeter/web';
 import { type TogglIntegrationContext } from '../../../lib';
 import { type TaskPair, type TogglTask, timesheeterTaskSelectQuery } from '../data';
@@ -27,12 +26,6 @@ export const createTimesheeterTask = async ({
 
   console.log('Creating timesheeter task', togglTask.name, matchResult);
 
-  const ticketForTaskQuery = await getTicketForTaskQuery({
-    context,
-    matchResult,
-    timesheeterProjectId,
-  });
-
   const tryCreateTimesheeterTask = async () =>
     await context.prisma.task
       .create({
@@ -42,7 +35,11 @@ export const createTimesheeterTask = async ({
           togglTaskId: togglTask.id,
           projectId: timesheeterProjectId,
           workspaceId: context.workspaceId,
-          ticketForTask: ticketForTaskQuery,
+          ticketForTask: await getTicketForTaskQuery({
+            context,
+            matchResult,
+            timesheeterProjectId,
+          }),
         },
         select: timesheeterTaskSelectQuery,
       })
@@ -55,15 +52,13 @@ export const createTimesheeterTask = async ({
       timesheeterTask,
     };
   } catch (error) {
-    if (!(error instanceof PrismaInstance.PrismaClientKnownRequestError)) {
+    if (!isPrismaClientKnownRequestError(error)) {
       throw error;
     }
 
-    const checkedError = error as PrismaClientKnownRequestError;
-
     // Sometimes if a sync fails and is retried, the task already exists, so purge
     // the existing one if no entries are associated with it.
-    if (checkedError.code !== 'P2002') {
+    if (error.code !== 'P2002') {
       throw error;
     }
 
@@ -83,7 +78,7 @@ export const createTimesheeterTask = async ({
     });
 
     if (existingTask.timesheetEntries.length > 0) {
-      console.log(`Task ${existingTask.id} already exists and has entries, skipping deletion`);
+      console.log(`Task ${existingTask.id} already exists and has timesheet entries, skipping deletion`);
       throw error;
     }
 

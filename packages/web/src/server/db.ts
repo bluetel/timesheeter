@@ -31,3 +31,6 @@ export const getPrismaClient = async (): Promise<PrismaClient> => {
 export type PrismaClientKnownRequestError = Prisma.PrismaClientKnownRequestError;
 
 export const PrismaInstance = Prisma;
+
+export const isPrismaClientKnownRequestError = (error: unknown): error is PrismaClientKnownRequestError =>
+  error instanceof PrismaInstance.PrismaClientKnownRequestError;
