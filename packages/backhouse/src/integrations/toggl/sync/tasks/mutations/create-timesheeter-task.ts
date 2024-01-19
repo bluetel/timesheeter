@@ -82,6 +82,9 @@ export const createTimesheeterTask = async ({
       throw error;
     }
 
+    // Delete the original task and try again, not quite sure why this is required
+    // but it sometimes happens where a task is created but not associated with
+    // the toggl task.
     const deletedTask = await context.prisma.task.delete({
       where: {
         id: existingTask.id,
