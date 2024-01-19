@@ -102,6 +102,7 @@
   },
   "resolutions": {
     "@babel/traverse": ">=7.23.2",
-    "get-func-name": ">=2.0.1"
+    "get-func-name": ">=2.0.1",
+    "@smithy/node-config-provider": "^2.2.1"
   }
 }
