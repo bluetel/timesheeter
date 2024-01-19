@@ -41,6 +41,11 @@ jobs:
       # Make everything un the projects folder have 777 permissions
       - run: chmod -R 777 .
 
+      # Run pnpm audit and fail if there are vulnerabilities high or critical
+      - run:
+          name: Audit
+          command: pnpm audit --audit-level high
+
       # Run the timesheeter-env.sh script to set the AWS environment variables
       - run: chmod u+x ./.circleci/timesheeter-env.sh
       - run: ./.circleci/timesheeter-env.sh
