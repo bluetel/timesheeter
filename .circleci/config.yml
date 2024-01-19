@@ -33,9 +33,17 @@ jobs:
       - run:
           name: Install pnpm
           command: npm i -g pnpm
-      # Install dependencies - the node Orb take care of installation and dependency caching
-      - node/install-packages:
-          override-ci-command: pnpm install
+      # Restore pnpm store from cache (if you want to cache the pnpm store but not the node_modules)
+      - restore_cache:
+          keys:
+            - v1-pnpm-store-{{ checksum "pnpm-lock.yaml" }}
+            - v1-pnpm-store-
+      - run: pnpm install
+      # Save pnpm store to cache (again, only if you want to cache the pnpm store)
+      - save_cache:
+          key: v1-pnpm-store-{{ checksum "pnpm-lock.yaml" }}
+          paths:
+            - "~/.pnpm-store"
 
       # Make everything un the projects folder have 777 permissions
       - run: chmod -R 777 .
