@@ -35,8 +35,6 @@ jobs:
           command: npm i -g pnpm
       # Install dependencies - the node Orb take care of installation and dependency caching
       - node/install-packages:
-          # disable cache
-          cache-key: v1-deps-{{ checksum "pnpm-lock.yaml" }}
           override-ci-command: pnpm install
 
       # Make everything un the projects folder have 777 permissions
