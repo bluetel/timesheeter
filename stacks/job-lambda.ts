@@ -9,7 +9,7 @@ import { LAYER_MODULES, Layers } from './layers';
 
 const jobLambdaSizes = {
   small: '320 MB',
-  medium: '512 MB',
+  medium: '640 MB',
   large: '2048 MB',
 } as const;
 
