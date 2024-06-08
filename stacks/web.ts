@@ -6,7 +6,7 @@ import { SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { Dns } from './dns';
 
 export const Web = ({ stack, app }: StackContext) => {
-  const { fqdn, hostedZone } = use(Dns);
+  const { fqdn, hostedZone, certificate } = use(Dns);
   const { vpc } = use(Network);
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
 
@@ -22,6 +22,7 @@ export const Web = ({ stack, app }: StackContext) => {
       domainName: fqdn,
       cdk: {
         hostedZone,
+        certificate,
       },
     },
     cdk: {
