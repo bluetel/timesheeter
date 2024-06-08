@@ -2,9 +2,9 @@ import { type StackContext } from 'sst/constructs';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import { sstEnv } from './lib';
 
-export function Dns({ stack, app }: StackContext) {
+export function Dns({ stack }: StackContext) {
   // Import the hosted zone from the aws account
-  const hostedZone = HostedZone.fromLookup(stack, "HostedZone" {
+  const hostedZone = HostedZone.fromLookup(stack, 'HostedZone', {
     domainName: sstEnv.HOSTED_ZONE,
   });
 
