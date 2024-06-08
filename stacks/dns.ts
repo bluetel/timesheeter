@@ -1,7 +1,6 @@
 import { type StackContext } from 'sst/constructs';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import { sstEnv } from './lib';
-import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 
 export function Dns({ stack }: StackContext) {
   // Import the hosted zone from the aws account
