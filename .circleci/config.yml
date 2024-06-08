@@ -4,9 +4,28 @@ orbs:
   node: circleci/node@5.1.0
   aws-cli: circleci/aws-cli@4.1.1
 
+commands:
+  setup_project:
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - checkout
+      - setup_remote_docker
+      - aws-cli/setup:
+          role_arn: $AWS_OIDC_ROLE_ARN
+          role_session_name: "Timesheeter-${CIRCLE_WORKFLOW_JOB_ID}"
+      - node/install
+      - run:
+          name: Install pnpm
+          command: npm i -g pnpm
+      - node/install-packages:
+          cache-path: node_modules
+          override-ci-command: pnpm install
+      - run: chmod u+x ./.circleci/timesheeter-env.sh
+      - run: ./.circleci/timesheeter-env.sh
+
 jobs:
-  sst_deploy:
-    # Reuse Docker container specification given by the node Orb
+  sst_diff:
     executor: node/default
     parameters:
       stage:
@@ -15,52 +34,54 @@ jobs:
           - staging
           - production
     steps:
-      - attach_workspace:
-          at: ~/project
-
-      - checkout
-
-      - setup_remote_docker
-
-      - aws-cli/setup:
-          role_arn: $AWS_OIDC_ROLE_ARN
-          role_session_name: "Timesheeter-${CIRCLE_WORKFLOW_JOB_ID}"
-
-      # Install the latest npm - the node Orb takes care of it
-      - node/install
-      # Install pnpm
+      - setup_project
       - run:
-          name: Install pnpm
-          command: npm i -g pnpm
-      # Install dependencies - the node Orb take care of installation and dependency caching
-      - node/install-packages:
-          cache-path: node_modules
-          override-ci-command: pnpm install
+          name: Diff
+          command: pnpm sst diff --stage << parameters.stage >>
 
-      # Make everything un the projects folder have 777 permissions
-      - run: chmod -R 777 .
-
-      # Run the timesheeter-env.sh script to set the AWS environment variables
-      - run: chmod u+x ./.circleci/timesheeter-env.sh
-      - run: ./.circleci/timesheeter-env.sh
-
+  sst_deploy:
+    executor: node/default
+    parameters:
+      stage:
+        type: enum
+        enum:
+          - staging
+          - production
+    steps:
+      - setup_project
       - run:
           name: Deploy
-          # run the pnpm deploy:
           command: pnpm deploy:<< parameters.stage >>
 
 workflows:
-  build_and_deploy:
+  build_and_deploy_staging:
     jobs:
-      # On staging branch, deploy to staging
-      - sst_deploy:
+      - sst_diff:
           stage: staging
           filters:
             branches:
               only: staging
-      # On main branch, deploy to production
+      - hold_for_approval:
+          type: approval
+          requires:
+            - sst_diff
       - sst_deploy:
+          stage: staging
+          requires:
+            - hold_for_approval
+
+  build_and_deploy_production:
+    jobs:
+      - sst_diff:
           stage: production
           filters:
             branches:
               only: main
+      - hold_for_approval:
+          type: approval
+          requires:
+            - sst_diff
+      - sst_deploy:
+          stage: production
+          requires:
+            - hold_for_approval

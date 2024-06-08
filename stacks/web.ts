@@ -14,8 +14,6 @@ export const Web = ({ stack, app }: StackContext) => {
     throw new Error('Database secret not found');
   }
 
-  throw new Error(`DEBUG fqdn: ${fqdn}`);
-
   // docs: https://docs.serverless-stack.com/constructs/NextjsSite
   const frontendSite = new NextjsSite(stack, 'Web', {
     path: 'packages/web',
