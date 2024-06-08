@@ -11,11 +11,5 @@ export function Dns({ stack }: StackContext) {
 
   const fqdn = `${sstEnv.APP_SUBDOMAIN_PARTS}.${hostedZone.zoneName}`;
 
-  // Make a certificate for the domain
-  const certificate = new acm.Certificate(stack, 'Certificate', {
-    domainName: fqdn,
-    validation: acm.CertificateValidation.fromDns(hostedZone),
-  });
-
-  return { fqdn, hostedZone, certificate };
+  return { fqdn, hostedZone };
 }
