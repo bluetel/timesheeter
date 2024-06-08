@@ -51,6 +51,7 @@ export const Web = ({ stack, app }: StackContext) => {
       NEXT_PUBLIC_URL: `https://${fqdn}`,
       NEXT_PUBLIC_DEV_TOOLS_ENABLED: sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
     },
+    warm: 20,
   });
 
   frontendSite.attachPermissions([databaseAccessPolicy, secretsManagerAccessPolicy]);
