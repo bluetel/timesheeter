@@ -12,7 +12,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 export const Scheduler = ({ stack }: StackContext) => {
   const { vpc } = use(Network);
-  const { hostedZone } = use(Dns);
+  const { fqdn } = use(Dns);
   const { prismaLayer } = use(Layers);
 
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
@@ -31,7 +31,7 @@ export const Scheduler = ({ stack }: StackContext) => {
         connectionLimit: 10,
       }),
       NODE_ENV: 'production',
-      NEXTAUTH_URL: sstEnv.NEXTAUTH_URL,
+      NEXTAUTH_URL: `https://${fqdn}`,
       NEXTAUTH_SECRET: sstEnv.NEXTAUTH_SECRET,
       CONFIG_SECRET_KEY: sstEnv.CONFIG_SECRET_KEY,
       GOOGLE_CLIENT_ID: sstEnv.GOOGLE_CLIENT_ID,
@@ -39,7 +39,7 @@ export const Scheduler = ({ stack }: StackContext) => {
       NEXT_PUBLIC_REGION: stack.region,
       DB_SECRET_ARN: database.secret.secretArn,
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
-      NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
+      NEXT_PUBLIC_URL: `https://${fqdn}`,
       NEXT_PUBLIC_DEV_TOOLS_ENABLED: sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
       JOB_LAMBDA_SMALL_ARN: jobLambdas['small'].functionArn,
       JOB_LAMBDA_MEDIUM_ARN: jobLambdas['medium'].functionArn,

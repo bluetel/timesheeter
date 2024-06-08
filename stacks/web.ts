@@ -5,8 +5,8 @@ import { Network } from './network';
 import { SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { Dns } from './dns';
 
-export function Web({ stack, app }: StackContext) {
-  const { hostedZone } = use(Dns);
+export const Web = ({ stack, app }: StackContext) => {
+  const { fqdn } = use(Dns);
   const { vpc } = use(Network);
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
 
@@ -14,15 +14,14 @@ export function Web({ stack, app }: StackContext) {
     throw new Error('Database secret not found');
   }
 
+  throw new Error(`DEBUG fqdn: ${fqdn}`);
+
   // docs: https://docs.serverless-stack.com/constructs/NextjsSite
   const frontendSite = new NextjsSite(stack, 'Web', {
     path: 'packages/web',
     // Use the root hosted zone
     customDomain: {
-      domainName: hostedZone.zoneName,
-      cdk: {
-        hostedZone,
-      },
+      domainName: fqdn,
     },
     cdk: {
       distribution: {
@@ -40,7 +39,7 @@ export function Web({ stack, app }: StackContext) {
     memorySize: 1024,
     environment: {
       DATABASE_URL: makeDatabaseUrl(),
-      NEXTAUTH_URL: sstEnv.NEXTAUTH_URL,
+      NEXTAUTH_URL: `https://${fqdn}`,
       NEXTAUTH_SECRET: sstEnv.NEXTAUTH_SECRET,
       CONFIG_SECRET_KEY: sstEnv.CONFIG_SECRET_KEY,
       GOOGLE_CLIENT_ID: sstEnv.GOOGLE_CLIENT_ID,
@@ -48,7 +47,7 @@ export function Web({ stack, app }: StackContext) {
       NEXT_PUBLIC_REGION: stack.region,
       DB_SECRET_ARN: database.secret.secretArn,
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
-      NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
+      NEXT_PUBLIC_URL: `https://${fqdn}`,
       NEXT_PUBLIC_DEV_TOOLS_ENABLED: sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
     },
   });
@@ -60,4 +59,4 @@ export function Web({ stack, app }: StackContext) {
   });
 
   return { frontendSite };
-}
+};

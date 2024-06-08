@@ -28,7 +28,7 @@ export const BastionHost = ({ stack, app }: StackContext) => {
 
   const { vpc, defaultLambdaSecurityGroup } = use(Network);
   const { database } = use(Database);
-  const { hostedZone } = use(Dns);
+  const { hostedZone, fqdn } = use(Dns);
 
   const host = new BastionHostLinux(stack, 'LinuxHost', {
     vpc,
@@ -64,7 +64,7 @@ export const BastionHost = ({ stack, app }: StackContext) => {
     const aRec = new ARecord(stack, 'DomainV4', {
       zone: hostedZone,
       target: RecordTarget.fromIpAddresses(publicHost),
-      recordName: `bastion.${hostedZone.zoneName}`,
+      recordName: `bastion.${fqdn}`,
       ttl: Duration.minutes(2),
     });
     stack.addOutputs({

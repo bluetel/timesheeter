@@ -5,13 +5,6 @@ const sstEnvSchema = z.object({
   IS_LOCAL: z.boolean().default(false),
   APP_NAME: z.string().default('timesheeter'),
   NEXTAUTH_SECRET: process.env.NODE_ENV === 'production' ? z.string().min(1) : z.string().min(1),
-  NEXTAUTH_URL: z.preprocess(
-    // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
-    // Since NextAuth.js automatically uses the VERCEL_URL if present.
-    (str) => process.env.VERCEL_URL ?? str,
-    // VERCEL_URL doesn't include `https` so it cant be validated as a URL
-    process.env.VERCEL ? z.string().min(1) : z.string().url()
-  ),
   CONFIG_SECRET_KEY: z.string().length(32),
 
   GOOGLE_CLIENT_ID: z.string(),
@@ -25,6 +18,14 @@ const sstEnvSchema = z.object({
     .string()
     .default('false')
     .transform((s) => s === 'true'),
+
+  /**
+   * The subdomain for the app, e.g. `staging.timesheeter` or `timesheeter`
+   * this can contain multiple subdomain parts
+   * Note this is not the full domain e.g. `staging.timesheeter.example.com`
+   * or `timesheeter.example.com`
+   */
+  APP_SUBDOMAIN_PARTS: z.string().min(1),
 });
 
 export const sstEnv = sstEnvSchema.parse(process.env);

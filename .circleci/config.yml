@@ -20,8 +20,7 @@ jobs:
 
       - checkout
 
-      - setup_remote_docker:
-          version: 20.10.14
+      - setup_remote_docker
 
       - aws-cli/setup:
           role_arn: $AWS_OIDC_ROLE_ARN

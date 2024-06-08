@@ -15,7 +15,7 @@ const jobLambdaSizes = {
 
 export const JobLambda = ({ stack }: StackContext) => {
   const { vpc } = use(Network);
-  const { hostedZone } = use(Dns);
+  const { fqdn } = use(Dns);
   const { prismaLayer } = use(Layers);
 
   const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
@@ -32,7 +32,7 @@ export const JobLambda = ({ stack }: StackContext) => {
       DATABASE_URL: makeDatabaseUrl({
         connectionLimit: 10,
       }),
-      NEXTAUTH_URL: sstEnv.NEXTAUTH_URL,
+      NEXTAUTH_URL: `https://${fqdn}`,
       NEXTAUTH_SECRET: sstEnv.NEXTAUTH_SECRET,
       CONFIG_SECRET_KEY: sstEnv.CONFIG_SECRET_KEY,
       GOOGLE_CLIENT_ID: sstEnv.GOOGLE_CLIENT_ID,
@@ -40,7 +40,7 @@ export const JobLambda = ({ stack }: StackContext) => {
       NEXT_PUBLIC_REGION: stack.region,
       DB_SECRET_ARN: database.secret.secretArn,
       RESEND_API_KEY: sstEnv.RESEND_API_KEY,
-      NEXT_PUBLIC_URL: `https://${hostedZone.zoneName}`,
+      NEXT_PUBLIC_URL: `https://${fqdn}`,
       NEXT_PUBLIC_DEV_TOOLS_ENABLED: sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
       ...prismaLayer.environment,
     },
