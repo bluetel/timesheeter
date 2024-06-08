@@ -18,9 +18,9 @@ commands:
       - run:
           name: Install pnpm
           command: npm i -g pnpm
-      - node/install-packages:
-          cache-path: node_modules
-          override-ci-command: pnpm install
+      - run:
+          name: Install dependencies
+          command: pnpm install
       - run: chmod u+x ./.circleci/timesheeter-env.sh
       - run: ./.circleci/timesheeter-env.sh
 
