@@ -12,7 +12,8 @@ const sstEnvSchema = z.object({
 
   RESEND_API_KEY: z.string().min(1),
 
-  HOSTED_ZONE: z.string().min(1),
+  HOSTED_ZONE_NAME: z.string().min(1),
+  HOSTED_ZONE_ID: z.string().min(1),
 
   NEXT_PUBLIC_DEV_TOOLS_ENABLED: z
     .string()
