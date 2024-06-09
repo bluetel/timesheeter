@@ -4,9 +4,11 @@ import { sstEnv } from './lib';
 
 export function Dns({ stack }: StackContext) {
   // Import the hosted zone from the aws account
-  const hostedZone = HostedZone.fromHostedZoneId(stack, 'HostedZone', sstEnv.HOSTED_ZONE_ID);
+  const hostedZone = HostedZone.fromLookup(stack, 'HostedZone', {
+    domainName: sstEnv.HOSTED_ZONE,
+  });
 
-  const fqdn = `${sstEnv.APP_SUBDOMAIN_PARTS}.${sstEnv.HOSTED_ZONE_NAME}`;
+  const fqdn = `${sstEnv.APP_SUBDOMAIN_PARTS}.${hostedZone.zoneName}`;
 
   return { fqdn, hostedZone };
 }
