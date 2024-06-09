@@ -17,14 +17,12 @@ export default function main(app: sst.App) {
     runtime: 'nodejs18.x',
   });
 
-  app
-    .stack(Network)
-    .stack(Dns)
-    .stack(Layers)
-    .stack(Database)
-    .stack(BastionHost)
-    .stack(DatabaseMigrations)
-    .stack(JobLambda)
-    .stack(Scheduler);
+  app.stack(Network).stack(Dns);
+  // .stack(Layers)
+  // .stack(Database)
+  // .stack(BastionHost)
+  // .stack(DatabaseMigrations)
+  // .stack(JobLambda)
+  // .stack(Scheduler);
   // .stack(Web);
 }
