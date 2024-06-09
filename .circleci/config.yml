@@ -14,7 +14,8 @@ commands:
       - aws-cli/setup:
           role_arn: $AWS_OIDC_ROLE_ARN
           role_session_name: "Timesheeter-${CIRCLE_WORKFLOW_JOB_ID}"
-      - node/install
+      - node/install:
+          node-version: latest
       - run:
           name: Install pnpm
           command: npm i -g pnpm
