@@ -25,6 +25,6 @@ export default function main(app: sst.App) {
     .stack(BastionHost)
     .stack(DatabaseMigrations)
     .stack(JobLambda)
-    .stack(Scheduler)
-    .stack(Web);
+    .stack(Scheduler);
+  // .stack(Web);
 }
