@@ -34,5 +34,6 @@ const config = {
       },
     ],
   },
+  transpilePackages: ['@timesheeter/email'],
 };
 export default config;

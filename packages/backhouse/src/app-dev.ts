@@ -6,10 +6,10 @@ if (process.env.NODE_ENV !== 'production') {
   config({ path: '../../.env.local' });
 }
 
-import { handleIntegrationsJob } from './integrations';
-import { determineExecution } from './determine-execution';
+const determineDevExecution = async () => {
+  const { determineExecution } = await import('./determine-execution');
+  const { handleIntegrationsJob } = await import('./integrations');
 
-const determineDevExecution = () => {
   determineExecution()
     .then(async (parsedIntegrations) => {
       const integrationJobs = parsedIntegrations.map((parsedIntegration) => ({
@@ -27,7 +27,9 @@ const determineDevExecution = () => {
   setInterval(() => {
     const secondsNow = new Date().getSeconds();
     if (secondsNow === 0) {
-      determineDevExecution();
+      determineDevExecution().catch((error) => {
+        console.error('Error in determineDevExecution', error);
+      });
     }
   }, 1000);
 

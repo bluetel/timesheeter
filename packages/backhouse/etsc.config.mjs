@@ -6,9 +6,9 @@ const buildOptions = {
   target: "node18",
   // output to a single file with esbuild
   bundle: true,
-  outfile: "dist/scheduler-app.js",
+  outfile: "dist/app.js",
   outdir: undefined,
-  entryPoints: ["src/scheduler-app.ts"],
+  entryPoints: ["src/app-dev.ts"],
   sourcemap: false,
   legalComments: "none",
 }

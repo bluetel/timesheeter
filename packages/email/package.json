@@ -6,7 +6,6 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "email dev --port 6002",
-    "generate": "rm -rf dist && tsc",
     "export": "email export"
   },
   "dependencies": {
@@ -16,6 +15,7 @@
     "@react-email/render": "0.0.7"
   },
   "devDependencies": {
+    "@types/react": "^18.0.28",
     "typescript": "^5.1.6"
   }
 }

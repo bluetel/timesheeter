@@ -30,7 +30,6 @@
     "next-env.d.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
-    "vite.config.ts",
     "tsconfig.json",
     "prisma.d.ts",
     "index.ts",
