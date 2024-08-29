@@ -1,22 +1,23 @@
-import { NextjsSite, type StackContext, use } from 'sst/constructs';
-import { sstEnv } from './lib';
-import { Database, makeDatabaseUrl } from './database';
-import { Network } from './network';
-import { SubnetType } from 'aws-cdk-lib/aws-ec2';
-import { Dns } from './dns';
+import { NextjsSite, type StackContext, use } from "sst/constructs";
+import { sstEnv } from "./lib";
+import { Database, makeDatabaseUrl } from "./database";
+import { Network } from "./network";
+import { SubnetType } from "aws-cdk-lib/aws-ec2";
+import { Dns } from "./dns";
 
 export const Web = ({ stack, app }: StackContext) => {
   const { fqdn, hostedZone } = use(Dns);
   const { vpc } = use(Network);
-  const { database, databaseAccessPolicy, secretsManagerAccessPolicy } = use(Database);
+  const { database, databaseAccessPolicy, secretsManagerAccessPolicy } =
+    use(Database);
 
   if (!database.secret) {
-    throw new Error('Database secret not found');
+    throw new Error("Database secret not found");
   }
 
   // docs: https://docs.serverless-stack.com/constructs/NextjsSite
-  const frontendSite = new NextjsSite(stack, 'Next', {
-    path: 'packages/web',
+  const frontendSite = new NextjsSite(stack, "Next", {
+    path: "packages/web",
     // Use the root hosted zone
     customDomain: {
       domainName: fqdn,
@@ -30,11 +31,15 @@ export const Web = ({ stack, app }: StackContext) => {
       },
       server: {
         vpc,
-        vpcSubnets: vpc.selectSubnets({ subnetType: SubnetType.PRIVATE_WITH_EGRESS }),
+        vpcSubnets: vpc.selectSubnets({
+          subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+        }),
       },
       revalidation: {
         vpc,
-        vpcSubnets: vpc.selectSubnets({ subnetType: SubnetType.PRIVATE_WITH_EGRESS }),
+        vpcSubnets: vpc.selectSubnets({
+          subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+        }),
       },
     },
     memorySize: 1024,
@@ -47,17 +52,20 @@ export const Web = ({ stack, app }: StackContext) => {
       GOOGLE_CLIENT_SECRET: sstEnv.GOOGLE_CLIENT_SECRET,
       NEXT_PUBLIC_REGION: stack.region,
       DB_SECRET_ARN: database.secret.secretArn,
-      RESEND_API_KEY: sstEnv.RESEND_API_KEY,
       NEXT_PUBLIC_URL: `https://${fqdn}`,
-      NEXT_PUBLIC_DEV_TOOLS_ENABLED: sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
+      NEXT_PUBLIC_DEV_TOOLS_ENABLED:
+        sstEnv.NEXT_PUBLIC_DEV_TOOLS_ENABLED.toString(),
     },
     warm: 20,
   });
 
-  frontendSite.attachPermissions([databaseAccessPolicy, secretsManagerAccessPolicy]);
+  frontendSite.attachPermissions([
+    databaseAccessPolicy,
+    secretsManagerAccessPolicy,
+  ]);
 
   stack.addOutputs({
-    WebURL: frontendSite.customDomainUrl || frontendSite.url || 'unknown',
+    WebURL: frontendSite.customDomainUrl || frontendSite.url || "unknown",
   });
 
   return { frontendSite };

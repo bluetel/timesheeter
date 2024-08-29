@@ -9,24 +9,23 @@ import {
   Img,
   Link,
   Preview,
-  Row,
   Section,
   Tailwind,
   Text,
-} from '@react-email/components';
-import * as React from 'react';
+} from "@react-email/components";
+import * as React from "react";
 
 export type TimesheeterInviteUserEmailProps = {
   email: string;
   workspaceName: string;
   inviteLink: string;
   publicUrl?: string;
-}
+};
 
 export const TimesheeterInviteUserEmail = ({
-  email = 'harrytwigg111@gmail.com',
-  workspaceName = 'My Project',
-  inviteLink = 'https://vercel.com/teams/invite/foo',
+  email = "harrytwigg111@gmail.com",
+  workspaceName = "My Project",
+  inviteLink = "https://vercel.com/teams/invite/foo",
   publicUrl,
 }: TimesheeterInviteUserEmailProps) => {
   const previewText = `Join ${workspaceName} on Timesheeter`;
@@ -48,11 +47,15 @@ export const TimesheeterInviteUserEmail = ({
               />
             </Section>
             <Heading className="my-[30px] mx-0 p-0 text-center text-[24px] font-normal text-black">
-              Join <strong>{workspaceName}</strong> on <strong>Timesheeter</strong>
+              Join <strong>{workspaceName}</strong> on{" "}
+              <strong>Timesheeter</strong>
             </Heading>
-            <Text className="text-[14px] leading-[24px] text-black">Hello {email},</Text>
             <Text className="text-[14px] leading-[24px] text-black">
-              You have been invited to join the <strong>{workspaceName}</strong> team on <strong>Timesheeter</strong>.
+              Hello {email},
+            </Text>
+            <Text className="text-[14px] leading-[24px] text-black">
+              You have been invited to join the <strong>{workspaceName}</strong>{" "}
+              team on <strong>Timesheeter</strong>.
             </Text>
             <Section className="mt-[32px] mb-[32px] text-center">
               <Button
@@ -65,15 +68,16 @@ export const TimesheeterInviteUserEmail = ({
               </Button>
             </Section>
             <Text className="text-[14px] leading-[24px] text-black">
-              or copy and paste this URL into your browser:{' '}
+              or copy and paste this URL into your browser:{" "}
               <Link href={inviteLink} className="text-blue-600 no-underline">
                 {inviteLink}
               </Link>
             </Text>
             <Hr className="my-[26px] mx-0 w-full border border-solid border-[#eaeaea]" />
             <Text className="text-[12px] leading-[24px] text-[#666666]">
-              This invitation was intended for <span className="text-black">{email}</span>. If you were not expecting this invitation, you
-              can ignore this email.
+              This invitation was intended for{" "}
+              <span className="text-black">{email}</span>. If you were not
+              expecting this invitation, you can ignore this email.
             </Text>
           </Container>
         </Body>

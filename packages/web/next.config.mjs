@@ -13,6 +13,7 @@ dotenvConfig({ path: envPath });
 
 /** @type {import("next").NextConfig} */
 const config = {
+  transpilePackages: ['@timesheeter/email'],
   reactStrictMode: true,
 
   /**

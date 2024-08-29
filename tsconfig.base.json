@@ -13,7 +13,6 @@
     "exactOptionalPropertyTypes": false,
     "importHelpers": true,
     "baseUrl": ".",
-    "types": ["vitest/globals"],
     "paths": {
       "@timesheeter/web/*": ["./packages/web/src/*"],
       "@timesheeter/backhouse/*": ["./packages/backhouse/src/*"]

@@ -98,7 +98,7 @@ const outputToTimesheet = async ({
 
   // if no entries in database, return null
   if (!databaseEntriesBasedStartDate) {
-    return null;
+    return
   }
 
   // We can't process entries before when we first started recording them

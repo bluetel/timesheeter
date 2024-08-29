@@ -1,5 +1,5 @@
-import { createEnv } from '@t3-oss/env-nextjs';
-import { z } from 'zod';
+import { createEnv } from "@t3-oss/env-nextjs";
+import { z } from "zod";
 
 export const env = createEnv({
   /**
@@ -14,9 +14,9 @@ export const env = createEnv({
 
         if (
           s ===
-            'postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@${APP_DB_HOST}:${APP_DB_PORT}/${APP_DB_NAME}?schema=public&connection_limit=1' ||
+            "postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@${APP_DB_HOST}:${APP_DB_PORT}/${APP_DB_NAME}?schema=public&connection_limit=1" ||
           // Check for non-substituted DATABASE_URL, this occurs when building on local machine
-          (typeof s === 'string' && s.includes('{'))
+          (typeof s === "string" && s.includes("{"))
         ) {
           // need to reconstruct the database url from individual components
           sFormatted = undefined;
@@ -25,16 +25,28 @@ export const env = createEnv({
         if (sFormatted) return sFormatted;
 
         // If is unset, substitute in from individual components
-        const { APP_DB_USER, APP_DB_PASSWORD, APP_DB_HOST, APP_DB_PORT, APP_DB_NAME } = process.env;
+        const {
+          APP_DB_USER,
+          APP_DB_PASSWORD,
+          APP_DB_HOST,
+          APP_DB_PORT,
+          APP_DB_NAME,
+        } = process.env;
 
-        if (!APP_DB_USER || !APP_DB_PASSWORD || !APP_DB_HOST || !APP_DB_PORT || !APP_DB_NAME) {
+        if (
+          !APP_DB_USER ||
+          !APP_DB_PASSWORD ||
+          !APP_DB_HOST ||
+          !APP_DB_PORT ||
+          !APP_DB_NAME
+        ) {
           // If running in circleci, pass some dummy values
           if (process.env.CIRCLE_JOB) {
-            return 'postgresql://postgres:postgres@localhost:5432/postgres?schema=public&connection_limit=1';
+            return "postgresql://postgres:postgres@localhost:5432/postgres?schema=public&connection_limit=1";
           }
 
           throw new Error(
-            'DATABASE_URL is not set and individual components are not set. Please set DATABASE_URL or APP_DB_USER, APP_DB_PASSWORD, APP_DB_HOST, APP_DB_PORT, and APP_DB_NAME.'
+            "DATABASE_URL is not set and individual components are not set. Please set DATABASE_URL or APP_DB_USER, APP_DB_PASSWORD, APP_DB_HOST, APP_DB_PORT, and APP_DB_NAME."
           );
         }
 
@@ -45,7 +57,7 @@ export const env = createEnv({
         return databaseUrl;
       })
       .pipe(z.string().url()),
-    NODE_ENV: z.enum(['development', 'test', 'production']),
+    NODE_ENV: z.enum(["development", "test", "production"]),
     NEXTAUTH_SECRET: z.string(),
     NEXTAUTH_URL: z.preprocess(
       // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
@@ -59,12 +71,8 @@ export const env = createEnv({
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
 
-    RESEND_API_KEY: z.string(),
-
-    RESEND_FROM_EMAIL: z.string().email().default('noreply@timesheeter.pro'),
-
     JOB_LAMBDA_SMALL_ARN: z.unknown().transform((s) => {
-      if (typeof s !== 'string') {
+      if (typeof s !== "string") {
         return null;
       }
 
@@ -72,7 +80,7 @@ export const env = createEnv({
     }),
 
     JOB_LAMBDA_MEDIUM_ARN: z.unknown().transform((s) => {
-      if (typeof s !== 'string') {
+      if (typeof s !== "string") {
         return null;
       }
 
@@ -80,7 +88,7 @@ export const env = createEnv({
     }),
 
     JOB_LAMBDA_LARGE_ARN: z.unknown().transform((s) => {
-      if (typeof s !== 'string') {
+      if (typeof s !== "string") {
         return null;
       }
 
@@ -88,7 +96,7 @@ export const env = createEnv({
     }),
 
     AWS_REGION: z.unknown().transform((s) => {
-      if (typeof s !== 'string') {
+      if (typeof s !== "string") {
         return null;
       }
 
@@ -99,8 +107,8 @@ export const env = createEnv({
     NEXT_PUBLIC_URL: z.string().url(),
     NEXT_PUBLIC_DEV_TOOLS_ENABLED: z
       .string()
-      .default('false')
-      .transform((s) => s === 'true'),
+      .default("false")
+      .transform((s) => s === "true"),
   },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
@@ -110,8 +118,6 @@ export const env = createEnv({
     CONFIG_SECRET_KEY: process.env.CONFIG_SECRET_KEY,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-    RESEND_API_KEY: process.env.RESEND_API_KEY,
-    RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
     NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
     NEXT_PUBLIC_DEV_TOOLS_ENABLED: process.env.NEXT_PUBLIC_DEV_TOOLS_ENABLED,
     JOB_LAMBDA_SMALL_ARN: process.env.JOB_LAMBDA_SMALL_ARN,

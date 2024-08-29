@@ -6,28 +6,26 @@ if (process.env.NODE_ENV !== 'production') {
   config({ path: '../../.env.local' });
 }
 
-import { handleIntegrationsJob } from './integrations';
-import { determineExecution } from './determine-execution';
+const determineDevExecution = async () => {
+  const { handleIntegrationsJob } = await import('./integrations');
+  const { determineExecution } = await import('./determine-execution');
 
-const determineDevExecution = () => {
-  determineExecution()
-    .then(async (parsedIntegrations) => {
-      const integrationJobs = parsedIntegrations.map((parsedIntegration) => ({
-        integrationId: parsedIntegration.id,
-      }));
+  const parsedIntegrations = await determineExecution()
 
-      await Promise.all(integrationJobs.map(handleIntegrationsJob));
-    })
-    .catch((error) => {
-      console.error('Error in determineDevExecution', error);
-    });
-};
+  const integrationJobs = parsedIntegrations.map((parsedIntegration) => ({
+    integrationId: parsedIntegration.id,
+  }));
+
+  await Promise.all(integrationJobs.map(handleIntegrationsJob));
+}
 
 (async () => {
   setInterval(() => {
     const secondsNow = new Date().getSeconds();
     if (secondsNow === 0) {
-      determineDevExecution();
+      determineDevExecution().catch((error) => {
+        console.error('Error running dev backhouse worker', error);
+      });
     }
   }, 1000);
 

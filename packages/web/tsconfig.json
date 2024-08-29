@@ -1,5 +1,8 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "composite": true,
     "target": "ES6",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -9,34 +12,27 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": false,
     "esModuleInterop": true,
+    "types": ["react"],
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-
     "jsx": "preserve",
     "incremental": true,
     "noUncheckedIndexedAccess": true,
-    "baseUrl": ".",
-    "rootDir": ".",
     "paths": {
-      "@timesheeter/web/*": ["./src/*"],
-      "@timesheeter/web": ["./src/index.ts"]
-    },
-    "outDir": "./dist"
+      "@timesheeter/web/*": ["./src/*"]
+    }
   },
   "include": [
-    ".eslintrc.cjs",
     "next-env.d.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
-    "vite.config.ts",
     "tsconfig.json",
     "prisma.d.ts",
     "index.ts",
     "sst-env.d.ts",
-    "scripts/run-migrations.js",
-    "tailwind.config.cjs"
+    "scripts/run-migrations.js"
   ],
-  "exclude": ["../../node_modules", "src/sst/*", "dist"]
+  "exclude": ["node_modules", "src/sst/*", "dist"]
 }
