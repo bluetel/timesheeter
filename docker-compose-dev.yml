@@ -12,7 +12,8 @@ services:
     volumes:
       - local-db:/var/lib/postgresql/data
     restart: always
-    network_mode: host
+    ports:
+      - "${APP_DB_PORT}:${APP_DB_PORT}"
 
 volumes:
   local-db:

@@ -3,7 +3,7 @@ import { type PrismaClient } from '@timesheeter/web/server';
 import { createTRPCRouter, protectedProcedure } from '@timesheeter/web/server/api/trpc';
 import { TRPCError } from '@trpc/server';
 import { inviteEmail } from '@timesheeter/email';
-import { resend } from '@timesheeter/web/server/resend';
+import { send } from '@timesheeter/web/server/brevo';
 import { env } from '@timesheeter/web/env';
 
 export const managementRouter = createTRPCRouter({
@@ -351,9 +351,8 @@ export const sendInviteEmails = async ({
         publicUrl: env.NEXT_PUBLIC_URL,
       });
 
-      return resend.emails.send({
+      return send({
         subject: title,
-        from: env.RESEND_FROM_EMAIL,
         to: email,
         text: plainText,
         html: pretty,

@@ -1,9 +1,9 @@
 {
-  "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    "module": "esnext",
-    "outDir": "./dist"
-  },
-  "include": ["stacks", ".eslintrc.cjs", "tsconfig.json", "packages/**/*", "sst.config.ts", "sst-env.d.ts"],
-  "exclude": ["dist", "node_modules", ".sst"]
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "module": "esnext",
+        "outDir": "./dist"
+    },
+    "include": ["stacks", "tsconfig.json", "packages/**/*", "sst.config.ts", "sst-env.d.ts", "prettier.config.mjs"],
+    "exclude": ["dist", "node_modules", ".sst"]
 }

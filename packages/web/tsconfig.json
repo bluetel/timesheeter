@@ -1,42 +1,39 @@
 {
-  "compilerOptions": {
-    "target": "ES6",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "checkJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": false,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-
-    "jsx": "preserve",
-    "incremental": true,
-    "noUncheckedIndexedAccess": true,
-    "baseUrl": ".",
-    "rootDir": ".",
-    "paths": {
-      "@timesheeter/web/*": ["./src/*"],
-      "@timesheeter/web": ["./src/index.ts"]
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "rootDir": "./src",
+        "composite": true,
+        "target": "ES6",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "allowJs": true,
+        "checkJs": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "noEmit": false,
+        "esModuleInterop": true,
+        "types": ["react"],
+        "module": "esnext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "jsx": "preserve",
+        "incremental": true,
+        "noUncheckedIndexedAccess": true,
+        "paths": {
+            "@timesheeter/web/*": ["./src/*"]
+        }
     },
-    "outDir": "./dist"
-  },
-  "include": [
-    ".eslintrc.cjs",
-    "next-env.d.ts",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "vite.config.ts",
-    "tsconfig.json",
-    "prisma.d.ts",
-    "index.ts",
-    "sst-env.d.ts",
-    "scripts/run-migrations.js",
-    "tailwind.config.cjs"
-  ],
-  "exclude": ["../../node_modules", "src/sst/*", "dist"]
+    "include": [
+        "next-env.d.ts",
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "tsconfig.json",
+        "prisma.d.ts",
+        "index.ts",
+        "sst-env.d.ts",
+        "scripts/run-migrations.js"
+    ],
+    "exclude": ["node_modules", "src/sst/*", "dist"]
 }
