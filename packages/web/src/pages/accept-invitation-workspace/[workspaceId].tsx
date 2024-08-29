@@ -51,6 +51,15 @@ export const getServerSideProps = async ({
     };
   }
 
+  if (!session.user.email) {
+    return {
+      props: {
+        message:
+          "You need to have an email registered to accept the invitation.",
+      },
+    };
+  }
+
   // Find invitation
   const invitation = await prisma.invitation.findFirst({
     where: {
