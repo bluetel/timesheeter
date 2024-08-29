@@ -97,7 +97,7 @@ export const getServerSideProps = async ({
   // Delete invitation
   await prisma.invitation.delete({
     where: {
-      id: workspaceId,
+      id: invitation.id,
     },
   });
 
