@@ -1,25 +1,23 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "composite": true,
     "module": "commonjs",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "target": "es2021",
     "outDir": "./dist",
     "baseUrl": ".",
-    "experimentalDecorators": true,
-    "strict": true,
-    // allow es modules to be imported in typescript
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    // aallow outside modules to be imported in typescript
-    "isolatedModules": false,
-    "skipLibCheck": true,
+    "rootDir": "./src",
     "paths": {
       "@timesheeter/backhouse/*": ["./src/*"],
+      "@timesheeter/web": ["../web/src/index.ts"],
       "@timesheeter/web/*": ["../web/src/*"],
-      "@timesheeter/web": ["../web/src/index.ts"]
     }
   },
-  "include": ["test/**/*.spec.ts", "src/**/*.ts", ".eslintrc.cjs", "tsconfig.json"],
-  "exclude": ["node_modules"]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    { "path": "../web" }
+  ]
 }

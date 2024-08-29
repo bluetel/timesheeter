@@ -1,0 +1,7 @@
+# Top-most EditorConfig file
+root = true
+
+# Indentation settings
+[*]
+indent_style = space
+indent_size = 2

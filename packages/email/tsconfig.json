@@ -1,22 +1,22 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "target": "es2021",
-    "declaration": true,
-    "outDir": "./dist",
-    "baseUrl": ".",
-    "experimentalDecorators": true,
-    "strict": false,
-    // allow es modules to be imported in typescript
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    // aallow outside modules to be imported in typescript
-    "isolatedModules": false,
-    "skipLibCheck": true,
-    "jsx": "react-jsx"
-  },
-  "include": ["test/**/*.spec.ts", "index.tsx", "emails"],
-  "exclude": ["node_modules", ".react-email/**/*", "dist", "*.js"]
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "target": "es2021",
+        "declaration": true,
+        "outDir": "./dist",
+        "baseUrl": ".",
+        "experimentalDecorators": true,
+        "strict": false,
+        // allow es modules to be imported in typescript
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        // aallow outside modules to be imported in typescript
+        "isolatedModules": false,
+        "skipLibCheck": true,
+        "jsx": "react"
+    },
+    "include": ["test/**/*.spec.ts", "index.tsx", "emails"],
+    "exclude": ["node_modules", ".react-email/**/*", "dist", "*.js"]
 }
