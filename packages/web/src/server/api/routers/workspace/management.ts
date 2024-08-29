@@ -9,8 +9,6 @@ import {
   protectedProcedure,
 } from "@timesheeter/web/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { inviteEmail } from "@timesheeter/email";
-import { env } from "@timesheeter/web/env";
 
 export const managementRouter = createTRPCRouter({
   myWorkspaces: protectedProcedure.query(async ({ ctx }) => {
@@ -379,15 +377,15 @@ export const sendInviteEmails = async ({
 }) =>
   Promise.all(
     emails.map(({ email, invitationId }) => {
-      const { pretty, plainText, title } = inviteEmail({
-        workspaceName: workspace.name,
-        email,
-        inviteLink: `${env.NEXT_PUBLIC_URL}/accept-invitation/${invitationId}`,
-        publicUrl: env.NEXT_PUBLIC_URL,
-      });
-
       // Currently disabled
       return Promise.resolve();
+
+      // const { pretty, plainText, title } = inviteEmail({
+      //   workspaceName: workspace.name,
+      //   email,
+      //   inviteLink: `${env.NEXT_PUBLIC_URL}/accept-invitation/${invitationId}`,
+      //   publicUrl: env.NEXT_PUBLIC_URL,
+      // });
 
       // return send({
       //   subject: title,

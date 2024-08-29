@@ -1,18 +1,19 @@
-import { z } from 'zod';
-import { UserGroupIcon } from '@heroicons/react/20/solid';
-import { type IconType } from 'react-icons';
+import { z } from "zod";
+import { UserGroupIcon } from "@heroicons/react/20/solid";
+import { type IconType } from "react-icons";
 
-export const membershipRoleSchema = z.enum(['owner', 'member']);
+export const membershipRoleSchema = z.enum(["owner", "member"]);
 
 export type MembershipRole = z.infer<typeof membershipRoleSchema>;
 
-export const WORKSPACES_HELP_TEXT = 'Group related projects and team members together into workspaces';
+export const WORKSPACES_HELP_TEXT =
+  "Group related projects and team members together into workspaces";
 
 export const MEMBERSHIPS_HELP_TEXT =
-  'Team members can be added to a workspace and share projects, tasks and integrations';
+  "Team members can be added to a workspace and share projects, tasks and integrations";
 
 export const INVITATIONS_HELP_TEXT =
-  'Invite team members to a workspace, they will receive an email with a link to join';
+  "Invite team members to a workspace, you can send them the invite link to join";
 
 export const WorkspaceIcon = UserGroupIcon as IconType;
 
