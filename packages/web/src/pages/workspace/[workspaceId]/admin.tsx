@@ -1,7 +1,13 @@
-import { useState } from 'react';
-import type { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
-import { getWorkspaceInfoDiscrete, type WorkspaceInfo } from '@timesheeter/web/server';
-import { api } from '@timesheeter/web/utils/api';
+import { useState } from "react";
+import type {
+  GetServerSidePropsContext,
+  InferGetServerSidePropsType,
+} from "next";
+import {
+  getWorkspaceInfoDiscrete,
+  type WorkspaceInfo,
+} from "@timesheeter/web/server";
+import { api } from "@timesheeter/web/utils/api";
 
 type GetServerSidePropsResult =
   | {
@@ -19,8 +25,12 @@ type GetServerSidePropsResult =
       notFound: true;
     };
 
-export const getServerSideProps = async (context: GetServerSidePropsContext): Promise<GetServerSidePropsResult> => {
-  const { redirect, props: workspaceInfo } = await getWorkspaceInfoDiscrete(context);
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext
+): Promise<GetServerSidePropsResult> => {
+  const { redirect, props: workspaceInfo } = await getWorkspaceInfoDiscrete(
+    context
+  );
 
   if (redirect) {
     return { redirect };
@@ -39,29 +49,41 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
   };
 };
 
-const Admin = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const { mutate: purgeTaskRaw } = api.workspace.adminTools.purgeTaskRaw.useMutation();
-  const { mutate: purgeTimesheetEntryRaw } = api.workspace.adminTools.purgeTimesheetEntryRaw.useMutation();
+const Admin = ({
+  workspaceInfo,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  const { mutate: purgeTaskRaw } =
+    api.workspace.adminTools.purgeTaskRaw.useMutation();
+  const { mutate: purgeTimesheetEntryRaw } =
+    api.workspace.adminTools.purgeTimesheetEntryRaw.useMutation();
 
   const [targetTaskId, setTargetTaskId] = useState<string | null>(null);
-  const [targetTimesheetEntryId, setTargetTimesheetEntryId] = useState<string | null>(null);
+  const [targetTimesheetEntryId, setTargetTimesheetEntryId] = useState<
+    string | null
+  >(null);
 
-  const { data: taskData } = api.workspace.adminTools.listAllTimesheetEntriesOfTask.useQuery({
-    taskId: targetTaskId,
-    workspaceId: workspaceInfo.workspace.id,
-  });
+  const { data: taskData } =
+    api.workspace.adminTools.listAllTimesheetEntriesOfTask.useQuery({
+      taskId: targetTaskId,
+      workspaceId: workspaceInfo.workspace.id,
+    });
 
-  const { data: timesheetEntryData } = api.workspace.adminTools.retrieveTimesheetEntryRaw.useQuery({
-    timesheetEntryId: targetTimesheetEntryId,
-    workspaceId: workspaceInfo.workspace.id,
-  });
+  const { data: timesheetEntryData } =
+    api.workspace.adminTools.retrieveTimesheetEntryRaw.useQuery({
+      timesheetEntryId: targetTimesheetEntryId,
+      workspaceId: workspaceInfo.workspace.id,
+    });
 
   // Show prompt to ask for
   const [taskId, setTaskId] = useState<string | null>(null);
 
   return (
     <div className="space-y-4 p-4">
-      <input type="text" placeholder="Task ID" onChange={(e) => setTaskId(e.target.value.toString())} />
+      <input
+        type="text"
+        placeholder="Task ID"
+        onChange={(e) => setTaskId(e.target.value.toString())}
+      />
       <button
         onClick={() => {
           if (taskId) {
@@ -72,7 +94,7 @@ const Admin = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
               },
               {
                 onSuccess: () => {
-                  alert('Task purged');
+                  alert("Task purged");
                 },
 
                 onError: (error) => {
@@ -86,7 +108,11 @@ const Admin = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
         Purge task raw
       </button>
 
-      <input type="text" placeholder="Timesheet entry ID" onChange={(e) => setTaskId(e.target.value.toString())} />
+      <input
+        type="text"
+        placeholder="Timesheet entry ID"
+        onChange={(e) => setTaskId(e.target.value.toString())}
+      />
       <button
         onClick={() => {
           if (taskId) {
@@ -97,7 +123,7 @@ const Admin = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
               },
               {
                 onSuccess: () => {
-                  alert('Timesheet entry purged');
+                  alert("Timesheet entry purged");
                 },
 
                 onError: (error) => {
@@ -113,7 +139,11 @@ const Admin = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
 
       <div className="space-y-4">
         <h2>Find timesheet entries of task</h2>
-        <input type="text" placeholder="Task ID" onChange={(e) => setTargetTaskId(e.target.value.toString())} />
+        <input
+          type="text"
+          placeholder="Task ID"
+          onChange={(e) => setTargetTaskId(e.target.value.toString())}
+        />
         {taskData?.taskWithTimesheetEntries ? (
           <>
             <h3>Task</h3>
@@ -121,35 +151,44 @@ const Admin = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
               <strong>Name:</strong> {taskData.taskWithTimesheetEntries.name}
             </p>
             <p>
-              <strong>Toggl task id ID:</strong> {taskData.taskWithTimesheetEntries.togglTaskId?.toString() ?? 'N/A'}
+              <strong>Toggl task id ID:</strong>{" "}
+              {taskData.taskWithTimesheetEntries.togglTaskId?.toString() ??
+                "N/A"}
             </p>
             <h4>
               <strong>Timesheet entries:</strong>
             </h4>
             <div className="space-y-4">
-              {taskData.taskWithTimesheetEntries.timesheetEntries.map((timesheetEntry) => (
-                <div key={timesheetEntry.id}>
-                  <p>
-                    <strong>ID:</strong> {timesheetEntry.id}
-                  </p>
+              {taskData.taskWithTimesheetEntries.timesheetEntries.map(
+                (timesheetEntry) => (
+                  <div key={timesheetEntry.id}>
+                    <p>
+                      <strong>ID:</strong> {timesheetEntry.id}
+                    </p>
 
-                  <p>
-                    <strong>CreatedAt:</strong> {timesheetEntry.createdAt.toISOString()}
-                  </p>
-                  <p>
-                    <strong>UpdatedAt:</strong> {timesheetEntry.updatedAt.toISOString()}
-                  </p>
-                  <p>
-                    <strong>Duration:</strong> {timesheetEntry.start.toISOString()} - {timesheetEntry.end.toISOString()}
-                  </p>
-                  <p>
-                    <strong>User name:</strong> {timesheetEntry.user.name} ({timesheetEntry.user.email})
-                  </p>
-                  <p>
-                    <strong>Description:</strong> {timesheetEntry.description}
-                  </p>
-                </div>
-              ))}
+                    <p>
+                      <strong>CreatedAt:</strong>{" "}
+                      {timesheetEntry.createdAt.toISOString()}
+                    </p>
+                    <p>
+                      <strong>UpdatedAt:</strong>{" "}
+                      {timesheetEntry.updatedAt.toISOString()}
+                    </p>
+                    <p>
+                      <strong>Duration:</strong>{" "}
+                      {timesheetEntry.start.toISOString()} -{" "}
+                      {timesheetEntry.end.toISOString()}
+                    </p>
+                    <p>
+                      <strong>User name:</strong> {timesheetEntry.user.name} (
+                      {timesheetEntry.user.email})
+                    </p>
+                    <p>
+                      <strong>Description:</strong> {timesheetEntry.description}
+                    </p>
+                  </div>
+                )
+              )}
             </div>
           </>
         ) : (
@@ -171,34 +210,104 @@ const Admin = ({ workspaceInfo }: InferGetServerSidePropsType<typeof getServerSi
               <strong>ID:</strong> {timesheetEntryData.timesheetEntry.id}
             </p>
             <p>
-              <strong>CreatedAt:</strong> {timesheetEntryData.timesheetEntry.createdAt.toISOString()}
+              <strong>CreatedAt:</strong>{" "}
+              {timesheetEntryData.timesheetEntry.createdAt.toISOString()}
             </p>
             <p>
-              <strong>User:</strong> {timesheetEntryData.timesheetEntry.user.name} (
+              <strong>User:</strong>{" "}
+              {timesheetEntryData.timesheetEntry.user.name} (
               {timesheetEntryData.timesheetEntry.user.email})
             </p>
             <p>
-              <strong>Description:</strong> {timesheetEntryData.timesheetEntry.description}
+              <strong>Description:</strong>{" "}
+              {timesheetEntryData.timesheetEntry.description}
             </p>
             <p>
-              <strong>Duration:</strong> {timesheetEntryData.timesheetEntry.start.toISOString()} -{' '}
+              <strong>Duration:</strong>{" "}
+              {timesheetEntryData.timesheetEntry.start.toISOString()} -{" "}
               {timesheetEntryData.timesheetEntry.end.toISOString()}
             </p>
             <p>
-              <strong>Task:</strong> {timesheetEntryData.timesheetEntry.task.name} Toggl task (
-              {timesheetEntryData.timesheetEntry.task.togglTaskId?.toString() ?? 'N/A'})
+              <strong>Task:</strong>{" "}
+              {timesheetEntryData.timesheetEntry.task.name} Toggl task (
+              {timesheetEntryData.timesheetEntry.task.togglTaskId?.toString() ??
+                "N/A"}
+              )
             </p>
             <p>
-              <strong>togglTimeEntryId:</strong>{' '}
-              {timesheetEntryData.timesheetEntry.togglTimeEntryId?.toString() ?? 'N/A'}
+              <strong>togglTimeEntryId:</strong>{" "}
+              {timesheetEntryData.timesheetEntry.togglTimeEntryId?.toString() ??
+                "N/A"}
             </p>
           </>
         ) : (
           <p>No timesheet entry found</p>
         )}
       </div>
+      <GetUserTimesheetEntries workspaceId={workspaceInfo.workspace.id} />
     </div>
   );
 };
 
 export default Admin;
+
+const GetUserTimesheetEntries = ({ workspaceId }: { workspaceId: string }) => {
+  const { data: usersData } =
+    api.workspace.adminTools.listWorkspaceUsers.useQuery({
+      workspaceId,
+    });
+
+  const [userId, setUserId] = useState<string | null>(null);
+
+  const { data: userTimesheetEntriesData } =
+    api.workspace.adminTools.retrieveUsersTimesheetEntries.useQuery(
+      {
+        userId: userId ?? "",
+        workspaceId,
+      },
+      {
+        enabled: !!userId,
+      }
+    );
+
+  return (
+    <div className="space-y-4">
+      <h2>Users</h2>
+      <ul className="space-y-4">
+        {usersData?.users.map((user) => (
+          <li key={user.id}>
+            <h3>{user.name}</h3>
+            <p>{user.email}</p>
+            <p>{user.id}</p>
+          </li>
+        ))}
+      </ul>
+      <h2>Users Timesheet entries</h2>
+      <input
+        type="text"
+        placeholder="User ID"
+        onChange={(e) => setUserId(e.target.value.toString())}
+      />
+      {userTimesheetEntriesData?.timesheetEntries.map((timesheetEntry) => (
+        <div key={timesheetEntry.id}>
+          <p>
+            <strong>ID:</strong> {timesheetEntry.id}
+          </p>
+          <p>
+            <strong>CreatedAt:</strong> {timesheetEntry.createdAt.toISOString()}
+          </p>
+          <p>
+            <strong>UpdatedAt:</strong> {timesheetEntry.updatedAt.toISOString()}
+          </p>
+          <p>
+            <strong>Duration:</strong> {timesheetEntry.start.toISOString()} -{" "}
+            {timesheetEntry.end.toISOString()}
+          </p>
+          <p>
+            <strong>Description:</strong> {timesheetEntry.description}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+};
