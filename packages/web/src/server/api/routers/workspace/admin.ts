@@ -1,9 +1,39 @@
-import { type PrismaClient } from '@prisma/client';
-import { createTRPCRouter, protectedProcedure } from '../../trpc';
-import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
+import { type PrismaClient } from "@prisma/client";
+import { createTRPCRouter, protectedProcedure } from "../../trpc";
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 
 export const adminToolsRouter = createTRPCRouter({
+  listWorkspaceUsers: protectedProcedure
+    .input(
+      z.object({
+        workspaceId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      await ensureIsAdmin({
+        prisma: ctx.prisma,
+        userId: ctx.session.user.id,
+        workspaceId: input.workspaceId,
+      });
+
+      const users = await ctx.prisma.user.findMany({
+        where: {
+          memberships: {
+            some: {
+              workspaceId: input.workspaceId,
+            },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      });
+
+      return { users };
+    }),
   purgeTimesheetEntryRaw: protectedProcedure
     .input(
       z.object({
@@ -158,6 +188,47 @@ export const adminToolsRouter = createTRPCRouter({
 
       return { timesheetEntry };
     }),
+  retrieveUsersTimesheetEntries: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        workspaceId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      await ensureIsAdmin({
+        prisma: ctx.prisma,
+        userId: ctx.session.user.id,
+        workspaceId: input.workspaceId,
+      });
+
+      const timesheetEntries = await ctx.prisma.timesheetEntry.findMany({
+        where: {
+          userId: input.userId,
+          workspaceId: input.workspaceId,
+          createdAt: {
+            // last 7 days
+            gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+          },
+        },
+        select: {
+          id: true,
+          description: true,
+          createdAt: true,
+          updatedAt: true,
+          start: true,
+          end: true,
+          task: {
+            select: {
+              name: true,
+              togglTaskId: true,
+            },
+          },
+        },
+      });
+
+      return { timesheetEntries };
+    }),
 });
 
 const ensureIsAdmin = async ({
@@ -173,14 +244,14 @@ const ensureIsAdmin = async ({
     where: {
       userId,
       workspaceId,
-      role: 'owner',
+      role: "owner",
     },
   });
 
   if (!membership) {
     throw new TRPCError({
-      code: 'NOT_FOUND',
-      message: 'Workspace not found or you are not an owner of this workspace',
+      code: "NOT_FOUND",
+      message: "Workspace not found or you are not an owner of this workspace",
     });
   }
 };
@@ -205,7 +276,7 @@ const deleteTimesheeterTimesheetEntry = async ({
     await prisma.togglSyncRecord.deleteMany({
       where: {
         togglEntityId: deletedTimesheetEntry.togglTimeEntryId,
-        category: 'TimeEntry',
+        category: "TimeEntry",
       },
     });
   }
@@ -231,7 +302,7 @@ const deleteTimesheeterTask = async ({
     await prisma.togglSyncRecord.deleteMany({
       where: {
         togglEntityId: deletedTask.togglTaskId,
-        category: 'Task',
+        category: "Task",
       },
     });
   }
