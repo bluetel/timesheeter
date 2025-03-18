@@ -196,10 +196,8 @@ const createSheetStartIfBlank = async ({
   sheetStart: SheetStart;
 }) => {
   if (sheetStart) {
-    return {
-      currentSheet: sheetStart.sheet,
-      currentRow: sheetStart.sheetStartRow,
-    };
+    // If we have a sheet remove the sheet and create a new one.
+    await sheetStart.sheet.delete()
   }
 
   const sheet = await createBlankSheet({ startDate, doc });
