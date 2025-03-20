@@ -81,12 +81,19 @@ const outputToTimesheet = async ({
 
   let firstDayToProcess = new Date(0);
 
+  // gets the current sheet, start date and row number
   const sheetStart = await getSheetStart(sheetsToProcess);
 
+  // Set the start date as the day IMO this should always be the first day of the month
+  // @todo move this logic to sheets helper
   if (sheetStart && sheetStart.sheetStartDate > firstDayToProcess) {
     firstDayToProcess = sheetStart.sheetStartDate;
+    firstDayToProcess.setDate(1)
+    sheetStart.sheetStartDate = firstDayToProcess
+    sheetStart.sheetStartRow = 2 // always set to the top row
   }
 
+  // grab the entries for these dates
   const databaseEntries = await getDatabaseEntries({
     fromStartDate: firstDayToProcess,
     toStartDate: lastDayToProcess,
