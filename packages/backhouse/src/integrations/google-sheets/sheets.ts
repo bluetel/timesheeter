@@ -57,7 +57,11 @@ export const getSheetStart = async (sheetsToProcess: SheetToProcess[]) => {
 
   // Scenario for an empty timesheet
   if (lastDateEntryRow === null) {
-    return { sheet, sheetStartDate, sheetStartRow: DEFAULT_FIRST_ENTRY_ROW };
+    return {
+      sheet,
+      sheetStartDate: getDefaultStartDate(),
+      sheetStartRow: DEFAULT_FIRST_ENTRY_ROW,
+    };
   }
 
   // The dates are in the format "26 Friday" so we need to extract the date
@@ -99,10 +103,20 @@ export const getSheetStart = async (sheetsToProcess: SheetToProcess[]) => {
 
   return {
     sheet,
-    sheetStartDate: startDate,
-    sheetStartRow: startRow,
+    sheetStartDate: getDefaultStartDate(startDate),
+    sheetStartRow: DEFAULT_FIRST_ENTRY_ROW,
   };
 };
+
+export const getDefaultStartDate = (date?:Date) => {
+  // Go back to start of last month or 2 months from the last date
+  const firstDayToProcess = date ?? new Date();
+  firstDayToProcess.setUTCDate(1)
+  firstDayToProcess.setUTCMonth(firstDayToProcess.getUTCMonth() - 2)
+  firstDayToProcess.setUTCHours(0, 0, 0, 0)
+
+  return firstDayToProcess
+}
 
 const sheetTitleToDate = (title: string) => {
   // Split the title by spaces and get the first 2 words
@@ -140,24 +154,21 @@ export const filterExistingSheets = (sheets: GoogleSpreadsheetWorksheet[]) =>
 
 export const applyTransforms = async ({
   transformedData,
-  sheetStart,
   doc,
   firstDayToProcess,
   lastDayToProcess,
 }: {
   transformedData: TransformedData[];
-  sheetStart: SheetStart;
   doc: GoogleSpreadsheet;
   firstDayToProcess: Date;
   lastDayToProcess: Date;
 }) => {
   const date = new Date(firstDayToProcess);
+  // we always remove the last two months from the start date
   let cursor = await createSheetStartIfBlank({
     doc,
-    sheetStart,
     startDate: date,
   });
-
   while (date <= lastDayToProcess) {
     cursor = await updateCursor({
       doc,
@@ -186,19 +197,24 @@ export const applyTransforms = async ({
   }
 };
 
+const deleteSheet = async (sheet: SheetToProcess) => {
+  await sheet.sheet.delete()
+}
+
 const createSheetStartIfBlank = async ({
   doc,
-  startDate,
-  sheetStart,
+  startDate
 }: {
   doc: GoogleSpreadsheet;
   startDate: Date;
-  sheetStart: SheetStart;
 }) => {
-  if (sheetStart) {
-    // If we have a sheet remove the sheet and create a new one.
-    await sheetStart.sheet.delete()
+  let sheets = filterExistingSheets(doc.sheetsByIndex)
+  if (sheets.length > 1) {
+    // if there is more than 1 sheet then filter the last 2 months
+    sheets = sheets.filter((sheet) => sheet.sheetStartDate > startDate)
   }
+  // remove the sheets we don't need
+  await Promise.all(sheets.map(sheet => deleteSheet(sheet)))
 
   const sheet = await createBlankSheet({ startDate, doc });
 
