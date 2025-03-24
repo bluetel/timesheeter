@@ -1,6 +1,6 @@
 import { getPrismaClient, type ParsedIntegration } from '@timesheeter/web';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
-import { applyTransforms, filterExistingSheets, getSheetStart } from './sheets';
+import {applyTransforms, filterExistingSheets, getDefaultStartDate, getSheetStart} from './sheets';
 import { getDatabaseEntries, getDatabaseEntriesStartDate } from './database-entries';
 import { getTransformedSheetData } from './transformer';
 
@@ -79,14 +79,11 @@ const outputToTimesheet = async ({
   lastDayToProcess.setUTCDate(lastDayToProcess.getUTCDate() - commitDelayDays);
   lastDayToProcess.setUTCHours(0, 0, 0, 0);
 
-  let firstDayToProcess = new Date(0);
+  // First day to process should be start of last month
+  const startSheet = await getSheetStart(sheetsToProcess)
+  let firstDayToProcess = startSheet?.sheetStartDate ?? getDefaultStartDate()
 
-  const sheetStart = await getSheetStart(sheetsToProcess);
-
-  if (sheetStart && sheetStart.sheetStartDate > firstDayToProcess) {
-    firstDayToProcess = sheetStart.sheetStartDate;
-  }
-
+  // grab the entries for these dates
   const databaseEntries = await getDatabaseEntries({
     fromStartDate: firstDayToProcess,
     toStartDate: lastDayToProcess,
@@ -114,7 +111,6 @@ const outputToTimesheet = async ({
 
   await applyTransforms({
     transformedData,
-    sheetStart,
     doc,
     firstDayToProcess,
     lastDayToProcess,
