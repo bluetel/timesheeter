@@ -31,88 +31,19 @@ export const getSheetStart = async (sheetsToProcess: SheetToProcess[]) => {
 
   const mostRecentSheet = sheetsToProcess[0];
 
-  // Loop down DATE_COLUMN until we find 2 consecutive empty rows
   const { sheet, sheetStartDate } = mostRecentSheet;
-
-  await sheet.loadCells();
-
-  const { rowCount } = sheet;
-
-  let lastDateEntryRow = null as number | null;
-
-  for (let i = rowCount - 1; i > HEADER_ROW; i--) {
-    const dateCell = sheet.getCell(i, DATE_COLUMN);
-
-    // Check if date cell is 'Date' if so return
-    if (dateCell.value === 'Date') {
-      // Plus 1 as this is the row after the header
-      return { sheet, sheetStartDate, sheetStartRow: i + ENTRY_SPACING + 1 };
-    }
-
-    if (dateCell.value) {
-      lastDateEntryRow = i;
-      break;
-    }
-  }
-
-  // Scenario for an empty timesheet
-  if (lastDateEntryRow === null) {
-    return {
-      sheet,
-      sheetStartDate: getDefaultStartDate(),
-      sheetStartRow: DEFAULT_FIRST_ENTRY_ROW,
-    };
-  }
-
-  // The dates are in the format "26 Friday" so we need to extract the date
-  const lastEntryCellValue = sheet.getCell(lastDateEntryRow, DATE_COLUMN).value;
-
-  if (typeof lastEntryCellValue !== 'string' && typeof lastEntryCellValue !== 'number') {
-    throw new Error(`Invalid date cell value, expected string or number, got ${typeof lastEntryCellValue}`);
-  }
-
-  const startDate = parseCellBasedStartDate({
-    lastEntryCellValue,
-    startMonthIndex: sheetStartDate.getUTCMonth(),
-    startYear: sheetStartDate.getUTCFullYear(),
-  });
-
-  let startRow = 0;
-
-  // Keep going down from last entry row until we find an empty row
-  for (let i = lastDateEntryRow; i <= rowCount; i++) {
-    let allEmpty = true;
-    for (let j = 0; j < COLUMN_COUNT; j++) {
-      const cell = sheet.getCell(i, j);
-
-      if (cell.value) {
-        allEmpty = false;
-        break;
-      }
-    }
-
-    if (allEmpty) {
-      startRow = i + ENTRY_SPACING;
-      break;
-    }
-  }
-
-  if (startRow === 0) {
-    throw new Error('Failed to find a start row');
-  }
-
   return {
     sheet,
-    sheetStartDate: getDefaultStartDate(startDate),
+    sheetStartDate: getDefaultStartDate(sheetStartDate), // we are able to pass the last sheet start date for backfill
     sheetStartRow: DEFAULT_FIRST_ENTRY_ROW,
   };
 };
 
 export const getDefaultStartDate = (date?:Date) => {
-  // Go back to start of last month or 2 months from the last date
+  // Go back to start of last month or 1 month from the last date
   const firstDayToProcess = date ?? new Date();
   firstDayToProcess.setUTCDate(1)
-  firstDayToProcess.setUTCMonth(firstDayToProcess.getUTCMonth() - 2)
+  firstDayToProcess.setUTCMonth(firstDayToProcess.getUTCMonth() - 1)
   firstDayToProcess.setUTCHours(0, 0, 0, 0)
 
   return firstDayToProcess
@@ -195,10 +126,12 @@ export const applyTransforms = async ({
 
     date.setUTCDate(date.getUTCDate() + 1);
   }
+  // sleep 10 between sheets
+  await sleep(10)
 };
 
-const deleteSheet = async (sheet: SheetToProcess) => {
-  await sheet.sheet.delete()
+const sleep = (seconds: number): Promise<void> => {
+  return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }
 
 const createSheetStartIfBlank = async ({
@@ -208,14 +141,6 @@ const createSheetStartIfBlank = async ({
   doc: GoogleSpreadsheet;
   startDate: Date;
 }) => {
-  let sheets = filterExistingSheets(doc.sheetsByIndex)
-  if (sheets.length > 1) {
-    // if there is more than 1 sheet then filter the last 2 months
-    sheets = sheets.filter((sheet) => sheet.sheetStartDate > startDate)
-  }
-  // remove the sheets we don't need
-  await Promise.all(sheets.map(sheet => deleteSheet(sheet)))
-
   const sheet = await createBlankSheet({ startDate, doc });
 
   return {
