@@ -98,11 +98,6 @@ const outputToTimesheet = async ({
     return
   }
 
-  // We can't process entries before when we first started recording them
-  if (databaseEntriesBasedStartDate > firstDayToProcess) {
-    firstDayToProcess = databaseEntriesBasedStartDate;
-  }
-
   const transformedData = await getTransformedSheetData({
     databaseEntries,
     firstDayToProcess,
