@@ -101,11 +101,19 @@ export const applyTransforms = async ({
     startDate: date,
   });
   while (date <= lastDayToProcess) {
+    const previousSheet = cursor.currentSheet
+
     cursor = await updateCursor({
       doc,
       newDate: date,
       ...cursor,
     });
+
+    // save each month vs each day
+    if (cursor.currentSheet.sheetId !== previousSheet.sheetId) {
+      await saveSheet(previousSheet)
+    }
+
     // Find transformed data for this date
     const dataForDate = transformedData.filter((data) => data.date.getTime() === date.getTime());
 
@@ -120,15 +128,19 @@ export const applyTransforms = async ({
         }
         cursor.currentRow += data.cells.length + ENTRY_SPACING;
       }
-
-      await cursor.currentSheet.saveUpdatedCells();
     }
 
     date.setUTCDate(date.getUTCDate() + 1);
   }
-  // sleep 10 between sheets
+  // final save catch all
+  await saveSheet(cursor.currentSheet)
   await sleep(10)
 };
+
+const saveSheet = async (sheet: GoogleSpreadsheetWorksheet) => {
+  console.log('Save Sheet', sheet.title)
+  await sheet.saveUpdatedCells()
+}
 
 const sleep = (seconds: number): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, seconds * 1000));
