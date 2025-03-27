@@ -81,7 +81,7 @@ const outputToTimesheet = async ({
 
   // First day to process should be start of last month
   const startSheet = await getSheetStart(sheetsToProcess)
-  let firstDayToProcess = startSheet?.sheetStartDate ?? getDefaultStartDate()
+  const firstDayToProcess = startSheet?.sheetStartDate ?? getDefaultStartDate()
 
   // grab the entries for these dates
   const databaseEntries = await getDatabaseEntries({
