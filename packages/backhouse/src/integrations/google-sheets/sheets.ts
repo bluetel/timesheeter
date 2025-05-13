@@ -3,6 +3,7 @@ import { type GoogleSpreadsheet, type GoogleSpreadsheetWorksheet } from 'google-
 import { monthYearToDate, parseCellBasedStartDate } from './dates';
 import { type TransformedData } from './transformer';
 import { createBlankSheet, addDefaultHeadings } from './blank-sheet';
+import * as console from "node:console";
 
 const HEADER_ROW = 0;
 
@@ -134,7 +135,7 @@ export const applyTransforms = async ({
   }
   // final save catch all
   await saveSheet(cursor.currentSheet)
-  await sleep(10)
+  await sleep(1)
 };
 
 const saveSheet = async (sheet: GoogleSpreadsheetWorksheet) => {
@@ -143,6 +144,7 @@ const saveSheet = async (sheet: GoogleSpreadsheetWorksheet) => {
 }
 
 const sleep = (seconds: number): Promise<void> => {
+  console.log(`Sleeping ${seconds} seconds`)
   return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }
 

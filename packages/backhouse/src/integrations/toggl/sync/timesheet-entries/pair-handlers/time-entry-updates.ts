@@ -3,7 +3,7 @@ import { type EvaluatedTaskPair } from '../../tasks';
 import { type TimesheetEntryPair, type TimesheeterTimesheetEntry, type TogglTimeEntry } from '../data';
 import { updateTimesheeterTimesheetEntry, updateTogglTimeEntry } from '../mutations';
 
-export const handleTwoWayUpdates = async ({
+export const handleTimeEntryUpdates = async ({
   context,
   togglTimeEntry,
   timesheeterTimesheetEntry,
@@ -22,20 +22,13 @@ export const handleTwoWayUpdates = async ({
     return { togglTimeEntry, timesheeterTimesheetEntry };
   }
 
-  // Check to see which project has been updated more recently, then copy the data from the newer entry to the older one
-
-  if (togglTimeEntry.at > timesheeterTimesheetEntry.updatedAt) {
-    // Update the timesheeter timesheet entry from toggl
-    return handleUpdateTimesheeterTimesheetEntry({
-      context,
-      togglTimeEntry,
-      timesheeterTimesheetEntry,
-      syncedTaskPairs,
-    });
-  }
-
-  // Update the toggl time entry from timesheeter
-  return handleUpdateTogglTimeEntry({ context, togglTimeEntry, timesheeterTimesheetEntry });
+  // Update the timesheeter timesheet entry from toggl
+  return handleUpdateTimesheeterTimesheetEntry({
+    context,
+    togglTimeEntry,
+    timesheeterTimesheetEntry,
+    syncedTaskPairs,
+  });
 };
 
 const timesheetEntriesAreTheSame = (
