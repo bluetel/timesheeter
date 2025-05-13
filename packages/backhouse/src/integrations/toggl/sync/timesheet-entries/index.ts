@@ -2,7 +2,7 @@ import { type TogglIntegrationContext } from '../../lib';
 import { type EvaluatedTaskPair } from '../tasks';
 import { type EvaluatedTimesheetEntryPair, type TimesheetEntryPair, createTimesheetEntryPairs } from './data';
 import { deleteTimesheeterTimesheetEntry, deleteTogglTimeEntry } from './mutations';
-import { handleTwoWayUpdates, handleCreateTimesheeterEntry, handleCreateTogglEntry } from './pair-handlers';
+import { handleTimeEntryUpdates, handleCreateTimesheeterEntry, handleCreateTogglEntry } from './pair-handlers';
 
 export const syncTimesheetEntries = async ({
   context,
@@ -16,7 +16,7 @@ export const syncTimesheetEntries = async ({
   // As we update the timesheeter timesheet entries in the loop, we need to store the updated imesheet entries
   const updatedTimesheetEntryPairs = [] as TimesheetEntryPair[];
 
-  // Loop through all project pairs and create/update/delete imesheet entries as needed
+  // Loop through all project pairs and create/update/delete timesheet entries as needed
   for (const timesheetEntryPair of timesheetEntryPairs) {
     try {
       const { togglTimeEntry, timesheeterTimesheetEntry } = timesheetEntryPair;
@@ -31,7 +31,7 @@ export const syncTimesheetEntries = async ({
         // If both imesheet entries exist and not deleted, determine which one is newer and update the older one with the newer one
         if (!togglTimeEntry.deleted && !timesheeterTimesheetEntry.deleted) {
           updatedTimesheetEntryPairs.push(
-            await handleTwoWayUpdates({ context, togglTimeEntry, timesheeterTimesheetEntry, syncedTaskPairs })
+            await handleTimeEntryUpdates({ context, togglTimeEntry, timesheeterTimesheetEntry, syncedTaskPairs })
           );
           continue;
         }
