@@ -14,7 +14,7 @@ type NavigationItem = {
 
 export const navigation = [
   { name: "Dashboard", path: "/dashboard", icon: HomeIcon },
-  { name: "Monthly Time Summary", path: "/monthly-time", icon: ClockIcon },
+  // { name: "Monthly Time Summary", path: "/monthly-time", icon: ClockIcon },
   { name: "Integrations", path: "/integrations", icon: IntegrationIcon },
   { name: "Projects", path: "/projects", icon: ProjectIcon },
   { name: "Tasks", path: "/tasks", icon: TaskIcon },
