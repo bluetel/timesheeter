@@ -179,6 +179,7 @@ export const monthlyTimeRouter = createTRPCRouter({
             toilHours: Math.round(-day.toilHours * 100) / 100,
             nonWorkingHours: Math.round(day.nonWorkingHours * 100) / 100,
             workingHours: Math.round(day.workingHours * 100) / 100,
+            totalHours: Math.round(day.totalHours * 100) / 100,
           }))
           .sort(
             (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
