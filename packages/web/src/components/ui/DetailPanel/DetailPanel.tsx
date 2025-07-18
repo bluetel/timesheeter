@@ -12,23 +12,24 @@ export type DetailPanelProps = {
     endButtons?: {
       onEdit?: () => void;
       onDelete?: () => void;
+      custom?: React.ReactNode;
     };
   };
   tabs:
-  | {
-    multiple: false;
-    body: React.ReactNode;
-    subDescription?: string;
-  }
-  | {
-    multiple: true;
-    bodies: {
-      label: string;
-      icon?: IconType;
-      body: React.ReactNode;
-      subDescription?: string;
-    }[];
-  };
+    | {
+        multiple: false;
+        body: React.ReactNode;
+        subDescription?: string;
+      }
+    | {
+        multiple: true;
+        bodies: {
+          label: string;
+          icon?: IconType;
+          body: React.ReactNode;
+          subDescription?: string;
+        }[];
+      };
 };
 
 export const DetailPanel = ({ header, content, tabs }: DetailPanelProps) => {
@@ -58,6 +59,7 @@ export const DetailPanel = ({ header, content, tabs }: DetailPanelProps) => {
             </div>
           </div>
           <div className="flex items-center space-x-3">
+            {content.endButtons?.custom && content.endButtons.custom}
             {content.endButtons?.onEdit && (
               <button
                 type="button"
@@ -88,7 +90,8 @@ export const DetailPanel = ({ header, content, tabs }: DetailPanelProps) => {
             }))}
           />
         )}
-        {((tabs.multiple && tabs.bodies[selectedTab]?.subDescription) || (!tabs.multiple && tabs.subDescription)) && (
+        {((tabs.multiple && tabs.bodies[selectedTab]?.subDescription) ||
+          (!tabs.multiple && tabs.subDescription)) && (
           <p className="text-sm text-gray-500">
             {tabs.multiple
               ? tabs.bodies[selectedTab]?.subDescription
