@@ -133,6 +133,29 @@ export const monthlyTimeRouter = createTRPCRouter({
       const workingDaysInMonth = getWorkingDaysInMonth(input.year, input.month);
       const targetHours = workingDaysInMonth * 8; // 8 hours per working day
 
+      // Add blank working days to the breakdown
+      const daysInMonth = new Date(Date.UTC(input.year, input.month, 0)).getUTCDate();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(Date.UTC(input.year, input.month - 1, day));
+        const dayOfWeek = date.getUTCDay();
+        
+        // Only include working days (Monday-Friday)
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          const dateKey = date.toISOString().split("T")[0]!;
+          
+          if (!dailyBreakdown.has(dateKey)) {
+            dailyBreakdown.set(dateKey, {
+              date: dateKey,
+              totalHours: 0,
+              toilHours: 0,
+              nonWorkingHours: 0,
+              workingHours: 0,
+              entries: [],
+            });
+          }
+        }
+      }
+
       // Calculate summary
       const netWorkingHours = workingHours + nonWorkingHours - toilHours;
       const hoursOverUnder = netWorkingHours - targetHours;
