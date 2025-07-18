@@ -167,8 +167,18 @@ const MonthlyTime = ({
     },
     {
       label: {
+        title: "Overtime Hours",
+        description: "Additional hours worked beyond standard 8-hour days",
+      },
+      field: {
+        variant: "text" as const,
+        value: formatHours(monthlyStats?.summary.overtimeHours || 0),
+      },
+    },
+    {
+      label: {
         title: "Net Working Hours",
-        description: "Working + Non-working - TOIL hours",
+        description: "Standard working hours + overtime + non-working hours",
       },
       field: {
         variant: "text" as const,
@@ -220,6 +230,9 @@ const MonthlyTime = ({
                 TOIL Hours
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Overtime Hours
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Non-Working Hours
               </th>
             </tr>
@@ -240,7 +253,10 @@ const MonthlyTime = ({
                   {formatHours(day.workingHours)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatHours(day.toilHours)}
+                  {formatHours(Math.abs(day.toilHours))}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {formatHours(day.overtimeHours)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {formatHours(day.nonWorkingHours)}

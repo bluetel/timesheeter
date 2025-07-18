@@ -56,11 +56,12 @@ export const monthlyTimeRouter = createTRPCRouter({
         },
       });
 
-      // Calculate summary statistics
+      // Calculate summary statistics with proper overtime logic
       let totalHours = 0;
       let toilHours = 0;
       let nonWorkingHours = 0;
       let workingHours = 0;
+      let overtimeHours = 0;
 
       // Group entries by day
       const dailyBreakdown = new Map<
@@ -71,47 +72,96 @@ export const monthlyTimeRouter = createTRPCRouter({
           toilHours: number;
           nonWorkingHours: number;
           workingHours: number;
+          overtimeHours: number;
           entries: typeof timesheetEntries;
         }
       >();
 
+      // Process entries day by day to calculate proper overtime
+      const entriesByDay = new Map<string, typeof timesheetEntries>();
+      
       timesheetEntries.forEach((entry) => {
-        const durationMs = entry.end.getTime() - entry.start.getTime();
-        const durationHours = durationMs / (1000 * 60 * 60);
-
         const dateKey = entry.start.toISOString().split("T")[0]!;
-
-        if (!dailyBreakdown.has(dateKey)) {
-          dailyBreakdown.set(dateKey, {
-            date: dateKey,
-            totalHours: 0,
-            toilHours: 0,
-            nonWorkingHours: 0,
-            workingHours: 0,
-            entries: [],
-          });
+        if (!entriesByDay.has(dateKey)) {
+          entriesByDay.set(dateKey, []);
         }
+        entriesByDay.get(dateKey)!.push(entry);
+      });
 
-        const dayData = dailyBreakdown.get(dateKey)!;
-        dayData.totalHours += durationHours;
-        dayData.entries.push(entry);
+      // Calculate overtime for each day
+      entriesByDay.forEach((dayEntries, dateKey) => {
+        const date = new Date(dateKey);
+        const dayOfWeek = date.getUTCDay();
+        const isWorkDay = dayOfWeek !== 0 && dayOfWeek !== 6; // Monday-Friday
+        
+        let dayTotalHours = 0;
+        let dayToilHours = 0;
+        let dayNonWorkingHours = 0;
+        let dayWorkingHours = 0;
+        let dayOvertimeHours = 0;
+        
+        // Sort entries by start time for proper overtime calculation
+        const sortedEntries = dayEntries.sort((a, b) => a.start.getTime() - b.start.getTime());
+        
+        let timeWorkedInDay = 0;
+        
+        sortedEntries.forEach((entry) => {
+          const durationMs = entry.end.getTime() - entry.start.getTime();
+          const durationHours = durationMs / (1000 * 60 * 60);
+          
+          dayTotalHours += durationHours;
+          
+          // Categorize hours
+          if (
+            entry.task.name.toUpperCase() === TOIL_TASK_NAME &&
+            entry.task.project.name === NON_WORKING_PROJECT_NAME
+          ) {
+            dayToilHours += durationHours;
+            // TOIL counts as negative overtime
+            dayOvertimeHours -= durationHours;
+          } else if (entry.task.project.name === NON_WORKING_PROJECT_NAME) {
+            dayNonWorkingHours += durationHours;
+            // Non-working hours don't count toward overtime on work days
+            if (!isWorkDay) {
+              dayOvertimeHours += durationHours;
+            }
+          } else {
+            dayWorkingHours += durationHours;
+            
+            // Calculate overtime for working hours
+            if (isWorkDay) {
+              if (timeWorkedInDay >= 8) {
+                // All of this entry is overtime
+                dayOvertimeHours += durationHours;
+              } else if (timeWorkedInDay + durationHours > 8) {
+                // Only part of this entry is overtime
+                dayOvertimeHours += (timeWorkedInDay + durationHours) - 8;
+              }
+              timeWorkedInDay += durationHours;
+            } else {
+              // Non-work day: all working hours are overtime
+              dayOvertimeHours += durationHours;
+            }
+          }
+        });
 
-        // Categorize hours
-        if (
-          entry.task.name.toUpperCase() === TOIL_TASK_NAME &&
-          entry.task.project.name === NON_WORKING_PROJECT_NAME
-        ) {
-          dayData.toilHours += durationHours;
-          toilHours += durationHours;
-        } else if (entry.task.project.name === NON_WORKING_PROJECT_NAME) {
-          dayData.nonWorkingHours += durationHours;
-          nonWorkingHours += durationHours;
-        } else {
-          dayData.workingHours += durationHours;
-          workingHours += durationHours;
-        }
+        // Store daily breakdown
+        dailyBreakdown.set(dateKey, {
+          date: dateKey,
+          totalHours: dayTotalHours,
+          toilHours: dayToilHours,
+          nonWorkingHours: dayNonWorkingHours,
+          workingHours: dayWorkingHours,
+          overtimeHours: dayOvertimeHours,
+          entries: dayEntries,
+        });
 
-        totalHours += durationHours;
+        // Add to summary totals
+        totalHours += dayTotalHours;
+        toilHours += dayToilHours;
+        nonWorkingHours += dayNonWorkingHours;
+        workingHours += dayWorkingHours;
+        overtimeHours += dayOvertimeHours;
       });
 
       // Calculate target hours based on working days in the month
@@ -152,14 +202,16 @@ export const monthlyTimeRouter = createTRPCRouter({
               toilHours: 0,
               nonWorkingHours: 0,
               workingHours: 0,
+              overtimeHours: 0,
               entries: [],
             });
           }
         }
       }
 
-      // Calculate summary
-      const netWorkingHours = workingHours + nonWorkingHours - toilHours;
+      // Calculate summary - net working hours should be capped at 8 hours per working day plus overtime
+      const standardWorkingHours = Math.min(workingHours, workingDaysInMonth * 8);
+      const netWorkingHours = standardWorkingHours + nonWorkingHours + overtimeHours;
       const hoursOverUnder = netWorkingHours - targetHours;
 
       return {
@@ -168,6 +220,7 @@ export const monthlyTimeRouter = createTRPCRouter({
           workingHours: Math.round(workingHours * 100) / 100,
           toilHours: Math.round(toilHours * 100) / 100,
           nonWorkingHours: Math.round(nonWorkingHours * 100) / 100,
+          overtimeHours: Math.round(overtimeHours * 100) / 100,
           netWorkingHours: Math.round(netWorkingHours * 100) / 100,
           targetHours,
           hoursOverUnder: Math.round(hoursOverUnder * 100) / 100,
@@ -175,10 +228,11 @@ export const monthlyTimeRouter = createTRPCRouter({
         dailyBreakdown: Array.from(dailyBreakdown.values())
           .map((day) => ({
             ...day,
-            netHours: Math.round((day.totalHours - day.toilHours) * 100) / 100,
+            netHours: Math.round((Math.min(day.workingHours, 8) + day.nonWorkingHours + day.overtimeHours) * 100) / 100,
             toilHours: Math.round(-day.toilHours * 100) / 100,
             nonWorkingHours: Math.round(day.nonWorkingHours * 100) / 100,
             workingHours: Math.round(day.workingHours * 100) / 100,
+            overtimeHours: Math.round(day.overtimeHours * 100) / 100,
             totalHours: Math.round(day.totalHours * 100) / 100,
           }))
           .sort(
