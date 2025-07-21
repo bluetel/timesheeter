@@ -57,7 +57,6 @@ export const timeEntriesPost = async ({
 };
 
 export const timeEntriesPut = async ({
-  axiosClient,
   path,
   body,
 }: {
@@ -68,12 +67,13 @@ export const timeEntriesPut = async ({
   };
   body: TogglTimeEntryMutation;
 }) => {
-  const response = await axiosClient.put(
-    `${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/time_entries/${path.time_entry_id}`,
-    body
-  );
+  console.log(`Attempted to update time entry in toggle but this is disabled for now: ${path.time_entry_id}: ${JSON.stringify(body)}`);
+  // const response = await axiosClient.put(
+  //   `${API_BASE_URL}/api/v9/workspaces/${path.workspace_id}/time_entries/${path.time_entry_id}`,
+  //   body
+  // );
 
-  return togglTimeEntrySchema.parse(response.data);
+  // return togglTimeEntrySchema.parse(response.data);
 };
 
 export const timeEntriesDelete = async (_: {
