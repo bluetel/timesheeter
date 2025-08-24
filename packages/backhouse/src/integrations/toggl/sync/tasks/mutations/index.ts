@@ -1,12 +1,4 @@
-import {
-  type ProjectConfig,
-  deleteTask,
-  encrypt,
-  getDefaultTaskConfig,
-  matchTaskRegex,
-  parseProject,
-  parseTask,
-} from '@timesheeter/web';
+import { deleteTask, parseTask } from '@timesheeter/web';
 import { toggl } from '../../../api';
 import { type TogglIntegrationContext } from '../../../lib';
 import { type TaskPair, type TimesheeterTask, type TogglTask, timesheeterTaskSelectQuery } from '../data';
@@ -43,116 +35,6 @@ export const updateTimesheeterTask = async ({
   return {
     togglTask,
     timesheeterTask: updatedTimesheeterTask,
-  };
-};
-
-export const createTimesheeterTask = async ({
-  context: { prisma, workspaceId },
-  togglTask,
-  timesheeterProjectId,
-}: {
-  context: TogglIntegrationContext;
-  togglTask: TogglTask & {
-    deleted: false;
-  };
-  timesheeterProjectId: string;
-}): Promise<TaskPair> => {
-  const matchResult = matchTaskRegex(togglTask.name);
-
-  const getTicketForTask = async () => {
-    if (matchResult.variant === 'description-based') {
-      return undefined;
-    }
-
-    let taskPrefix = await prisma.taskPrefix.findUnique({
-      where: {
-        prefix_projectId: {
-          prefix: matchResult.prefix,
-          projectId: timesheeterProjectId,
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!taskPrefix) {
-      taskPrefix = await prisma.taskPrefix.create({
-        data: {
-          projectId: timesheeterProjectId,
-          prefix: matchResult.prefix,
-          workspaceId,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      const timesheeterProject = await prisma.project
-        .findUniqueOrThrow({
-          where: {
-            id: timesheeterProjectId,
-          },
-          select: {
-            configSerialized: true,
-          },
-        })
-        .then((project) => parseProject(project, false));
-
-      const updatedConfig = {
-        ...timesheeterProject.config,
-        taskPrefixes: [...timesheeterProject.config.taskPrefixes, matchResult.prefix],
-      } satisfies ProjectConfig;
-
-      await prisma.project.update({
-        where: {
-          id: timesheeterProjectId,
-        },
-        data: {
-          configSerialized: encrypt(JSON.stringify(updatedConfig)),
-        },
-        select: {
-          id: true,
-        },
-      });
-    }
-
-    return {
-      create: {
-        number: matchResult.taskNumber,
-        workspace: {
-          connect: {
-            id: workspaceId,
-          },
-        },
-        taskPrefix: {
-          connect: {
-            id: taskPrefix.id,
-          },
-        },
-      },
-    };
-  };
-
-  console.log('Creating timesheeter task', togglTask.name, matchResult);
-
-  const timesheeterTask = await prisma.task
-    .create({
-      data: {
-        name: matchResult.variant === 'description-based' ? matchResult.taskName : '',
-        workspaceId,
-        configSerialized: encrypt(JSON.stringify(getDefaultTaskConfig())),
-        togglTaskId: togglTask.id,
-        projectId: timesheeterProjectId,
-        ticketForTask: await getTicketForTask(),
-      },
-      select: timesheeterTaskSelectQuery,
-    })
-    .then((task) => parseTask(task, false));
-
-  return {
-    togglTask,
-    timesheeterTask,
   };
 };
 
@@ -282,3 +164,4 @@ export const deleteTogglTask = async ({
 };
 
 export * from './update-toggl-task';
+export * from './create-timesheeter-task';
