@@ -32,12 +32,6 @@ export const handleTogglIntegration = async ({
 
   const syncedTaskPairs = await syncTasks({ context, syncedProjectPairs });
 
-  // we dont need to sync entries anymore
-  // const syncedTimesheetEntryPairs = await syncTimesheetEntries({
-  //   context,
-  //   syncedTaskPairs,
-  // });
-
   // We can handle these concurrently to speed things up
   await Promise.all([
     applyTaskDescriptions({ context, syncedTaskPairs }),
@@ -46,8 +40,7 @@ export const handleTogglIntegration = async ({
     cleanupDeletedObjects({
       context,
       syncedProjectPairs,
-      syncedTaskPairs,
-      syncedTimesheetEntryPairs,
+      syncedTaskPairs
     }),
   ]);
 };
