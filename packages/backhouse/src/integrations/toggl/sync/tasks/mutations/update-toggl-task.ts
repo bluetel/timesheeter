@@ -35,7 +35,7 @@ export const updateTogglTask = async ({
     },
     body: {
       // Toggl Tasks must have a name
-      name: timesheeterTask.name ? timesheeterTask.name : 'Unnamed task',
+      name: timesheeterTask.name ? timesheeterTask.name : `Unnamed task - ${togglTask.id}`,
       active: true,
       estimated_seconds: 0,
       workspace_id: context.togglWorkspaceId,
