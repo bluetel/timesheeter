@@ -79,7 +79,7 @@ export const projectsRouter = createTRPCRouter({
           },
         },
         orderBy: {
-          updatedAt: 'desc',
+          name: 'asc',
         },
       });
     }),
