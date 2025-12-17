@@ -4,9 +4,10 @@ export const chronRegex =
 export const hostnameRegex =
   /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$/;
 
-export const taskPrefixRegex = /^[a-zA-Z0-9]{1,8}$/;
+export const taskPrefixRegex = /^[a-zA-Z0-9]{2,8}$/;
 
-export const taskRegex = /^([a-zA-Z0-9]{1,8})\s*-\s*([0-9]+)(?:\s*[-:]?\s*(.+))?$/;
+export const taskRegex =
+  /^([A-Za-z0-9]{2,8})-([0-9]+)(?:\s*[:\-]?\s*(?:\1-\2[:\-]?\s*)*)?(?:\s*[:\-]?\s*(.+))?$/;
 
 export const monthYearRegex =
   /^(?:january|february|march|april|may|june|july|august|september|october|november|december)\s\d{2,4}$/i;
