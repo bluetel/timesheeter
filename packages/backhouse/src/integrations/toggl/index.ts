@@ -44,7 +44,7 @@ export const handleTogglIntegration = async ({
 
   // We can handle these concurrently to speed things up
   await Promise.all([
-    //applyTaskDescriptions({ context, syncedTaskPairs }),
+    applyTaskDescriptions({ context, syncedTaskPairs }),
 
     // Once an object has been confirmed as deleted, we can delete all delete references to it
     cleanupDeletedObjects({
