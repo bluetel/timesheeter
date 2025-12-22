@@ -45,7 +45,6 @@ export const applyTaskDescriptions = async ({
       if (togglMatchResult.variant === 'description-based') {
         return;
       }
-      console.log('timesheeterTask', timesheeterTask);
       const formattedTimesheeterTaskName = timesheeterTask.name.trim();
 
       if (togglMatchResult.description === formattedTimesheeterTaskName) {
@@ -54,12 +53,18 @@ export const applyTaskDescriptions = async ({
       if (formattedTimesheeterTaskName === '') {
         console.log('Task name is blank')
         return;
-        // does this mean that JIRA hasn't updated?
       }
-      console.log(
-        `${togglMatchResult.prefix}-${togglMatchResult.taskNumber}: ${formattedTimesheeterTaskName}`
-      );
 
+      const taskIdentifier = `${togglMatchResult.prefix}-${togglMatchResult.taskNumber}`;
+      const newTogglTaskName = formattedTimesheeterTaskName.startsWith(taskIdentifier)
+        ? formattedTimesheeterTaskName
+        : `${taskIdentifier}: ${formattedTimesheeterTaskName}`;
+
+      if (togglTask.name === newTogglTaskName) {
+        return;
+      }
+
+      console.log('update toggl task', newTogglTaskName);
       // update toggl
       await toggl.tasks.put({
         axiosClient: context.axiosClient,
@@ -67,10 +72,10 @@ export const applyTaskDescriptions = async ({
         body: {
           ...togglTask,
           estimated_seconds: 0,
-          name: `${togglMatchResult.prefix}-${togglMatchResult.taskNumber}: ${formattedTimesheeterTaskName}`,
+          name: newTogglTaskName,
         },
       });
-      console.log('update timesheeter task');
+
       //update timesheeter prefix and number?
       // const prisma = await getPrismaClient();
       // const taskPrefix = await prisma.taskPrefix.findFirst({

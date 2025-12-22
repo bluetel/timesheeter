@@ -26,13 +26,18 @@ export const updateTimesheeterTask = async ({
   timesheeterTask: TimesheeterTask;
   updatedTimesheeterProjectId: string;
 }): Promise<TaskPair> => {
+  const matchResult = matchTaskRegex(togglTask.name);
+  const updatedName = matchResult.variant === 'jira-based'
+    ? matchResult.description ?? ''
+    : matchResult.taskName;
+
   const updatedTimesheeterTask = await prisma.task
     .update({
       where: {
         id: timesheeterTask.id,
       },
       data: {
-        name: togglTask.name,
+        name: updatedName,
         togglTaskId: togglTask.id,
         projectId: updatedTimesheeterProjectId,
       },
