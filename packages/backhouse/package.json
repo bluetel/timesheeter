@@ -23,7 +23,7 @@
         "@harrytwigg/esbuild-node": "^2.0.6",
         "@types/google-spreadsheet": "^3.3.2",
         "@types/jira-client": "^7.1.6",
-        "@types/node": "^20.2.5",
+        "@types/node": "^24.0.0",
         "@typescript-eslint/eslint-plugin": "^5.59.9",
         "@typescript-eslint/parser": "^5.59.9",
         "esbuild": "^0.18.14",

@@ -57,12 +57,14 @@ export const listTasksProcedure = protectedProcedure
             select: {
               id: true,
               name: true,
+              togglProjectId: true,
             },
           },
           ticketForTask: {
             select: {
               id: true,
               number: true,
+              jiraTicketId: true,
               taskPrefix: {
                 select: {
                   id: true,

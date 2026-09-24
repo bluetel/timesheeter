@@ -1,7 +1,14 @@
 import { cleanupDeletedObjects } from './cleanup-deleted-objects';
 import { createTogglIntegrationContext, type TogglIntegration } from './lib';
 import { preSync } from './pre-sync';
-import { syncProjects, syncTasks, syncTimesheetEntries } from './sync';
+import {
+  EvaluatedTaskPair,
+  syncProjects,
+  syncTasks,
+  syncTimesheetEntries,
+  TimesheeterTask,
+  TogglTask,
+} from "./sync";
 import { applyTaskDescriptions } from './toggl-task-descriptions';
 
 export const handleTogglIntegration = async ({
@@ -25,17 +32,15 @@ export const handleTogglIntegration = async ({
 
   // If we don't do this, then we will end up with time entries that don't have a task,
   // timesheeter requires all time entries to have a task, and all tasks to have a project
+  console.log('Toggl: Presync');
+  // gets all time entries
   await preSync({ context });
 
   // Now we can sync projects, then tasks, then time entries
+  console.log("Toggl: syncProjects");
   const syncedProjectPairs = await syncProjects({ context });
-
+  console.log("Toggl: syncTasks");
   const syncedTaskPairs = await syncTasks({ context, syncedProjectPairs });
-
-  const syncedTimesheetEntryPairs = await syncTimesheetEntries({
-    context,
-    syncedTaskPairs,
-  });
 
   // We can handle these concurrently to speed things up
   await Promise.all([
@@ -45,8 +50,7 @@ export const handleTogglIntegration = async ({
     cleanupDeletedObjects({
       context,
       syncedProjectPairs,
-      syncedTaskPairs,
-      syncedTimesheetEntryPairs,
+      syncedTaskPairs
     }),
   ]);
 };

@@ -42,7 +42,6 @@ export const createTogglSyncRecords = async ({
   context: TogglIntegrationContext;
 }) => {
   // Create sync records for all new toggl entities if they don't exist already
-
   const createProjectPromises = Promise.all(
     preSyncData.togglProjects.map((project) =>
       context.prisma.togglSyncRecord.upsert({
@@ -87,31 +86,5 @@ export const createTogglSyncRecords = async ({
     )
   );
 
-  const createTimeEntryPromises = Promise.all(
-    preSyncData.togglTimeEntries.map((timeEntry) => {
-      if (!timeEntry.project_id) {
-        return Promise.resolve();
-      }
-
-      return context.prisma.togglSyncRecord.upsert({
-        where: {
-          workspaceId_category_togglEntityId_togglProjectId: {
-            workspaceId: context.workspaceId,
-            category: togglTimeEntrySyncRecordType,
-            togglEntityId: timeEntry.id,
-            togglProjectId: timeEntry.project_id,
-          },
-        },
-        update: {},
-        create: {
-          workspaceId: context.workspaceId,
-          category: togglTimeEntrySyncRecordType,
-          togglEntityId: timeEntry.id,
-          togglProjectId: timeEntry.project_id,
-        },
-      });
-    })
-  );
-
-  await Promise.all([createProjectPromises, createTaskPromises, createTimeEntryPromises]);
+  await Promise.all([createProjectPromises, createTaskPromises]);
 };

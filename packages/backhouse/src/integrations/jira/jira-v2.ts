@@ -42,7 +42,6 @@ export const handleV2JiraIntegration = async ({ integration }: { integration: Ji
     workspaceId: integration.workspaceId,
     taskPrefixIds: filteredTaskPrefixIds,
   });
-
   return Promise.all(
     tasks.map(async (task) => {
       if (!task.ticketForTask || task.ticketForTask.jiraTicketId) {
@@ -60,7 +59,7 @@ export const handleV2JiraIntegration = async ({ integration }: { integration: Ji
       }
 
       const parsedTicket = jiraIssueSchema.parse(jiraTicket);
-
+      console.log('JIRA update ticked', parsedTicket);
       return prisma.task.update({
         where: {
           id: task.id,

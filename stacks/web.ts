@@ -18,6 +18,7 @@ export const Web = ({ stack, app }: StackContext) => {
   // docs: https://docs.serverless-stack.com/constructs/NextjsSite
   const frontendSite = new NextjsSite(stack, "Next", {
     path: "packages/web",
+    runtime: "nodejs24.x",
     // Use the root hosted zone
     customDomain: {
       domainName: fqdn,

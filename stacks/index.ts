@@ -14,7 +14,7 @@ export default function main(app: sst.App) {
   Tags.of(app).add('timesheeter', `${app.stage}-${app.region}`);
 
   app.setDefaultFunctionProps({
-    runtime: 'nodejs18.x',
+    runtime: 'nodejs24.x',
   });
 
   app

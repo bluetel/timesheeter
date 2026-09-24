@@ -74,62 +74,93 @@ const useBasicDetails = (task: RouterOutputs['workspace']['tasks']['list']['data
   const details: BasicDetailListItem[] = [
     {
       label: {
-        title: 'ID',
-        description: 'The unique identifier for this task',
+        title: "ID",
+        description: "The unique identifier for this task",
       },
       field: {
-        variant: 'text',
+        variant: "text",
         value: task.id,
       },
     },
     {
       label: {
-        title: 'Project ID',
-        description: 'The ID of the parent project',
+        title: "Project ID",
+        description: "The ID of the parent project",
       },
       field: {
-        variant: 'text',
-        value: task.project?.id ?? '',
+        variant: "text",
+        value: task.project?.id ?? "",
       },
     },
     {
       label: {
-        title: 'Project Name',
-        description: 'The name of the parent project',
+        title: "Project Name",
+        description: "The name of the parent project",
       },
       field: {
-        variant: 'text',
-        value: task.project?.name ?? '',
+        variant: "text",
+        value: task.project?.name ?? "",
       },
     },
     {
       label: {
-        title: 'Name',
+        title: "Name",
         description: `Descriptive name for the task, e.g. "Fix paywall issues"`,
       },
       field: {
-        variant: 'text',
+        variant: "text",
         value: task.name,
       },
     },
     {
       label: {
-        title: 'Task prefix',
+        title: "Task prefix",
         description: "The prefix for the task, e.g. 'AC'",
       },
       field: {
-        variant: 'text',
-        value: task.ticketForTask?.taskPrefix.prefix ?? '',
+        variant: "text",
+        value: task.ticketForTask?.taskPrefix.prefix.toString() ?? "",
       },
     },
     {
       label: {
-        title: 'Task number',
-        description: 'The task number, excluding the workspace prefix',
+        title: "Task number",
+        description: "The task number, excluding the workspace prefix",
       },
       field: {
-        variant: 'text',
-        value: task.ticketForTask?.number.toString() ?? '',
+        variant: "text",
+        value: task.ticketForTask?.number.toString() ?? "",
+      },
+    },
+    //Add matching toggl Data
+    {
+      label: {
+        title: "Toggl Task ID",
+        description: "The toggl task ID of the task",
+      },
+      field: {
+        variant: "text",
+        value: `${task.togglTaskId}`,
+      },
+    },
+    {
+      label: {
+        title: "Toggl Project ID",
+        description: "The Toggl project ID",
+      },
+      field: {
+        variant: "text",
+        value: `${task.project.togglProjectId}`,
+      },
+      },
+    {
+      label: {
+        title: "JIRA Ticket ID",
+        description: "The JIRA assigned ID. This means it has synced with JIRA",
+      },
+      field: {
+        variant: "text",
+        value: `${task.ticketForTask?.jiraTicketId ?? ""}`,
       },
     },
     // Hidden as unsure if this feature will be used

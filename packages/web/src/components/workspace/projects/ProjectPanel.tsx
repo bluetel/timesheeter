@@ -76,32 +76,42 @@ const useBasicDetails = (project: RouterOutputs['workspace']['projects']['list']
   const details: BasicDetailListItem[] = [
     {
       label: {
-        title: 'ID',
-        description: 'The unique identifier for this project',
+        title: "ID",
+        description: "The unique identifier for this project",
       },
       field: {
-        variant: 'text',
+        variant: "text",
         value: project.id,
       },
     },
     {
       label: {
-        title: 'Name',
+        title: "Name",
         description: `Descriptive name for the project, e.g. "Acme Corp"`,
       },
       field: {
-        variant: 'text',
+        variant: "text",
         value: project.name,
       },
     },
     {
       label: {
-        title: 'Task Prefixes',
+        title: "Task Prefixes",
         description: `Prefix that can be added to tasks created by this project, e.g. "AC" for "AC-1234"`,
       },
       field: {
-        variant: 'text',
-        value: project.taskPrefixes.map(({ prefix }) => prefix).join(', '),
+        variant: "text",
+        value: project.taskPrefixes.map(({ prefix }) => prefix).join(", "),
+      },
+    },
+    {
+      label: {
+        title: "Toggl Project ID",
+        description: ``,
+      },
+      field: {
+        variant: "text",
+        value: `${project.togglProjectId}`,
       },
     },
   ];

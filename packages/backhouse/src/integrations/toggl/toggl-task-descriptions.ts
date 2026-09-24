@@ -1,4 +1,4 @@
-import { matchTaskRegex } from '@timesheeter/web';
+import {getPrismaClient, matchTaskRegex } from '@timesheeter/web';
 import { type EvaluatedTaskPair } from './sync';
 import { toggl } from './api';
 import { type TogglIntegrationContext } from './lib';
@@ -40,26 +40,87 @@ export const applyTaskDescriptions = async ({
       }
 
       const togglMatchResult = matchTaskRegex(togglTask.name);
-
+      console.log('togglMatchResult', togglMatchResult);
       // We only want to update tasks that have a task number
       if (togglMatchResult.variant === 'description-based') {
         return;
       }
-
       const formattedTimesheeterTaskName = timesheeterTask.name.trim();
 
-      if (togglMatchResult.description === formattedTimesheeterTaskName || formattedTimesheeterTaskName === '') {
+      if (togglMatchResult.description === formattedTimesheeterTaskName) {
+        return;
+      }
+      if (formattedTimesheeterTaskName === '') {
+        console.log('Task name is blank')
         return;
       }
 
+      const taskIdentifier = `${togglMatchResult.prefix}-${togglMatchResult.taskNumber}`;
+      const newTogglTaskName = formattedTimesheeterTaskName.startsWith(taskIdentifier)
+        ? formattedTimesheeterTaskName
+        : `${taskIdentifier}: ${formattedTimesheeterTaskName}`;
+
+      if (togglTask.name === newTogglTaskName) {
+        return;
+      }
+
+      console.log('update toggl task', newTogglTaskName);
+      // update toggl
       await toggl.tasks.put({
         axiosClient: context.axiosClient,
         path: { workspace_id: context.togglWorkspaceId, task_id: togglTask.id, project_id: togglTask.project_id },
         body: {
           ...togglTask,
           estimated_seconds: 0,
-          name: `${togglMatchResult.prefix}-${togglMatchResult.taskNumber}: ${formattedTimesheeterTaskName}`,
+          name: newTogglTaskName,
         },
       });
+
+      //update timesheeter prefix and number?
+      // const prisma = await getPrismaClient();
+      // const taskPrefix = await prisma.taskPrefix.findFirst({
+      //   where: {
+      //     prefix: togglMatchResult.prefix,
+      //   },
+      // });
+      //
+      // if (!taskPrefix) {
+      //   throw new Error(`TaskPrefix not found for ${togglMatchResult.prefix}`);
+      // }
+      // //making sure the prefix is set correctly
+      // await prisma.task.update({
+      //   where: {
+      //     id: timesheeterTask.id,
+      //   },
+      //   data: {
+      //     ticketForTask: {
+      //       upsert: {
+      //         update: {
+      //           taskPrefix: {
+      //             connect: {
+      //               id: taskPrefix.id,
+      //             },
+      //           },
+      //           number: togglMatchResult.taskNumber,
+      //           jiraTicketId: null,
+      //         },
+      //         create: {
+      //           taskPrefix: {
+      //             connect: {
+      //               id: taskPrefix.id,
+      //             },
+      //           },
+      //           number: togglMatchResult.taskNumber,
+      //           jiraTicketId: null,
+      //           workspace: {
+      //             connect: {
+      //               id: taskPrefix.workspaceId,
+      //             },
+      //           },
+      //         },
+      //       },
+      //     },
+      //   },
+      // });
     })
   );
