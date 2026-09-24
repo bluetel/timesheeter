@@ -19,6 +19,10 @@ export const Web = ({ stack, app }: StackContext) => {
   const frontendSite = new NextjsSite(stack, "Next", {
     path: "packages/web",
     runtime: "nodejs24.x",
+    // OpenNext leaves dangling symlinks (absolute .bin links into a deleted temp dir, pruned pnpm links)
+    // which cdk-assets now follows when zipping, failing the deploy. None are needed at runtime.
+    buildCommand:
+      "npx --yes @opennextjs/aws@3.5.5 build && find .open-next -type l ! -exec test -e {} \\; -delete",
     // Use the root hosted zone
     customDomain: {
       domainName: fqdn,
