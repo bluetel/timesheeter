@@ -18,7 +18,7 @@ commands:
           node-version: "24"
       - run:
           name: Install pnpm
-          command: npm i -g pnpm
+          command: npm i -g pnpm@12
       - run:
           name: Install dependencies
           command: pnpm install
