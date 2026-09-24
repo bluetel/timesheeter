@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "./run-dev.sh",
     "dev:web": "pnpm run -C packages/web dev",
-    "generate": "pnpm run --recursive generate",
+    "generate": "pnpm run --recursive --if-present generate",
     "postinstall": "pnpm run generate",
     "build": "pnpm build:web",
     "build:web": "pnpm run -C packages/web build",
