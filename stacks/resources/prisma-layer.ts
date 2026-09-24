@@ -131,7 +131,7 @@ export class PrismaLayer extends LayerVersion {
     // hint for prisma to find the engine
     this.environment = {
       PRISMA_QUERY_ENGINE_LIBRARY:
-        '/opt/nodejs/node_modules/@prisma/engines/libquery_engine-rhel-openssl-1.0.x.so.node',
+        '/opt/nodejs/node_modules/@prisma/engines/libquery_engine-rhel-openssl-3.0.x.so.node',
     };
     // modules provided by layer
     this.externalModules = [...new Set([...PRISMA_LAYER_EXTERNAL, ...nodeModules])];

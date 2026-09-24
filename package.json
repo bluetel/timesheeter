@@ -22,16 +22,16 @@
     "local:containers:down": "docker-compose down"
   },
   "dependencies": {
-    "sst": "2.43.0",
+    "sst": "2.49.8",
     "zod": "^3.21.4"
   },
   "devDependencies": {
     "@tsconfig/node18-strictest-esm": "^1.0.1",
-    "@types/node": "^18.0.0",
+    "@types/node": "^24.0.0",
     "@types/prettier": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "^5.59.9",
     "@typescript-eslint/parser": "^5.59.9",
-    "aws-cdk-lib": "2.142.1",
+    "aws-cdk-lib": "2.224.0",
     "concurrently": "^7.3.0",
     "constructs": "10.3.0",
     "eslint": "^8.42.0",
